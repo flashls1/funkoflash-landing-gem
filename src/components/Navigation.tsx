@@ -10,12 +10,27 @@ import { Globe, Menu, X } from "lucide-react";
 interface NavigationProps {
   language: 'en' | 'es';
   setLanguage: (lang: 'en' | 'es') => void;
+  customStyles?: {
+    backgroundColor?: string;
+    textColor?: string;
+    titleColor?: string;
+    fontSize?: string;
+    fontFamily?: string;
+  };
 }
 
-const Navigation = ({ language, setLanguage }: NavigationProps) => {
+const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Apply custom styles with fallbacks
+  const navStyles = {
+    backgroundColor: customStyles?.backgroundColor || 'hsl(var(--background))',
+    color: customStyles?.textColor || 'hsl(var(--foreground))',
+    fontSize: customStyles?.fontSize || '14px',
+    fontFamily: customStyles?.fontFamily || 'inherit'
+  };
 
   const navigationItems = {
     en: ['HOME', 'SHOP', 'TALENT DIRECTORY', 'EVENTS', 'ABOUT', 'CONTACT'],
@@ -28,7 +43,13 @@ const Navigation = ({ language, setLanguage }: NavigationProps) => {
   };
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50 shadow-sm">
+    <nav 
+      className="border-b border-border sticky top-0 z-50 shadow-sm"
+      style={{ 
+        backgroundColor: navStyles.backgroundColor,
+        fontFamily: navStyles.fontFamily 
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -47,7 +68,11 @@ const Navigation = ({ language, setLanguage }: NavigationProps) => {
                 <a
                   key={index}
                   href="#"
-                  className="text-foreground hover:text-funko-orange font-medium text-sm tracking-wide transition-colors duration-300 hover:scale-105 transform"
+                  style={{ 
+                    color: customStyles?.titleColor || navStyles.color,
+                    fontSize: navStyles.fontSize 
+                  }}
+                  className="hover:text-funko-orange font-medium tracking-wide transition-colors duration-300 hover:scale-105 transform"
                 >
                   {item}
                 </a>
@@ -113,7 +138,8 @@ const Navigation = ({ language, setLanguage }: NavigationProps) => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-foreground hover:text-funko-orange transition-colors"
+              style={{ color: navStyles.color }}
+              className="hover:text-funko-orange transition-colors"
             >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6" />
@@ -127,13 +153,20 @@ const Navigation = ({ language, setLanguage }: NavigationProps) => {
 
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-background border-t border-border">
+        <div 
+          className="md:hidden border-t border-border"
+          style={{ backgroundColor: navStyles.backgroundColor }}
+        >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navigationItems[language].map((item, index) => (
               <a
                 key={index}
                 href="#"
-                className="text-foreground hover:text-funko-orange block px-3 py-2 text-base font-medium transition-colors"
+                style={{ 
+                  color: customStyles?.titleColor || navStyles.color,
+                  fontSize: navStyles.fontSize 
+                }}
+                className="hover:text-funko-orange block px-3 py-2 font-medium transition-colors"
               >
                 {item}
               </a>
@@ -141,7 +174,12 @@ const Navigation = ({ language, setLanguage }: NavigationProps) => {
             
             {/* Mobile Language Toggle */}
             <div className="flex items-center justify-between px-3 py-2">
-              <span className="text-sm font-medium text-muted-foreground">Language:</span>
+              <span 
+                className="text-sm font-medium text-muted-foreground"
+                style={{ color: navStyles.color }}
+              >
+                Language:
+              </span>
               <div className="flex items-center space-x-2 bg-muted p-1 rounded-full">
                 <button
                   onClick={() => setLanguage('en')}
@@ -164,9 +202,39 @@ const Navigation = ({ language, setLanguage }: NavigationProps) => {
 
             {/* Mobile Login Button */}
             <div className="px-3 py-2">
-              <Button variant="funko" className="w-full font-medium tracking-wide">
-                {loginText[language]}
-              </Button>
+              {user && profile ? (
+                <Button 
+                  variant="funko" 
+                  className="w-full font-medium tracking-wide group relative overflow-hidden"
+                  onClick={() => {
+                    const dashboardPath = `/dashboard/${profile.role}`;
+                    if (window.location.pathname === dashboardPath) {
+                      signOut();
+                    } else {
+                      navigate(dashboardPath);
+                    }
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  <span className="group-hover:opacity-0 transition-opacity duration-300">
+                    {language === 'en' ? 'DASHBOARD' : 'PANEL'}
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {language === 'en' ? 'LOG OUT' : 'CERRAR SESIÓN'}
+                  </span>
+                </Button>
+              ) : (
+                <Button 
+                  variant="funko" 
+                  className="w-full font-medium tracking-wide"
+                  onClick={() => {
+                    navigate('/auth');
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  {loginText[language]}
+                </Button>
+              )}
             </div>
           </div>
         </div>

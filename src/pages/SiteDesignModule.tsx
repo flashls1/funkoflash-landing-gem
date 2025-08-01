@@ -28,7 +28,8 @@ import {
   Settings,
   Layers,
   Grid,
-  Square
+  Square,
+  Navigation
 } from 'lucide-react';
 
 interface PageSettings {
@@ -78,7 +79,7 @@ const SiteDesignModule = () => {
               ✨ Site Design Module
             </h1>
             <p className="text-muted-foreground text-lg">
-              Customize all pages with backgrounds, heroes, colors, fonts, and layouts
+              Customize all pages with backgrounds, heroes, navigation, colors, fonts, and layouts
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -167,9 +168,10 @@ const SiteDesignModule = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="backgrounds">Backgrounds</TabsTrigger>
                   <TabsTrigger value="heroes">Heroes</TabsTrigger>
+                  <TabsTrigger value="navigation">Navigation</TabsTrigger>
                 </TabsList>
                 <TabsList className="grid w-full grid-cols-2 mt-2">
                   <TabsTrigger value="colors">Colors</TabsTrigger>
@@ -288,6 +290,127 @@ const SiteDesignModule = () => {
                         <Slider defaultValue={[50]} max={100} step={1} className="mt-2" />
                       </div>
                     </div>
+                  </div>
+                </TabsContent>
+
+                {/* Navigation Settings */}
+                <TabsContent value="navigation" className="space-y-4 mt-6">
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">✨ Navigation Bar Customization</Label>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-xs">Navigation Background Color</Label>
+                        <div className="flex gap-2 mt-2">
+                          <Input type="color" defaultValue="#ffffff" className="h-10 w-20" />
+                          <Input placeholder="Or enter HSL/RGB" className="flex-1" />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Navigation Text Color</Label>
+                        <div className="flex gap-2 mt-2">
+                          <Input type="color" defaultValue="#1a1a1a" className="h-10 w-20" />
+                          <Input placeholder="Or enter HSL/RGB" className="flex-1" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs">Title Text Color</Label>
+                        <div className="flex gap-2 mt-2">
+                          <Input type="color" defaultValue="#FF8C00" className="h-10 w-20" />
+                          <Input placeholder="Or enter HSL/RGB" className="flex-1" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Navigation Typography</Label>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs">Font Family</Label>
+                        <Select defaultValue="Inter">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {fontOptions.map((font) => (
+                              <SelectItem key={font} value={font}>{font}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Font Size</Label>
+                        <div className="flex items-center gap-3 mt-2">
+                          <Slider 
+                            defaultValue={[14]} 
+                            min={10} 
+                            max={24} 
+                            step={1} 
+                            className="flex-1" 
+                          />
+                          <span className="text-sm text-muted-foreground w-8">14px</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs">Font Weight</Label>
+                        <Select defaultValue="medium">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="light">Light (300)</SelectItem>
+                            <SelectItem value="normal">Normal (400)</SelectItem>
+                            <SelectItem value="medium">Medium (500)</SelectItem>
+                            <SelectItem value="semibold">Semibold (600)</SelectItem>
+                            <SelectItem value="bold">Bold (700)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Navigation Layout</Label>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs">Navigation Height</Label>
+                        <div className="flex items-center gap-3 mt-2">
+                          <Slider 
+                            defaultValue={[64]} 
+                            min={48} 
+                            max={96} 
+                            step={4} 
+                            className="flex-1" 
+                          />
+                          <span className="text-sm text-muted-foreground w-8">64px</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Show Shadow</Label>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Sticky Navigation</Label>
+                        <Switch defaultChecked />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                    <p className="text-xs text-muted-foreground">
+                      ℹ️ Language toggle button styling remains unchanged as requested. 
+                      Login button inherits navigation colors automatically.
+                    </p>
                   </div>
                 </TabsContent>
 
