@@ -313,6 +313,26 @@ const StaffDashboard = () => {
                   </Button>
                 </CardContent>
               </Card>
+
+              <Card className="border-funko-green/20 bg-funko-green/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span className="text-funko-green">🛍️</span>
+                    {language === 'en' ? 'Shop Manager' : 'Gestor de Tienda'}
+                  </CardTitle>
+                  <CardDescription>
+                    {language === 'en' ? 'Manage products, images, and shop inventory' : 'Gestionar productos, imágenes e inventario de la tienda'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full"
+                    onClick={() => window.location.href = '/admin/shop-manager'}
+                  >
+                    {language === 'en' ? 'Manage Shop' : 'Gestionar Tienda'}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 

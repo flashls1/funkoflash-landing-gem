@@ -13,6 +13,8 @@ import SiteDesignModule from "./pages/SiteDesignModule";
 import TalentDirectory from "./pages/TalentDirectory";
 import TalentProfile from "./pages/TalentProfile";
 import TalentDirectoryCMS from "./pages/TalentDirectoryCMS";
+import Shop from "./pages/Shop";
+import ShopManager from "./pages/ShopManager";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ const App = () => (
             <Route path="/talent-directory" element={<TalentDirectory />} />
             <Route path="/talent/:slug" element={<TalentProfile />} />
             <Route path="/admin/talent-directory" element={<TalentDirectoryCMS />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/admin/shop-manager" element={<ShopManager />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

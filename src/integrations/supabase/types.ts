@@ -151,6 +151,45 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_products: {
+        Row: {
+          active: boolean
+          autoplay_interval: number
+          created_at: string
+          description: string
+          id: string
+          image_urls: Json | null
+          price: number
+          square_checkout_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          autoplay_interval?: number
+          created_at?: string
+          description: string
+          id?: string
+          image_urls?: Json | null
+          price: number
+          square_checkout_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          autoplay_interval?: number
+          created_at?: string
+          description?: string
+          id?: string
+          image_urls?: Json | null
+          price?: number
+          square_checkout_url?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       talent_profiles: {
         Row: {
           active: boolean
