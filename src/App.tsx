@@ -10,6 +10,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import StaffDashboard from "./pages/StaffDashboard"; 
 import TalentDashboard from "./pages/TalentDashboard";
 import SiteDesignModule from "./pages/SiteDesignModule";
+import TalentDirectory from "./pages/TalentDirectory";
+import TalentProfile from "./pages/TalentProfile";
+import TalentDirectoryCMS from "./pages/TalentDirectoryCMS";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +31,9 @@ const App = () => (
             <Route path="/dashboard/staff" element={<StaffDashboard />} />
             <Route path="/dashboard/talent" element={<TalentDashboard />} />
             <Route path="/admin/site-design" element={<SiteDesignModule />} />
+            <Route path="/talent-directory" element={<TalentDirectory />} />
+            <Route path="/talent/:slug" element={<TalentProfile />} />
+            <Route path="/admin/talent-directory" element={<TalentDirectoryCMS />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -37,6 +37,8 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
     es: ['INICIO', 'TIENDA', 'DIRECTORIO DE TALENTO', 'EVENTOS', 'ACERCA DE', 'CONTACTO']
   };
 
+  const navigationLinks = ['/', '/shop', '/talent-directory', '/events', '/about', '/contact'];
+
   const loginText = {
     en: 'LOG IN',
     es: 'INICIAR SESIÓN'
@@ -67,7 +69,7 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
               {navigationItems[language].map((item, index) => (
                 <a
                   key={index}
-                  href="#"
+                  href={navigationLinks[index]}
                   style={{ 
                     color: customStyles?.titleColor || navStyles.color,
                     fontSize: navStyles.fontSize 
@@ -161,7 +163,7 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
             {navigationItems[language].map((item, index) => (
               <a
                 key={index}
-                href="#"
+                href={navigationLinks[index]}
                 style={{ 
                   color: customStyles?.titleColor || navStyles.color,
                   fontSize: navStyles.fontSize 

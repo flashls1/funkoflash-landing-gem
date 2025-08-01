@@ -293,6 +293,26 @@ const StaffDashboard = () => {
                   <Button className="w-full">{t.manageResources}</Button>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    {language === 'en' ? 'Talent Directory' : 'Directorio de Talento'}
+                  </CardTitle>
+                  <CardDescription>
+                    {language === 'en' ? 'Manage talent profiles and directory banner' : 'Gestionar perfiles de talento y banner del directorio'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full"
+                    onClick={() => window.location.href = '/admin/talent-directory'}
+                  >
+                    {language === 'en' ? 'Manage Talent Directory' : 'Gestionar Directorio de Talento'}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 

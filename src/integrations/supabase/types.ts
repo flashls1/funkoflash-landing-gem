@@ -44,6 +44,38 @@ export type Database = {
         }
         Relationships: []
       }
+      directory_settings: {
+        Row: {
+          banner_alt_text: string | null
+          banner_image_url: string | null
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          banner_alt_text?: string | null
+          banner_image_url?: string | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          banner_alt_text?: string | null
+          banner_image_url?: string | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           attachment_url: string | null
@@ -116,6 +148,45 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      talent_profiles: {
+        Row: {
+          active: boolean
+          bio: string | null
+          created_at: string
+          headshot_url: string | null
+          id: string
+          name: string
+          slug: string
+          sort_rank: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          bio?: string | null
+          created_at?: string
+          headshot_url?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_rank?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          bio?: string | null
+          created_at?: string
+          headshot_url?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_rank?: number
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

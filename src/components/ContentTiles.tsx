@@ -18,7 +18,7 @@ const ContentTiles = ({ language }: ContentTilesProps) => {
           title: "Voice Talent Directory",
           description: "Browse our exclusive roster of legendary voice actors. From anime dubbing to commercial work, find the perfect voice for your project.",
           buttonText: "Explore Talent",
-          link: "/talent"
+          link: "/talent-directory"
         },
         {
           image: signedFunkosImage,
@@ -64,7 +64,7 @@ const ContentTiles = ({ language }: ContentTilesProps) => {
           title: "Directorio de Talento de Voz",
           description: "Explora nuestro exclusivo roster de actores de voz legendarios. Desde doblaje de anime hasta trabajo comercial, encuentra la voz perfecta para tu proyecto.",
           buttonText: "Explorar Talento",
-          link: "/talent"
+          link: "/talent-directory"
         },
         {
           image: signedFunkosImage,
