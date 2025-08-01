@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import MessageCenter from '@/components/MessageCenter';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3 } from 'lucide-react';
+import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
@@ -85,7 +85,10 @@ const AdminDashboard = () => {
       viewReports: "View Reports",
       contentManagement: "Content Management",
       contentManagementDesc: "Manage website content, pages, and media",
-      manageContent: "Manage Content"
+      manageContent: "Manage Content",
+      siteDesign: "Site Design Module",
+      siteDesignDesc: "Customize backgrounds, heroes, colors, fonts, and layouts",
+      manageSiteDesign: "Open Design Module"
     },
     es: {
       dashboard: "Panel de Administrador",
@@ -116,7 +119,10 @@ const AdminDashboard = () => {
       viewReports: "Ver Reportes",
       contentManagement: "Gestión de Contenido",
       contentManagementDesc: "Gestionar contenido del sitio web, páginas y medios",
-      manageContent: "Gestionar Contenido"
+      manageContent: "Gestionar Contenido",
+      siteDesign: "Módulo de Diseño del Sitio",
+      siteDesignDesc: "Personalizar fondos, héroes, colores, fuentes y diseños",
+      manageSiteDesign: "Abrir Módulo de Diseño"
     }
   };
 
@@ -296,6 +302,24 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <Button className="w-full">{t.manageContent}</Button>
+                </CardContent>
+              </Card>
+
+              <Card className="border-funko-orange/20 bg-funko-orange/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Palette className="h-5 w-5 text-funko-orange" />
+                    ✨ {t.siteDesign}
+                  </CardTitle>
+                  <CardDescription>{t.siteDesignDesc}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => navigate('/admin/site-design')}
+                  >
+                    {t.manageSiteDesign}
+                  </Button>
                 </CardContent>
               </Card>
             </div>

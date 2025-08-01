@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import StaffDashboard from "./pages/StaffDashboard"; 
 import TalentDashboard from "./pages/TalentDashboard";
+import SiteDesignModule from "./pages/SiteDesignModule";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/dashboard/admin" element={<AdminDashboard />} />
             <Route path="/dashboard/staff" element={<StaffDashboard />} />
             <Route path="/dashboard/talent" element={<TalentDashboard />} />
+            <Route path="/admin/site-design" element={<SiteDesignModule />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

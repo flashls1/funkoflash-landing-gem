@@ -60,6 +60,9 @@ All colors MUST be HSL.
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Default Site Background */
+    --site-background: url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png');
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
