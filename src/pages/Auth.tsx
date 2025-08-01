@@ -1,0 +1,406 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
+
+interface AccessRequestForm {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+}
+
+const Auth = () => {
+  const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [showRequestAccess, setShowRequestAccess] = useState(false);
+  const [accessForm, setAccessForm] = useState<AccessRequestForm>({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+
+  const { signIn, signUp, resetPassword, user, profile } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const content = {
+    en: {
+      login: "Login",
+      signup: "Sign Up",
+      email: "Email",
+      password: "Password",
+      firstName: "First Name",
+      lastName: "Last Name",
+      loginButton: "Sign In",
+      signupButton: "Create Account",
+      forgotPassword: "Forgot Password?",
+      resetPassword: "Reset Password",
+      sendReset: "Send Reset Email",
+      cancel: "Cancel",
+      switchToSignup: "Don't have an account? Sign up",
+      switchToLogin: "Already have an account? Sign in",
+      requestAccess: "REQUEST ACCESS",
+      requestAccessTitle: "Request Access",
+      requestAccessDesc: "Fill out this form to request access to the platform",
+      name: "Name",
+      phone: "Phone Number",
+      message: "Message",
+      submitRequest: "Submit Request",
+      loginTitle: "Welcome Back",
+      loginDesc: "Sign in to your account",
+      signupTitle: "Create Account", 
+      signupDesc: "Join the FunkoFlash platform"
+    },
+    es: {
+      login: "Iniciar Sesión",
+      signup: "Registrarse",
+      email: "Correo Electrónico",
+      password: "Contraseña",
+      firstName: "Nombre",
+      lastName: "Apellido",
+      loginButton: "Iniciar Sesión",
+      signupButton: "Crear Cuenta",
+      forgotPassword: "¿Olvidaste tu contraseña?",
+      resetPassword: "Restablecer Contraseña",
+      sendReset: "Enviar Email de Restablecimiento",
+      cancel: "Cancelar",
+      switchToSignup: "¿No tienes cuenta? Regístrate",
+      switchToLogin: "¿Ya tienes cuenta? Inicia sesión",
+      requestAccess: "SOLICITAR ACCESO",
+      requestAccessTitle: "Solicitar Acceso",
+      requestAccessDesc: "Completa este formulario para solicitar acceso a la plataforma",
+      name: "Nombre",
+      phone: "Número de Teléfono",
+      message: "Mensaje",
+      submitRequest: "Enviar Solicitud",
+      loginTitle: "Bienvenido de Nuevo",
+      loginDesc: "Inicia sesión en tu cuenta",
+      signupTitle: "Crear Cuenta",
+      signupDesc: "Únete a la plataforma FunkoFlash"
+    }
+  };
+
+  const t = content[language];
+
+  useEffect(() => {
+    if (user && profile) {
+      // Redirect based on user role
+      switch (profile.role) {
+        case 'admin':
+          navigate('/dashboard/admin');
+          break;
+        case 'staff':
+          navigate('/dashboard/staff');
+          break;
+        case 'talent':
+          navigate('/dashboard/talent');
+          break;
+        default:
+          navigate('/');
+      }
+    }
+  }, [user, profile, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (!email || !password) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (isLogin) {
+      await signIn(email, password);
+    } else {
+      if (!firstName || !lastName) {
+        toast({
+          title: "Validation Error",
+          description: "Please fill in all required fields",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+      await signUp(email, password, firstName, lastName);
+    }
+
+    setLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!resetEmail) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await resetPassword(resetEmail);
+    setShowForgotPassword(false);
+    setResetEmail('');
+  };
+
+  const handleRequestAccess = async () => {
+    if (!accessForm.name || !accessForm.email || !accessForm.message) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('access_requests')
+        .insert([accessForm]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Request Submitted",
+        description: "Your access request has been submitted. An admin will review it shortly.",
+      });
+
+      setShowRequestAccess(false);
+      setAccessForm({ name: '', email: '', phone: '', message: '' });
+    } catch (error: any) {
+      toast({
+        title: "Submission Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navigation language={language} setLanguage={setLanguage} />
+      
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">
+              {isLogin ? t.loginTitle : t.signupTitle}
+            </CardTitle>
+            <CardDescription>
+              {isLogin ? t.loginDesc : t.signupDesc}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {!isLogin && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">{t.firstName}</Label>
+                    <Input
+                      id="firstName"
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      required={!isLogin}
+                      placeholder={t.firstName}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">{t.lastName}</Label>
+                    <Input
+                      id="lastName"
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      required={!isLogin}
+                      placeholder={t.lastName}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">{t.email}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder={t.email}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">{t.password}</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder={t.password}
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "..." : (isLogin ? t.loginButton : t.signupButton)}
+              </Button>
+            </form>
+
+            <div className="text-center space-y-2">
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {t.forgotPassword}
+                </button>
+              )}
+
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {isLogin ? t.switchToSignup : t.switchToLogin}
+                </button>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowRequestAccess(true)}
+                className="w-full mt-4"
+              >
+                {t.requestAccess}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Footer language={language} />
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.resetPassword}</DialogTitle>
+            <DialogDescription>
+              Enter your email address to receive password reset instructions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="resetEmail">{t.email}</Label>
+              <Input
+                id="resetEmail"
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder={t.email}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowForgotPassword(false)}>
+              {t.cancel}
+            </Button>
+            <Button onClick={handleForgotPassword}>
+              {t.sendReset}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Request Access Dialog */}
+      <Dialog open={showRequestAccess} onOpenChange={setShowRequestAccess}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.requestAccessTitle}</DialogTitle>
+            <DialogDescription>
+              {t.requestAccessDesc}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="accessName">{t.name}</Label>
+              <Input
+                id="accessName"
+                type="text"
+                value={accessForm.name}
+                onChange={(e) => setAccessForm({...accessForm, name: e.target.value})}
+                placeholder={t.name}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="accessEmail">{t.email}</Label>
+              <Input
+                id="accessEmail"
+                type="email"
+                value={accessForm.email}
+                onChange={(e) => setAccessForm({...accessForm, email: e.target.value})}
+                placeholder={t.email}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="accessPhone">{t.phone}</Label>
+              <Input
+                id="accessPhone"
+                type="tel"
+                value={accessForm.phone}
+                onChange={(e) => setAccessForm({...accessForm, phone: e.target.value})}
+                placeholder={t.phone}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="accessMessage">{t.message}</Label>
+              <Textarea
+                id="accessMessage"
+                value={accessForm.message}
+                onChange={(e) => setAccessForm({...accessForm, message: e.target.value})}
+                placeholder={t.message}
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRequestAccess(false)}>
+              {t.cancel}
+            </Button>
+            <Button onClick={handleRequestAccess}>
+              {t.submitRequest}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Auth;

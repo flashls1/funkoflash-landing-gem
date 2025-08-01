@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import funkoFlashLogo from "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png";
 import flagUs from "@/assets/flag-us.png";
 import flagMx from "@/assets/flag-mx.png";
@@ -12,6 +14,8 @@ interface NavigationProps {
 
 const Navigation = ({ language, setLanguage }: NavigationProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const navigationItems = {
     en: ['HOME', 'SHOP', 'TALENT DIRECTORY', 'EVENTS', 'ABOUT', 'CONTACT'],
@@ -74,9 +78,35 @@ const Navigation = ({ language, setLanguage }: NavigationProps) => {
             </div>
 
             {/* Login Button */}
-            <Button variant="funko" className="font-medium tracking-wide">
-              {loginText[language]}
-            </Button>
+            {user && profile ? (
+              <Button 
+                variant="funko" 
+                className="font-medium tracking-wide group relative overflow-hidden"
+                onClick={() => {
+                  const dashboardPath = `/dashboard/${profile.role}`;
+                  if (window.location.pathname === dashboardPath) {
+                    signOut();
+                  } else {
+                    navigate(dashboardPath);
+                  }
+                }}
+              >
+                <span className="group-hover:opacity-0 transition-opacity duration-300">
+                  {language === 'en' ? 'DASHBOARD' : 'PANEL'}
+                </span>
+                <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {language === 'en' ? 'LOG OUT' : 'CERRAR SESIÓN'}
+                </span>
+              </Button>
+            ) : (
+              <Button 
+                variant="funko" 
+                className="font-medium tracking-wide"
+                onClick={() => navigate('/auth')}
+              >
+                {loginText[language]}
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
