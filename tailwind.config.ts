@@ -61,7 +61,30 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// FunkoFlash Brand Colors
+				'funko-orange': {
+					DEFAULT: 'hsl(var(--funko-orange))',
+					light: 'hsl(var(--funko-orange-light))',
+					dark: 'hsl(var(--funko-orange-dark))'
+				},
+				'funko-blue': {
+					DEFAULT: 'hsl(var(--funko-blue))',
+					light: 'hsl(var(--funko-blue-light))',
+					dark: 'hsl(var(--funko-blue-dark))'
 				}
+			},
+			backgroundImage: {
+				'gradient-hero': 'var(--gradient-hero)',
+				'gradient-overlay-top': 'var(--gradient-overlay-top)',
+				'gradient-overlay-bottom': 'var(--gradient-overlay-bottom)'
+			},
+			boxShadow: {
+				'funko': 'var(--shadow-funko)',
+				'funko-blue': 'var(--shadow-funko-blue)'
+			},
+			transitionTimingFunction: {
+				'smooth': 'var(--transition-smooth)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
