@@ -1,5 +1,5 @@
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react";
-import funkoFlashLogo from "@/assets/funko-flash-logo.png";
+import funkoFlashLogo from "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png";
 
 interface FooterProps {
   language: 'en' | 'es';

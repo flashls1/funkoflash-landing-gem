@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import funkoFlashLogo from "@/assets/funko-flash-logo.png";
+import funkoFlashLogo from "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png";
 import flagUs from "@/assets/flag-us.png";
 import flagMx from "@/assets/flag-mx.png";
 import { Globe, Menu, X } from "lucide-react";
