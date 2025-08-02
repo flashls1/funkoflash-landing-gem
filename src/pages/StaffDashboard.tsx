@@ -236,55 +236,64 @@ const StaffDashboard = () => {
           </div>
         </div>
 
-        {/* Profile Section with integrated lock toggle */}
-        <div className="mb-6 space-y-4">
+        {/* Combined Profile and Module Layout Bar */}
+        <div className="mb-6 space-y-0">
           <ProfileManager language={language} />
           
-          {/* Lock Toggle integrated in profile area */}
-          <div className="flex items-center justify-end bg-white/90 backdrop-blur-sm border-2 border-black rounded-lg p-3">
-            <div className="flex items-center gap-3">
-              {isDragEnabled ? <Unlock className="h-4 w-4 text-gray-600" /> : <Lock className="h-4 w-4 text-gray-600" />}
-              <span className="text-sm font-medium text-gray-700">
-                {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
-              </span>
-              <Switch
-                checked={isDragEnabled}
-                onCheckedChange={setIsDragEnabled}
-                className="data-[state=checked]:bg-green-500"
-              />
-              <span className="text-gray-600 text-xs">
-                {isDragEnabled 
-                  ? (language === 'en' ? 'Unlocked' : 'Desbloqueado')
-                  : (language === 'en' ? 'Locked' : 'Bloqueado')
-                }
-              </span>
-            </div>
-          </div>
+          {/* Combined Module Layout and Navigation Bar - Flush with profile */}
+          <Card className="border-2 border-black border-t-0 rounded-t-none bg-white/90 backdrop-blur-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-8">
+                  {/* Module Layout Controls */}
+                  <div className="flex items-center gap-3">
+                    {isDragEnabled ? <Unlock className="h-4 w-4 text-gray-600" /> : <Lock className="h-4 w-4 text-gray-600" />}
+                    <span className="text-sm font-medium text-gray-700">
+                      {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
+                    </span>
+                    <Switch
+                      checked={isDragEnabled}
+                      onCheckedChange={setIsDragEnabled}
+                      className="data-[state=checked]:bg-green-500"
+                    />
+                    <span className="text-gray-600 text-xs">
+                      {isDragEnabled 
+                        ? (language === 'en' ? 'Unlocked' : 'Desbloqueado')
+                        : (language === 'en' ? 'Locked' : 'Bloqueado')
+                      }
+                    </span>
+                  </div>
+
+                  {/* Navigation Tabs */}
+                  <nav className="flex space-x-6">
+                    <button className="py-2 px-3 border-b-2 border-funko-orange text-funko-orange font-medium text-sm transition-colors flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      {t.overview}
+                    </button>
+                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      {t.schedule}
+                    </button>
+                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      {t.messages}
+                    </button>
+                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      {t.tasks}
+                    </button>
+                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      {t.reports}
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 border-2 border-black bg-white">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              {t.overview}
-            </TabsTrigger>
-            <TabsTrigger value="schedule" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              {t.schedule}
-            </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              {t.messages}
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              {t.tasks}
-            </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              {t.reports}
-            </TabsTrigger>
-          </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             {/* Stats Cards */}

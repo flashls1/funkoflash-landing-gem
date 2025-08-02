@@ -286,6 +286,22 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
     }
   };
 
+  const toggleInvisible = async () => {
+    if (!user) return;
+    
+    const newStatus = profileData.status === 'invisible' ? 'online' : 'invisible';
+    setProfileData(prev => ({ ...prev, status: newStatus }));
+    
+    try {
+      await supabase
+        .from('profiles')
+        .update({ status: newStatus })
+        .eq('user_id', user.id);
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
   return (
     <Card 
       className="border-2 border-black bg-cover bg-center bg-no-repeat"
@@ -314,15 +330,41 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
                 <span style={{ color: profileData.name_color || '#ffffff' }} className="font-medium">
                   {profile.first_name} {profile.last_name}
                 </span>
-                <span className={`text-xs font-semibold ${getStatusColor(profileData.status)}`}>
-                  {getStatusText(profileData.status)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    profileData.status === 'online' 
+                      ? 'bg-green-500 animate-pulse' 
+                      : profileData.status === 'invisible'
+                      ? 'bg-blue-500 animate-pulse'
+                      : 'bg-red-500'
+                  }`} />
+                  <span className={`text-xs font-semibold ${getStatusColor(profileData.status)}`}>
+                    {getStatusText(profileData.status)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground">Invisible Mode:</span>
+                  <button
+                    onClick={toggleInvisible}
+                    className={`w-8 h-4 rounded-full transition-colors ${
+                      profileData.status === 'invisible' ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <div className={`w-3 h-3 rounded-full bg-white transition-transform ${
+                      profileData.status === 'invisible' ? 'translate-x-4' : 'translate-x-0.5'
+                    }`} />
+                  </button>
+                </div>
               </CardDescription>
             </div>
           </div>
           <Dialog open={isEditing} onOpenChange={setIsEditing}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white border-white border-2 font-bold shadow-lg hover:shadow-xl transition-all"
+              >
                 {t.editProfile}
               </Button>
             </DialogTrigger>
