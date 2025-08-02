@@ -70,7 +70,16 @@ const SiteDesignModule = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div 
+      className="min-h-screen p-6"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">

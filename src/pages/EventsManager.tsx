@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 interface Event {
   id: string;
@@ -39,6 +41,7 @@ interface TalentProfile {
 export default function EventsManager() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [events, setEvents] = useState<Event[]>([]);
   const [talentProfiles, setTalentProfiles] = useState<TalentProfile[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -279,18 +282,42 @@ export default function EventsManager() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-32 bg-muted rounded-lg" />
-          ))}
+      <div 
+        className="min-h-screen"
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <Navigation language={language} setLanguage={setLanguage} />
+        <div className="container mx-auto px-4 py-8">
+          <div className="animate-pulse space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-32 bg-muted rounded-lg" />
+            ))}
+          </div>
         </div>
+        <Footer language={language} />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div 
+      className="min-h-screen"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <Navigation language={language} setLanguage={setLanguage} />
+      <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Events Manager</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -532,6 +559,8 @@ export default function EventsManager() {
           <p className="text-sm text-muted-foreground">Create your first event to get started.</p>
         </div>
       )}
+      </div>
+      <Footer language={language} />
     </div>
   );
 }

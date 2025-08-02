@@ -229,7 +229,16 @@ const TalentDirectoryCMS = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div 
+        className="min-h-screen"
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
         <Navigation language={language} setLanguage={setLanguage} />
         <div className="pt-20 p-8">
           <div className="animate-pulse space-y-4">
@@ -244,7 +253,16 @@ const TalentDirectoryCMS = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Navigation language={language} setLanguage={setLanguage} />
       
       <main className="pt-20 p-8">
