@@ -168,7 +168,7 @@ const SiteDesignModule = () => {
 
   return (
     <div 
-      className="min-h-screen bg-background"
+      className="min-h-screen"
       style={{
         backgroundImage: 'var(--site-background)',
         backgroundSize: 'cover',
@@ -178,8 +178,7 @@ const SiteDesignModule = () => {
       }}
     >
       <Navigation language={language} setLanguage={setLanguage} />
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30">
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-6 bg-background/80 backdrop-blur-sm rounded-lg">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -571,11 +570,11 @@ const SiteDesignModule = () => {
                                 <SelectItem key={font} value={font}>{font}</SelectItem>
                               ))}
                             </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
+                           </Select>
+                         </div>
+                       </div>
+                     </div>
+                   </TabsContent>
                 </Tabs>
 
                 <Separator className="my-6" />
@@ -641,7 +640,6 @@ const SiteDesignModule = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
       </div>
       <Footer language={language} />
     </div>
