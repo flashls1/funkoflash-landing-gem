@@ -9,6 +9,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import { useAuth } from '@/hooks/useAuth';
+import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Calendar, MessageSquare, FileText, Users, BarChart3, Settings, ClipboardList, UserCheck, Wrench, ShoppingBag, Lock, Unlock, Palette, ChevronDown } from 'lucide-react';
@@ -199,46 +200,7 @@ const StaffDashboard = () => {
       >
         <Navigation language={language} setLanguage={setLanguage} />
         
-        <div className="container mx-auto px-4 py-8 bg-background/80 backdrop-blur-sm rounded-lg">
-        {/* Header with Enhanced Design */}
-        <div className="relative mb-8 overflow-hidden">
-          {/* Background gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent rounded-2xl"></div>
-          
-          {/* Content */}
-          <div className="relative p-8 bg-gradient-to-r from-blue-900/80 via-teal-900/80 to-green-900/80 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl">
-            <div className="flex items-center gap-4">
-              {/* Decorative accent */}
-              <div className="w-2 h-16 bg-gradient-to-b from-blue-400 via-teal-400 to-green-400 rounded-full shadow-lg"></div>
-              
-              <div>
-                <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-2xl tracking-tight">
-                  {getGreeting()}
-                </h1>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
-                  <p className="text-xl text-white/95 font-medium drop-shadow-lg">
-                    {currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      timeZone: 'America/Chicago'
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Additional decorative elements */}
-            <div className="absolute top-4 right-4 flex space-x-2">
-              <div className="w-3 h-3 bg-white/20 rounded-full"></div>
-              <div className="w-3 h-3 bg-white/30 rounded-full"></div>
-              <div className="w-3 h-3 bg-white/40 rounded-full"></div>
-            </div>
-          </div>
-        </div>
-
+        <div className="container mx-auto px-4 py-8">
         {/* Combined Profile Header with Greeting and Date */}
         <div className="mb-6">
           <Card 
@@ -271,6 +233,7 @@ const StaffDashboard = () => {
                       {profile?.first_name} {profile?.last_name}
                     </h2>
                     <p className="text-white/90 capitalize">{profile?.role}</p>
+                    <InvisibleModeToggle language={language} className="mt-2" />
                   </div>
                 </div>
                 <div className="text-right text-white">
@@ -307,16 +270,16 @@ const StaffDashboard = () => {
                 <div className="flex items-center gap-8">
                   {/* Module Layout Controls */}
                   <div className="flex items-center gap-3">
-                    {isDragEnabled ? <Unlock className="h-4 w-4 text-gray-600" /> : <Lock className="h-4 w-4 text-gray-600" />}
-                    <span className="text-sm font-medium text-gray-700">
+                    {isDragEnabled ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                    <span className="text-sm font-medium">
                       {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
                     </span>
                     <Switch
                       checked={isDragEnabled}
                       onCheckedChange={setIsDragEnabled}
-                      className="data-[state=checked]:bg-green-500"
+                      style={{ backgroundColor: isDragEnabled ? currentTheme.accent : undefined }}
                     />
-                    <span className="text-gray-600 text-xs">
+                    <span className="text-xs opacity-70">
                       {isDragEnabled 
                         ? (language === 'en' ? 'Unlocked' : 'Desbloqueado')
                         : (language === 'en' ? 'Locked' : 'Bloqueado')
@@ -326,28 +289,88 @@ const StaffDashboard = () => {
 
                   {/* Navigation Tabs */}
                   <nav className="flex space-x-6">
-                    <button className="py-2 px-3 border-b-2 border-funko-orange text-funko-orange font-medium text-sm transition-colors flex items-center gap-2">
+                    <button 
+                      className="py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 border-current"
+                      style={{ color: currentTheme.accent }}
+                    >
                       <BarChart3 className="h-4 w-4" />
                       {t.overview}
                     </button>
-                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                    <button 
+                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
+                      style={{ color: currentTheme.cardForeground }}
+                    >
                       <Calendar className="h-4 w-4" />
                       {t.schedule}
                     </button>
-                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                    <button 
+                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
+                      style={{ color: currentTheme.cardForeground }}
+                    >
                       <MessageSquare className="h-4 w-4" />
                       {t.messages}
                     </button>
-                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                    <button 
+                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
+                      style={{ color: currentTheme.cardForeground }}
+                    >
                       <FileText className="h-4 w-4" />
                       {t.tasks}
                     </button>
-                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                    <button 
+                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
+                      style={{ color: currentTheme.cardForeground }}
+                    >
                       <BarChart3 className="h-4 w-4" />
                       {t.reports}
                     </button>
                   </nav>
                 </div>
+                
+                {/* Dashboard Colors Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      style={{
+                        backgroundColor: currentTheme.cardBackground,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.cardForeground
+                      }}
+                    >
+                      <Palette className="h-4 w-4 mr-2" />
+                      {language === 'en' ? 'Dashboard Colors' : 'Colores del Panel'}
+                      <ChevronDown className="h-4 w-4 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-48"
+                    style={{
+                      backgroundColor: currentTheme.cardBackground,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.cardForeground
+                    }}
+                  >
+                    {colorThemes.map((theme) => (
+                      <DropdownMenuItem
+                        key={theme.id}
+                        onClick={() => changeTheme(theme.id)}
+                        className="flex items-center gap-3 cursor-pointer"
+                        style={{
+                          backgroundColor: currentTheme.id === theme.id ? currentTheme.accent + '20' : 'transparent'
+                        }}
+                      >
+                        <div 
+                          className="w-4 h-4 rounded-full border"
+                          style={{ backgroundColor: theme.accent, borderColor: theme.border }}
+                        />
+                        {theme.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardContent>
           </Card>
@@ -358,47 +381,75 @@ const StaffDashboard = () => {
           <TabsContent value="overview" className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="border-2 border-black bg-white">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.mySchedule}</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Calendar className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">5</div>
-                  <p className="text-xs text-muted-foreground">Events this week</p>
+                  <p className="text-xs opacity-80">Events this week</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-white">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.upcomingEvents}</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Calendar className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">3</div>
-                  <p className="text-xs text-muted-foreground">Next 7 days</p>
+                  <p className="text-xs opacity-80">Next 7 days</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-white">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.tasksAssigned}</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <FileText className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">8</div>
-                  <p className="text-xs text-muted-foreground">2 completed</p>
+                  <p className="text-xs opacity-80">2 completed</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-white">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.completionRate}</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                  <BarChart3 className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">85%</div>
-                  <p className="text-xs text-muted-foreground">This month</p>
+                  <p className="text-xs opacity-80">This month</p>
                 </CardContent>
               </Card>
             </div>
@@ -416,18 +467,30 @@ const StaffDashboard = () => {
                     moveCard={moveCard}
                     isDragEnabled={isDragEnabled}
                   >
-                    <Card className="border-2 border-black bg-white transition-transform hover:scale-105">
+                    <Card 
+                      className="border-2 transition-transform hover:scale-105"
+                      style={{
+                        backgroundColor: currentTheme.cardBackground,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.cardForeground
+                      }}
+                    >
                       <CardHeader>
-                        <CardTitle className={`flex items-center gap-2 ${card.color}`}>
-                          <IconComponent className="h-5 w-5" />
+                        <CardTitle className="flex items-center gap-2">
+                          <IconComponent className="h-5 w-5" style={{ color: currentTheme.accent }} />
                           {card.title}
                         </CardTitle>
-                        <CardDescription>{card.desc}</CardDescription>
+                        <CardDescription className="opacity-80">{card.desc}</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <Button 
-                          className="w-full" 
+                          className="w-full"
                           onClick={card.onClick}
+                          style={{
+                            backgroundColor: currentTheme.accent,
+                            color: currentTheme.background,
+                            borderColor: currentTheme.accent
+                          }}
                         >
                           {card.action}
                         </Button>

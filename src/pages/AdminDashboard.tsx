@@ -10,6 +10,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import { useAuth } from '@/hooks/useAuth';
+import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Lock, Unlock, ChevronDown } from 'lucide-react';
@@ -273,9 +274,7 @@ const AdminDashboard = () => {
                       {profile?.first_name} {profile?.last_name}
                     </h2>
                     <p className="text-white/90 capitalize">{profile?.role}</p>
-                    <Badge variant="secondary" className="mt-1 bg-green-500/20 text-green-300 border-green-500/30">
-                      {(profile as any)?.status === 'online' ? 'Online' : 'Offline'}
-                    </Badge>
+                    <InvisibleModeToggle language={language} className="mt-2" />
                   </div>
                 </div>
                 

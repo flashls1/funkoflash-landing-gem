@@ -9,6 +9,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import { useAuth } from '@/hooks/useAuth';
+import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown } from 'lucide-react';
@@ -233,6 +234,7 @@ const TalentDashboard = () => {
                       {profile?.first_name} {profile?.last_name}
                     </h2>
                     <p className="text-white/90 capitalize">{profile?.role}</p>
+                    <InvisibleModeToggle language={language} className="mt-2" />
                   </div>
                 </div>
                 
@@ -383,47 +385,75 @@ const TalentDashboard = () => {
           <TabsContent value="overview" className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="border-2 border-black bg-white">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.upcomingBookings}</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Calendar className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">3</div>
-                  <p className="text-xs text-muted-foreground">Next 30 days</p>
+                  <p className="text-xs opacity-80">Next 30 days</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-white">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.totalEarnings}</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                  <BarChart3 className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">$2,450</div>
-                  <p className="text-xs text-muted-foreground">This month</p>
+                  <p className="text-xs opacity-80">This month</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-white">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.profileViews}</CardTitle>
-                  <User className="h-4 w-4 text-muted-foreground" />
+                  <User className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">157</div>
-                  <p className="text-xs text-muted-foreground">This week</p>
+                  <p className="text-xs opacity-80">This week</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-white">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.averageRating}</CardTitle>
-                  <Star className="h-4 w-4 text-muted-foreground" />
+                  <Star className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">4.8</div>
-                  <p className="text-xs text-muted-foreground">★★★★★</p>
+                  <p className="text-xs opacity-80">★★★★★</p>
                 </CardContent>
               </Card>
             </div>
@@ -441,16 +471,30 @@ const TalentDashboard = () => {
                     moveCard={moveCard}
                     isDragEnabled={isDragEnabled}
                   >
-                    <Card className="border-2 border-black bg-white transition-transform hover:scale-105">
+                    <Card 
+                      className="border-2 transition-transform hover:scale-105"
+                      style={{
+                        backgroundColor: currentTheme.cardBackground,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.cardForeground
+                      }}
+                    >
                       <CardHeader>
-                        <CardTitle className={`flex items-center gap-2 ${card.color}`}>
-                          <IconComponent className="h-5 w-5" />
+                        <CardTitle className="flex items-center gap-2">
+                          <IconComponent className="h-5 w-5" style={{ color: currentTheme.accent }} />
                           {card.title}
                         </CardTitle>
-                        <CardDescription>{card.desc}</CardDescription>
+                        <CardDescription className="opacity-80">{card.desc}</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <Button className="w-full">
+                        <Button 
+                          className="w-full"
+                          style={{
+                            backgroundColor: currentTheme.accent,
+                            color: currentTheme.background,
+                            borderColor: currentTheme.accent
+                          }}
+                        >
                           {card.action}
                         </Button>
                       </CardContent>
