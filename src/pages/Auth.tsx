@@ -199,8 +199,16 @@ const Auth = () => {
       <Navigation language={language} setLanguage={setLanguage} />
       
       <div className="flex-1 flex items-center justify-center px-4 py-8">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
+        <Card className="w-full max-w-md relative overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-no-repeat bg-center bg-contain opacity-10 pointer-events-none"
+            style={{
+              backgroundImage: "url('/lovable-uploads/67bbac87-013f-4469-bfeb-bc5f77732cdc.png')",
+              backgroundSize: '60%',
+              backgroundPosition: 'center center'
+            }}
+          ></div>
+          <CardHeader className="text-center relative z-10">
             <CardTitle className="text-2xl font-bold">
               {t.loginTitle}
             </CardTitle>
@@ -208,7 +216,7 @@ const Auth = () => {
               {t.loginDesc}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 relative z-10">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">{t.email}</Label>
