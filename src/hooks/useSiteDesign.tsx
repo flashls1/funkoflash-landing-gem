@@ -13,6 +13,9 @@ export interface SiteDesignSettings {
     subtitle: string;
     backgroundImage?: string;
     overlayOpacity?: number;
+    textColor?: string;
+    textSize?: string;
+    fontWeight?: string;
   };
   colors: {
     primary: string;
@@ -175,12 +178,15 @@ export const useSiteDesign = () => {
         title: 'Page Title', 
         subtitle: 'Page subtitle',
         backgroundImage: '/src/assets/hero-banner-main.jpg',
-        overlayOpacity: 0.5
+        overlayOpacity: 0.5,
+        textColor: 'hsl(0, 0%, 100%)',
+        textSize: 'large',
+        fontWeight: 'bold'
       },
       colors: {
-        primary: 'hsl(var(--primary))',
-        secondary: 'hsl(var(--secondary))',
-        accent: 'hsl(var(--accent))'
+        primary: 'hsl(280, 70%, 50%)',
+        secondary: 'hsl(220, 70%, 50%)',
+        accent: 'hsl(50, 80%, 55%)'
       },
       fonts: { heading: 'Inter', body: 'Inter' }
     };

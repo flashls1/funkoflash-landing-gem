@@ -289,7 +289,7 @@ const ShopManager = () => {
     <div 
       className="min-h-screen"
       style={{
-        backgroundImage: 'var(--site-background)',
+        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -298,13 +298,13 @@ const ShopManager = () => {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 bg-background/80 backdrop-blur-sm rounded-lg">
         {/* Back to Admin Dashboard Button */}
         <div className="mb-6">
           <Button
             variant="outline"
             onClick={() => navigate('/dashboard/admin')}
-            className="mb-4"
+            className="mb-4 bg-background/80 backdrop-blur-sm"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Admin Dashboard

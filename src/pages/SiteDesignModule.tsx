@@ -36,7 +36,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { ColorPicker } from '@/components/ColorPicker';
-import { LivePreview } from '@/components/LivePreview';
+
 import FileUpload from '@/components/FileUpload';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -198,7 +198,7 @@ const SiteDesignModule = () => {
                 ✨ Site Design Studio
               </h1>
               <p className="text-muted-foreground text-lg">
-                Customize every aspect of your website with live preview
+                PRIMARY control center for all site backgrounds and hero images
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -214,8 +214,8 @@ const SiteDesignModule = () => {
         <Alert className="mb-6 border-primary/20 bg-primary/5">
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            <strong>Admin/Staff Access:</strong> You have permission to modify site design settings. 
-            Changes will be applied across the entire website.
+            <strong>PRIMARY Design Control:</strong> This is the ONLY place to modify site backgrounds and hero images. 
+            All public pages will use settings configured here.
           </AlertDescription>
         </Alert>
 
@@ -610,20 +610,40 @@ const SiteDesignModule = () => {
             </Card>
           </div>
 
-          {/* Live Preview Panel */}
+          {/* Quick Preview Panel */}
           <div className="lg:col-span-3">
-            <Card className="bg-background/95 backdrop-blur-sm border-primary/20">
+            <Card className="bg-background/95 backdrop-blur-sm border-primary/20 h-fit">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Eye className="w-5 h-5" />
-                  Live Preview
+                  Current Settings Preview
                 </CardTitle>
                 <CardDescription>
-                  See your changes in real-time. Visit the actual page to see full functionality.
+                  Settings overview for {pages.find(p => p.id === currentPage)?.name} page
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
-                <LivePreview currentPage={currentPage} />
+              <CardContent className="space-y-4">
+                <div className="p-4 rounded-lg border bg-muted/50">
+                  <h3 className="font-medium mb-2">Background</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Type: {currentSettings.background.type} | 
+                    Value: {currentSettings.background.value.substring(0, 50)}...
+                  </p>
+                </div>
+                <div className="p-4 rounded-lg border bg-muted/50">
+                  <h3 className="font-medium mb-2">Hero Section</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Title: {currentSettings.hero.title} <br/>
+                    Image: {currentSettings.hero.backgroundImage?.substring(0, 50) || 'Default'}...
+                  </p>
+                </div>
+                <div className="p-4 rounded-lg border bg-muted/50">
+                  <h3 className="font-medium mb-2">Colors & Fonts</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Primary: {currentSettings.colors.primary} <br/>
+                    Heading Font: {currentSettings.fonts.heading}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>

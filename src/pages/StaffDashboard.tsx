@@ -187,7 +187,7 @@ const StaffDashboard = () => {
       <div 
         className="min-h-screen"
         style={{
-          backgroundImage: 'var(--site-background)',
+          backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -196,7 +196,7 @@ const StaffDashboard = () => {
       >
         <Navigation language={language} setLanguage={setLanguage} />
         
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 bg-background/80 backdrop-blur-sm rounded-lg">
         {/* Header with Enhanced Design */}
         <div className="relative mb-8 overflow-hidden">
           {/* Background gradient overlay */}

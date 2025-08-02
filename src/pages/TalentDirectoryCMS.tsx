@@ -209,13 +209,13 @@ const TalentDirectoryCMS = () => {
     return (
       <div 
         className="min-h-screen"
-        style={{
-          backgroundImage: 'var(--site-background)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
-        }}
+      style={{
+        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
       >
         <Navigation language={language} setLanguage={setLanguage} />
         <div className="pt-20 p-8">
@@ -234,7 +234,7 @@ const TalentDirectoryCMS = () => {
     <div 
       className="min-h-screen"
       style={{
-        backgroundImage: 'var(--site-background)',
+        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -243,14 +243,14 @@ const TalentDirectoryCMS = () => {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      <main className="pt-20 p-8">
+      <main className="pt-20 p-8 bg-background/80 backdrop-blur-sm rounded-lg">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Back to Admin Dashboard Button */}
           <div className="mb-6">
             <Button
               variant="outline"
               onClick={() => navigate('/dashboard/admin')}
-              className="mb-4"
+              className="mb-4 bg-background/80 backdrop-blur-sm"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Admin Dashboard
