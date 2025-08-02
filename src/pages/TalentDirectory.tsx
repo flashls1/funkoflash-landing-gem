@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
-import heroTalentDirectory from "@/assets/hero-talent-directory.jpg";
+
 
 interface TalentProfile {
   id: string;
@@ -106,24 +106,6 @@ const TalentDirectory = () => {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      {/* Hero Section */}
-      <section 
-        className="relative h-[400px] flex items-center justify-center text-white"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${heroTalentDirectory})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        <div className="text-center max-w-4xl mx-auto px-4">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
-            {content[language].heroTitle}
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90">
-            {content[language].heroSubtitle}
-          </p>
-        </div>
-      </section>
       
       <main className="container mx-auto px-4 py-8">
         {/* Optional Banner Section for Custom Settings */}
