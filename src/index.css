@@ -64,6 +64,41 @@ All colors MUST be HSL.
     /* Default Site Background */
     --site-background: url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png');
 
+    /* Extended Design System for Site Designer */
+    --design-purple: 280 70% 50%;
+    --design-pink: 340 70% 50%;
+    --design-cyan: 200 80% 50%;
+    --design-emerald: 160 60% 45%;
+    --design-yellow: 40 90% 50%;
+    --design-success: 120 60% 50%;
+    --design-warning: 40 90% 50%;
+    --design-info: 200 80% 50%;
+
+    /* Enhanced Gradients */
+    --gradient-rainbow: linear-gradient(135deg, 
+      hsl(340, 70%, 50%), 
+      hsl(280, 70%, 50%), 
+      hsl(220, 70%, 50%), 
+      hsl(200, 80%, 50%)
+    );
+    --gradient-sunset: linear-gradient(135deg, 
+      hsl(25, 100%, 60%), 
+      hsl(340, 70%, 50%)
+    );
+    --gradient-ocean: linear-gradient(135deg, 
+      hsl(200, 80%, 50%), 
+      hsl(220, 90%, 45%)
+    );
+
+    /* Enhanced Shadows */
+    --shadow-colorful: 0 8px 32px hsl(var(--funko-orange) / 0.15);
+    --shadow-glow: 0 0 40px hsl(var(--funko-orange) / 0.3);
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--funko-blue) / 0.2);
+
+    /* Dynamic Fonts */
+    --font-heading: 'Inter', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;

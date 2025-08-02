@@ -366,6 +366,36 @@ export type Database = {
         }
         Relationships: []
       }
+      site_design_settings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          page_name: string
+          settings: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          page_name: string
+          settings?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          page_name?: string
+          settings?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       talent_profiles: {
         Row: {
           active: boolean
