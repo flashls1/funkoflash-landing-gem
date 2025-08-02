@@ -71,7 +71,7 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
         first_name: profile.first_name || '',
         last_name: profile.last_name || '',
         phone: profile.phone || '',
-        avatar_url: ''
+        avatar_url: (profile as any).avatar_url || ''
       });
     }
   }, [profile]);
@@ -92,16 +92,16 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `avatar_${user.id}_${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('talent-images')
+        .from('avatars')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('talent-images')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       return publicUrl;
@@ -151,13 +151,20 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
     if (!user || !profile) return;
 
     try {
+      const updateData: any = {
+        first_name: profileData.first_name,
+        last_name: profileData.last_name,
+        phone: profileData.phone,
+      };
+      
+      // Only update avatar_url if a new one was uploaded
+      if (profileData.avatar_url) {
+        updateData.avatar_url = profileData.avatar_url;
+      }
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          first_name: profileData.first_name,
-          last_name: profileData.last_name,
-          phone: profileData.phone,
-        })
+        .update(updateData)
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -189,7 +196,7 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16 border-2 border-black">
-              <AvatarImage src={profileData.avatar_url} />
+              <AvatarImage src={(profile as any).avatar_url || profileData.avatar_url} />
               <AvatarFallback className="bg-gradient-to-br from-funko-orange to-funko-blue text-white text-lg font-bold">
                 {getInitials()}
               </AvatarFallback>
@@ -220,7 +227,7 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
               <div className="grid gap-4 py-4">
                 <div className="flex flex-col items-center gap-4">
                   <Avatar className="h-24 w-24 border-2 border-black">
-                    <AvatarImage src={profileData.avatar_url} />
+                    <AvatarImage src={(profile as any).avatar_url || profileData.avatar_url} />
                     <AvatarFallback className="bg-gradient-to-br from-funko-orange to-funko-blue text-white text-xl font-bold">
                       {getInitials()}
                     </AvatarFallback>

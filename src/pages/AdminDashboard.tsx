@@ -207,18 +207,43 @@ const AdminDashboard = () => {
         <Navigation language={language} setLanguage={setLanguage} />
         
         <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-white drop-shadow-lg">{getGreeting()}</h1>
-          <p className="text-white/90 text-lg drop-shadow-md">
-            {currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              timeZone: 'America/Chicago'
-            })}
-          </p>
+        {/* Header with Enhanced Design */}
+        <div className="relative mb-8 overflow-hidden">
+          {/* Background gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent rounded-2xl"></div>
+          
+          {/* Content */}
+          <div className="relative p-8 bg-gradient-to-r from-blue-900/80 via-purple-900/80 to-orange-900/80 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl">
+            <div className="flex items-center gap-4">
+              {/* Decorative accent */}
+              <div className="w-2 h-16 bg-gradient-to-b from-orange-400 via-blue-400 to-purple-400 rounded-full shadow-lg"></div>
+              
+              <div>
+                <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-2xl tracking-tight">
+                  {getGreeting()}
+                </h1>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
+                  <p className="text-xl text-white/95 font-medium drop-shadow-lg">
+                    {currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      timeZone: 'America/Chicago'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Additional decorative elements */}
+            <div className="absolute top-4 right-4 flex space-x-2">
+              <div className="w-3 h-3 bg-white/20 rounded-full"></div>
+              <div className="w-3 h-3 bg-white/30 rounded-full"></div>
+              <div className="w-3 h-3 bg-white/40 rounded-full"></div>
+            </div>
+          </div>
         </div>
 
         {/* Drag Toggle */}
