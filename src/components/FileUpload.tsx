@@ -12,12 +12,14 @@ interface FileUploadProps {
   onFileUploaded: (url: string, fileName: string, fileType: string) => void;
   maxSize?: number; // in MB
   acceptedTypes?: string[];
+  bucket?: string; // Which storage bucket to use
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({ 
   onFileUploaded, 
   maxSize = 10,
-  acceptedTypes = ['image/*', 'video/*', 'application/pdf', '.doc', '.docx', '.txt']
+  acceptedTypes = ['image/*', 'video/*', 'application/pdf', '.doc', '.docx', '.txt'],
+  bucket = 'message-attachments'
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -64,7 +66,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       }, 100);
 
       const { data, error } = await supabase.storage
-        .from('message-attachments')
+        .from(bucket)
         .upload(fileName, file);
 
       clearInterval(progressInterval);
@@ -76,7 +78,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
       // Get public URL
       const { data: urlData } = supabase.storage
-        .from('message-attachments')
+        .from(bucket)
         .getPublicUrl(data.path);
 
       onFileUploaded(urlData.publicUrl, file.name, file.type);

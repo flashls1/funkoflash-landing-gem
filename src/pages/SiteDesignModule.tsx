@@ -323,21 +323,50 @@ const SiteDesignModule = () => {
                           />
                         </div>
 
-                        <div>
-                          <Label className="text-sm">Hero Background Media (Image/Video)</Label>
-                          <FileUpload
-                            onFileUploaded={(url) => handleHeroImageUpload(url)}
-                            acceptedTypes={['image/*', 'video/*']}
-                            maxSize={50 * 1024 * 1024} // 50MB for videos
-                          />
-                          {currentSettings.hero.backgroundImage && (
-                            <div className="mt-3 p-3 bg-muted rounded-lg">
-                              <p className="text-sm text-muted-foreground">
-                                Current: {currentSettings.hero.backgroundImage}
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                         <div>
+                           <Label className="text-sm">Hero Background Media (Image/Video)</Label>
+                           <FileUpload
+                             onFileUploaded={(url) => handleHeroImageUpload(url)}
+                             acceptedTypes={['image/*', 'video/*']}
+                             maxSize={50}
+                             bucket="design-assets"
+                           />
+                           {currentSettings.hero.backgroundImage && (
+                             <div className="mt-3 space-y-3">
+                               <div className="p-3 bg-muted rounded-lg">
+                                 <p className="text-sm text-muted-foreground">
+                                   Current: {currentSettings.hero.backgroundImage}
+                                 </p>
+                               </div>
+                               <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border">
+                                 {currentSettings.hero.backgroundImage?.includes('.mp4') || 
+                                  currentSettings.hero.backgroundImage?.includes('.mov') || 
+                                  currentSettings.hero.backgroundImage?.includes('.avi') ? (
+                                   <video 
+                                     src={currentSettings.hero.backgroundImage} 
+                                     className="w-full h-full object-cover"
+                                     controls
+                                     muted
+                                   />
+                                 ) : (
+                                   <img 
+                                     src={currentSettings.hero.backgroundImage} 
+                                     alt="Hero background preview"
+                                     className="w-full h-full object-cover"
+                                     onError={(e) => {
+                                       const target = e.target as HTMLImageElement;
+                                       target.style.display = 'none';
+                                       target.nextElementSibling!.textContent = 'Failed to load image';
+                                     }}
+                                   />
+                                 )}
+                                 <div className="absolute inset-0 bg-destructive/20 flex items-center justify-center text-destructive-foreground text-sm hidden">
+                                   Failed to load media
+                                 </div>
+                               </div>
+                             </div>
+                           )}
+                         </div>
 
                         <div>
                           <Label className="text-sm">Overlay Opacity</Label>
