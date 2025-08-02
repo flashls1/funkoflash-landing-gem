@@ -58,7 +58,7 @@ const About = () => {
         language={language}
         fallbackTitle={content[language].heroTitle}
         fallbackSubtitle={content[language].heroSubtitle}
-        fallbackImage={heroAbout}
+        fallbackImage="/src/assets/hero-banner-main.jpg"
       />
 
       {/* Main Content */}

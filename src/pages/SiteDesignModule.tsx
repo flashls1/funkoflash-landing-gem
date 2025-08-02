@@ -170,7 +170,7 @@ const SiteDesignModule = () => {
     <div 
       className="min-h-screen"
       style={{
-        backgroundImage: 'var(--site-background)',
+        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -422,42 +422,43 @@ const SiteDesignModule = () => {
                             acceptedTypes={['image/*', 'video/*']}
                             maxSize={50 * 1024 * 1024} // 50MB
                             bucket="design-assets"
-                          />
-                          {currentSettings.hero.backgroundImage && (
-                            <div className="mt-3 space-y-3">
-                              <div className="p-3 bg-muted rounded-lg">
-                                <p className="text-sm text-muted-foreground">
-                                  Current: {currentSettings.hero.backgroundImage}
-                                </p>
+                           />
+                           <div className="mt-3 space-y-3">
+                             <div className="p-3 bg-muted rounded-lg">
+                               <p className="text-sm text-muted-foreground">
+                                 Current: {currentSettings.hero.backgroundImage || '/src/assets/hero-banner-main.jpg'}
+                               </p>
                               </div>
-                              <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border">
-                                {currentSettings.hero.backgroundImage?.includes('.mp4') || 
-                                 currentSettings.hero.backgroundImage?.includes('.mov') || 
-                                 currentSettings.hero.backgroundImage?.includes('.webm') ? (
-                                  <video 
-                                    src={currentSettings.hero.backgroundImage} 
-                                    className="w-full h-full object-cover"
-                                    controls
-                                    muted
-                                  />
-                                ) : (
-                                  <img 
-                                    src={currentSettings.hero.backgroundImage} 
-                                    alt="Hero background preview"
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      target.style.display = 'none';
-                                      target.nextElementSibling!.textContent = 'Failed to load image';
-                                    }}
-                                  />
-                                )}
-                                <div className="absolute inset-0 bg-destructive/20 flex items-center justify-center text-destructive-foreground text-sm hidden">
-                                  Failed to load media
+                              {(currentSettings.hero.backgroundImage || '/src/assets/hero-banner-main.jpg') && (
+                                <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border">
+                                  {currentSettings.hero.backgroundImage?.includes('.mp4') || 
+                                   currentSettings.hero.backgroundImage?.includes('.mov') || 
+                                   currentSettings.hero.backgroundImage?.includes('.webm') ? (
+                                    <video 
+                                      src={currentSettings.hero.backgroundImage} 
+                                      className="w-full h-full object-cover"
+                                      controls
+                                      muted
+                                    />
+                                  ) : (
+                                    <img 
+                                      src={currentSettings.hero.backgroundImage || '/src/assets/hero-banner-main.jpg'} 
+                                      alt="Hero background preview"
+                                      className="w-full h-full object-cover"
+                                       onError={(e) => {
+                                         const target = e.target as HTMLImageElement;
+                                         target.style.display = 'none';
+                                         const sibling = target.nextElementSibling as HTMLElement;
+                                         if (sibling) sibling.style.display = 'flex';
+                                       }}
+                                    />
+                                  )}
+                                  <div className="absolute inset-0 bg-destructive/20 flex items-center justify-center text-destructive-foreground text-sm hidden">
+                                    Failed to load media
+                                  </div>
                                 </div>
-                              </div>
+                              )}
                             </div>
-                          )}
                         </div>
 
                           <div>

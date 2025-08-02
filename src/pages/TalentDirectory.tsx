@@ -116,8 +116,9 @@ const TalentDirectory = () => {
       {/* Dynamic Hero Section */}
       <DynamicHeroSection
         language={language}
-        fallbackTitle={content[language].title}
-        fallbackSubtitle={content[language].description}
+        fallbackTitle={content[language].heroTitle}
+        fallbackSubtitle={content[language].heroSubtitle}
+        fallbackImage="/src/assets/hero-banner-main.jpg"
         className="relative h-[400px] flex items-center justify-center overflow-hidden"
       />
       

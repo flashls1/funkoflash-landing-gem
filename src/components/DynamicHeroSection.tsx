@@ -21,7 +21,7 @@ export const DynamicHeroSection = ({
   // Use site design settings or fallback to defaults
   const heroTitle = settings.hero?.title || fallbackTitle || 'Welcome';
   const heroSubtitle = settings.hero?.subtitle || fallbackSubtitle || 'Your subtitle here';
-  const heroImage = settings.hero?.backgroundImage || fallbackImage || '';
+  const heroImage = settings.hero?.backgroundImage || fallbackImage || '/src/assets/hero-banner-main.jpg';
   const overlayOpacity = settings.hero?.overlayOpacity || 0.5;
 
   return (

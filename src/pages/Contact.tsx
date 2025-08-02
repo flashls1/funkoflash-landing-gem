@@ -96,7 +96,7 @@ const Contact = () => {
         language={language}
         fallbackTitle={content[language].heroTitle}
         fallbackSubtitle={content[language].heroSubtitle}
-        fallbackImage={heroContact}
+        fallbackImage="/src/assets/hero-banner-main.jpg"
       />
 
       {/* Main Content */}

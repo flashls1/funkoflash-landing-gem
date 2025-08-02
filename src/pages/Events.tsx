@@ -181,7 +181,7 @@ export default function Events() {
         language={language}
         fallbackTitle={content[language].heroTitle}
         fallbackSubtitle={content[language].heroSubtitle}
-        fallbackImage={heroEvents}
+        fallbackImage="/src/assets/hero-banner-main.jpg"
       />
 
       <div className="container mx-auto px-4 py-8">

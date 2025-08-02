@@ -17,12 +17,15 @@ interface LivePreviewProps {
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
 
 const PageComponentWrapper = ({ pageName, language }: { pageName: string; language: 'en' | 'es' }) => {
-  const { setCurrentPage } = useSiteDesign();
+  const { setCurrentPage, getCurrentPageSettings } = useSiteDesign();
   
   // Set current page for design system context
   React.useEffect(() => {
     setCurrentPage(pageName);
   }, [pageName, setCurrentPage]);
+  
+  // Get current settings to trigger re-render when they change
+  const currentSettings = getCurrentPageSettings();
 
   const fallbackContent = {
     home: {
@@ -68,6 +71,7 @@ const PageComponentWrapper = ({ pageName, language }: { pageName: string; langua
         language={language}
         fallbackTitle={content.title}
         fallbackSubtitle={content.subtitle}
+        fallbackImage="/src/assets/hero-banner-main.jpg"
         className="relative h-[400px] flex items-center justify-center overflow-hidden"
       />
       <div className="container mx-auto px-4 py-8">
@@ -163,7 +167,7 @@ export const LivePreview = ({ currentPage }: LivePreviewProps) => {
             getViewportStyles()
           )}
           style={{
-            backgroundImage: 'var(--site-background)',
+            backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed'

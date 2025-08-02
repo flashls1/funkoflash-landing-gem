@@ -170,8 +170,13 @@ export const useSiteDesign = () => {
   // Get current page settings
   const getCurrentPageSettings = (): SiteDesignSettings => {
     return settings[currentPage] || {
-      background: { type: 'color', value: 'hsl(var(--background))' },
-      hero: { title: 'Page Title', subtitle: 'Page subtitle' },
+      background: { type: 'image', value: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')" },
+      hero: { 
+        title: 'Page Title', 
+        subtitle: 'Page subtitle',
+        backgroundImage: '/src/assets/hero-banner-main.jpg',
+        overlayOpacity: 0.5
+      },
       colors: {
         primary: 'hsl(var(--primary))',
         secondary: 'hsl(var(--secondary))',
