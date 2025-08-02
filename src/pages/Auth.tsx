@@ -133,20 +133,7 @@ const Auth = () => {
       return;
     }
 
-    if (isLogin) {
-      await signIn(email, password);
-    } else {
-      if (!firstName || !lastName) {
-        toast({
-          title: "Validation Error",
-          description: "Please fill in all required fields",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-      await signUp(email, password, firstName, lastName);
-    }
+    await signIn(email, password);
 
     setLoading(false);
   };
@@ -200,48 +187,29 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div 
+      className="min-h-screen bg-background flex flex-col"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Navigation language={language} setLanguage={setLanguage} />
       
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">
-              {isLogin ? t.loginTitle : t.signupTitle}
+              {t.loginTitle}
             </CardTitle>
             <CardDescription>
-              {isLogin ? t.loginDesc : t.signupDesc}
+              {t.loginDesc}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">{t.firstName}</Label>
-                    <Input
-                      id="firstName"
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required={!isLogin}
-                      placeholder={t.firstName}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">{t.lastName}</Label>
-                    <Input
-                      id="lastName"
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      required={!isLogin}
-                      placeholder={t.lastName}
-                    />
-                  </div>
-                </div>
-              )}
-              
               <div className="space-y-2">
                 <Label htmlFor="email">{t.email}</Label>
                 <Input
@@ -267,30 +235,18 @@ const Auth = () => {
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "..." : (isLogin ? t.loginButton : t.signupButton)}
+                {loading ? "..." : t.loginButton}
               </Button>
             </form>
 
             <div className="text-center space-y-2">
-              {isLogin && (
-                <button
-                  type="button"
-                  onClick={() => setShowForgotPassword(true)}
-                  className="text-sm text-primary hover:underline"
-                >
-                  {t.forgotPassword}
-                </button>
-              )}
-
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-sm text-primary hover:underline"
-                >
-                  {isLogin ? t.switchToSignup : t.switchToLogin}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-sm text-primary hover:underline"
+              >
+                {t.forgotPassword}
+              </button>
 
               <Button
                 variant="outline"
