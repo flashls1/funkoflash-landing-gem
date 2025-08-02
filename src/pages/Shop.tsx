@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import DynamicHeroSection from "@/components/DynamicHeroSection";
+import { useSiteDesign } from "@/hooks/useSiteDesign";
 import heroShop from "@/assets/hero-shop.jpg";
 
 interface Product {
@@ -108,6 +110,11 @@ const Shop = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const { setCurrentPage } = useSiteDesign();
+
+  useEffect(() => {
+    setCurrentPage('shop');
+  }, [setCurrentPage]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -171,24 +178,13 @@ const Shop = () => {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      {/* Hero Section */}
-      <section 
-        className="relative h-[400px] flex items-center justify-center text-white"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${heroShop})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        <div className="text-center max-w-4xl mx-auto px-4">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
-            {content[language].heroTitle}
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90">
-            {content[language].heroSubtitle}
-          </p>
-        </div>
-      </section>
+      {/* Dynamic Hero Section */}
+      <DynamicHeroSection
+        language={language}
+        fallbackTitle={content[language].heroTitle}
+        fallbackSubtitle={content[language].heroSubtitle}
+        fallbackImage={heroShop}
+      />
       
       <main className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">

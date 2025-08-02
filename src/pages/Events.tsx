@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format, isAfter } from "date-fns";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import DynamicHeroSection from "@/components/DynamicHeroSection";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
 import heroEvents from "@/assets/hero-events.jpg";
 
@@ -175,24 +176,13 @@ export default function Events() {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      {/* Hero Section */}
-      <section 
-        className="relative h-[400px] flex items-center justify-center text-white"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, ${pageSettings.hero.overlayOpacity || 0.5}), rgba(0, 0, 0, ${pageSettings.hero.overlayOpacity || 0.5})), url(${pageSettings.hero.backgroundImage || heroEvents})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        <div className="text-center max-w-4xl mx-auto px-4">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
-            {pageSettings.hero.title || content[language].heroTitle}
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90">
-            {pageSettings.hero.subtitle || content[language].heroSubtitle}
-          </p>
-        </div>
-      </section>
+      {/* Dynamic Hero Section */}
+      <DynamicHeroSection
+        language={language}
+        fallbackTitle={content[language].heroTitle}
+        fallbackSubtitle={content[language].heroSubtitle}
+        fallbackImage={heroEvents}
+      />
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">

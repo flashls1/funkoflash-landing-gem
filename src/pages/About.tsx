@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import DynamicHeroSection from "@/components/DynamicHeroSection";
+import { useSiteDesign } from "@/hooks/useSiteDesign";
 import heroAbout from "@/assets/hero-about.jpg";
 
 const About = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const { setCurrentPage } = useSiteDesign();
+
+  useEffect(() => {
+    setCurrentPage('about');
+  }, [setCurrentPage]);
 
   const content = {
     en: {
@@ -46,24 +53,13 @@ const About = () => {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      {/* Hero Section */}
-      <section 
-        className="relative h-[400px] flex items-center justify-center text-white"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${heroAbout})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        <div className="text-center max-w-4xl mx-auto px-4">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
-            {content[language].heroTitle}
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90">
-            {content[language].heroSubtitle}
-          </p>
-        </div>
-      </section>
+      {/* Dynamic Hero Section */}
+      <DynamicHeroSection
+        language={language}
+        fallbackTitle={content[language].heroTitle}
+        fallbackSubtitle={content[language].heroSubtitle}
+        fallbackImage={heroAbout}
+      />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-16 space-y-16">

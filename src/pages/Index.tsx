@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import ContentTiles from "@/components/ContentTiles";
 import Footer from "@/components/Footer";
+import { useSiteDesign } from "@/hooks/useSiteDesign";
 
 const Index = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const { setCurrentPage } = useSiteDesign();
+
+  useEffect(() => {
+    setCurrentPage('home');
+  }, [setCurrentPage]);
 
   return (
     <div 

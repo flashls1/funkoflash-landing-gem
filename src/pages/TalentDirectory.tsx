@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import DynamicHeroSection from "@/components/DynamicHeroSection";
+import { useSiteDesign } from "@/hooks/useSiteDesign";
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -28,6 +30,11 @@ const TalentDirectory = () => {
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const { toast } = useToast();
+  const { setCurrentPage } = useSiteDesign();
+
+  useEffect(() => {
+    setCurrentPage('talent-directory');
+  }, [setCurrentPage]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -106,6 +113,13 @@ const TalentDirectory = () => {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
+      {/* Dynamic Hero Section */}
+      <DynamicHeroSection
+        language={language}
+        fallbackTitle={content[language].title}
+        fallbackSubtitle={content[language].description}
+        className="relative h-[400px] flex items-center justify-center overflow-hidden"
+      />
       
       <main className="container mx-auto px-4 py-8">
         {/* Optional Banner Section for Custom Settings */}

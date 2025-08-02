@@ -3,9 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import HeroSection from '@/components/HeroSection';
+import DynamicHeroSection from '@/components/DynamicHeroSection';
 import ContentTiles from '@/components/ContentTiles';
 import Footer from '@/components/Footer';
 import Navigation from '@/components/Navigation';
+import { useSiteDesign } from '@/hooks/useSiteDesign';
+import * as React from 'react';
 
 interface LivePreviewProps {
   currentPage: string;
@@ -13,103 +16,72 @@ interface LivePreviewProps {
 
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
 
-const pageComponents: Record<string, React.ComponentType<{ language: 'en' | 'es' }>> = {
-  home: ({ language }) => (
+const PageComponentWrapper = ({ pageName, language }: { pageName: string; language: 'en' | 'es' }) => {
+  const { setCurrentPage } = useSiteDesign();
+  
+  // Set current page for design system context
+  React.useEffect(() => {
+    setCurrentPage(pageName);
+  }, [pageName, setCurrentPage]);
+
+  const fallbackContent = {
+    home: {
+      title: language === 'en' ? 'Book Top Voice Talent & Shop Exclusive Signed Funko Pops' : 'Contrata a los Mejores Talentos de Voz y Compra Funko Pops Firmados Exclusivos',
+      subtitle: language === 'en' ? 'Connect with legendary voice actors like Mario Castañeda and René García. Discover authentic signed collectibles from your favorite characters.' : 'Conecta con actores de voz legendarios como Mario Castañeda y René García. Descubre coleccionables firmados auténticos de tus personajes favoritos.'
+    },
+    about: {
+      title: language === 'en' ? 'About Us' : 'Acerca de Nosotros',
+      subtitle: language === 'en' ? 'Learn more about our story and mission' : 'Conoce más sobre nuestra historia y misión'
+    },
+    contact: {
+      title: language === 'en' ? 'Contact Us' : 'Contáctanos',
+      subtitle: language === 'en' ? 'Get in touch with our team' : 'Ponte en contacto con nuestro equipo'
+    },
+    shop: {
+      title: language === 'en' ? 'Shop' : 'Tienda',
+      subtitle: language === 'en' ? 'Discover our exclusive products' : 'Descubre nuestros productos exclusivos'
+    },
+    events: {
+      title: language === 'en' ? 'Events' : 'Eventos',
+      subtitle: language === 'en' ? 'Join us at upcoming events' : 'Únete a nosotros en próximos eventos'
+    },
+    'talent-directory': {
+      title: language === 'en' ? 'Talent Directory' : 'Directorio de Talentos',
+      subtitle: language === 'en' ? 'Meet our amazing voice talent' : 'Conoce a nuestros increíbles talentos de voz'
+    }
+  };
+
+  const content = fallbackContent[pageName as keyof typeof fallbackContent] || fallbackContent.home;
+
+  if (pageName === 'home') {
+    return (
+      <div className="min-h-screen">
+        <HeroSection language={language} />
+        <ContentTiles language={language} />
+      </div>
+    );
+  }
+
+  return (
     <div className="min-h-screen">
-      <HeroSection language={language} />
-      <ContentTiles language={language} />
-    </div>
-  ),
-  about: ({ language }) => (
-    <div className="min-h-screen">
-      <div className="relative min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-secondary/20">
-        <div className="absolute inset-0 bg-[url('/src/assets/hero-about.jpg')] bg-cover bg-center opacity-30" />
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {language === 'en' ? 'About Us' : 'Acerca de Nosotros'}
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            {language === 'en' 
-              ? 'Learn more about our story and mission' 
-              : 'Conoce más sobre nuestra historia y misión'
-            }
+      <DynamicHeroSection
+        language={language}
+        fallbackTitle={content.title}
+        fallbackSubtitle={content.subtitle}
+        className="relative h-[400px] flex items-center justify-center overflow-hidden"
+      />
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold mb-4 text-foreground">
+            {content.title}
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            {content.subtitle}
           </p>
         </div>
       </div>
     </div>
-  ),
-  contact: ({ language }) => (
-    <div className="min-h-screen">
-      <div className="relative min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-accent/20 via-background to-primary/20">
-        <div className="absolute inset-0 bg-[url('/src/assets/hero-contact.jpg')] bg-cover bg-center opacity-30" />
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
-            {language === 'en' ? 'Contact Us' : 'Contáctanos'}
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            {language === 'en' 
-              ? 'Get in touch with our team' 
-              : 'Ponte en contacto con nuestro equipo'
-            }
-          </p>
-        </div>
-      </div>
-    </div>
-  ),
-  shop: ({ language }) => (
-    <div className="min-h-screen">
-      <div className="relative min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-secondary/20 via-background to-accent/20">
-        <div className="absolute inset-0 bg-[url('/src/assets/hero-shop.jpg')] bg-cover bg-center opacity-30" />
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
-            {language === 'en' ? 'Shop' : 'Tienda'}
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            {language === 'en' 
-              ? 'Discover our exclusive products' 
-              : 'Descubre nuestros productos exclusivos'
-            }
-          </p>
-        </div>
-      </div>
-    </div>
-  ),
-  events: ({ language }) => (
-    <div className="min-h-screen">
-      <div className="relative min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-secondary/20">
-        <div className="absolute inset-0 bg-[url('/src/assets/hero-events.jpg')] bg-cover bg-center opacity-30" />
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {language === 'en' ? 'Events' : 'Eventos'}
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            {language === 'en' 
-              ? 'Join us at upcoming events' 
-              : 'Únete a nosotros en próximos eventos'
-            }
-          </p>
-        </div>
-      </div>
-    </div>
-  ),
-  'talent-directory': ({ language }) => (
-    <div className="min-h-screen">
-      <div className="relative min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-accent/20 via-background to-secondary/20">
-        <div className="absolute inset-0 bg-[url('/src/assets/hero-talent-directory.jpg')] bg-cover bg-center opacity-30" />
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-accent to-secondary bg-clip-text text-transparent">
-            {language === 'en' ? 'Talent Directory' : 'Directorio de Talentos'}
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            {language === 'en' 
-              ? 'Meet our amazing voice talent' 
-              : 'Conoce a nuestros increíbles talentos de voz'
-            }
-          </p>
-        </div>
-      </div>
-    </div>
-  ),
+  );
 };
 
 export const LivePreview = ({ currentPage }: LivePreviewProps) => {
@@ -126,8 +98,6 @@ export const LivePreview = ({ currentPage }: LivePreviewProps) => {
         return 'w-full';
     }
   };
-
-  const PageComponent = pageComponents[currentPage] || pageComponents.home;
 
   return (
     <div className="h-full flex flex-col">
@@ -203,7 +173,7 @@ export const LivePreview = ({ currentPage }: LivePreviewProps) => {
           <Navigation language={language} setLanguage={setLanguage} />
           
           {/* Page Content */}
-          <PageComponent language={language} />
+          <PageComponentWrapper pageName={currentPage} language={language} />
           
           {/* Footer */}
           <Footer language={language} />

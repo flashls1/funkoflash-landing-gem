@@ -377,33 +377,34 @@ const SiteDesignModule = () => {
                       </Label>
                       
                       <div className="space-y-4">
-                        <div>
-                          <Label className="text-sm">Hero Title</Label>
-                          <Input
-                            value={currentSettings.hero.title}
-                            onChange={(e) => 
-                              updateCurrentPageSettings({
-                                hero: { ...currentSettings.hero, title: e.target.value }
-                              })
-                            }
-                            className="mt-2"
-                            placeholder="Enter hero title"
-                          />
-                        </div>
+                         <div>
+                           <Label className="text-sm font-medium">Hero Title</Label>
+                           <Input
+                             value={currentSettings.hero.title}
+                             onChange={(e) => 
+                               updateCurrentPageSettings({
+                                 hero: { ...currentSettings.hero, title: e.target.value }
+                               })
+                             }
+                             className="mt-2"
+                             placeholder="Enter hero title (e.g., Welcome to FunkoFlash)"
+                           />
+                         </div>
 
-                        <div>
-                          <Label className="text-sm">Hero Subtitle</Label>
-                          <Textarea
-                            value={currentSettings.hero.subtitle}
-                            onChange={(e) => 
-                              updateCurrentPageSettings({
-                                hero: { ...currentSettings.hero, subtitle: e.target.value }
-                              })
-                            }
-                            className="mt-2"
-                            placeholder="Enter hero subtitle"
-                          />
-                        </div>
+                         <div>
+                           <Label className="text-sm font-medium">Hero Subtitle</Label>
+                           <Textarea
+                             value={currentSettings.hero.subtitle}
+                             onChange={(e) => 
+                               updateCurrentPageSettings({
+                                 hero: { ...currentSettings.hero, subtitle: e.target.value }
+                               })
+                             }
+                             className="mt-2"
+                             placeholder="Enter hero subtitle (e.g., Your premier voice acting destination)"
+                             rows={3}
+                           />
+                         </div>
 
                         <div>
                           <Label className="text-sm flex items-center gap-2">
@@ -459,23 +460,25 @@ const SiteDesignModule = () => {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm">Overlay Opacity</Label>
-                          <Slider
-                            value={[Math.round((currentSettings.hero.overlayOpacity || 0.5) * 100)]}
-                            onValueChange={(value) => 
-                              updateCurrentPageSettings({
-                                hero: { ...currentSettings.hero, overlayOpacity: value[0] / 100 }
-                              })
-                            }
-                            max={100}
-                            step={5}
-                            className="mt-2"
-                          />
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {Math.round((currentSettings.hero.overlayOpacity || 0.5) * 100)}%
+                          <div>
+                            <Label className="text-sm font-medium">Text Overlay Opacity</Label>
+                            <div className="mt-2 space-y-2">
+                              <Slider
+                                value={[Math.round((currentSettings.hero.overlayOpacity || 0.5) * 100)]}
+                                onValueChange={(value) => 
+                                  updateCurrentPageSettings({
+                                    hero: { ...currentSettings.hero, overlayOpacity: value[0] / 100 }
+                                  })
+                                }
+                                max={100}
+                                step={5}
+                                className="mt-2"
+                              />
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {Math.round((currentSettings.hero.overlayOpacity || 0.5) * 100)}%
+                              </div>
+                            </div>
                           </div>
-                        </div>
                       </div>
                     </div>
                   </TabsContent>
