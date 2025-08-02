@@ -172,6 +172,38 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          reaction?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           attachment_url: string | null
@@ -208,6 +240,42 @@ export type Database = {
           subject?: string | null
           thread_id?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          browser_notifications: boolean
+          created_at: string
+          do_not_disturb_end: string | null
+          do_not_disturb_start: string | null
+          email_notifications: boolean
+          id: string
+          sound_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          browser_notifications?: boolean
+          created_at?: string
+          do_not_disturb_end?: string | null
+          do_not_disturb_start?: string | null
+          email_notifications?: boolean
+          id?: string
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          browser_notifications?: boolean
+          created_at?: string
+          do_not_disturb_end?: string | null
+          do_not_disturb_start?: string | null
+          email_notifications?: boolean
+          id?: string
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

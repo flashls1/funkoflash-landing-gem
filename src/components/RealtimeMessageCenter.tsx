@@ -9,10 +9,16 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, Send, Search, Plus, Circle, Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { MessageSquare, Send, Search, Plus, Circle, Loader2, Bell, BellOff, Filter, Paperclip, X } from 'lucide-react';
 import { useRealtimeMessaging } from '@/hooks/useRealtimeMessaging';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 import { supabase } from '@/integrations/supabase/client';
+import FileUpload from './FileUpload';
+import AttachmentPreview from './AttachmentPreview';
+import MessageReactions from './MessageReactions';
 
 interface Profile {
   id: string;
@@ -41,19 +47,32 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
     getUserPresence,
     getLastSeenText
   } = useRealtimeMessaging();
+  
+  const { 
+    preferences, 
+    permission, 
+    requestPermission, 
+    showMessageNotification 
+  } = useNotifications();
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchFilter, setSearchFilter] = useState<'all' | 'unread' | 'attachments'>('all');
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [newMessage, setNewMessage] = useState({
     recipient: '',
     subject: '',
     content: '',
-    attachmentUrl: ''
+    attachmentUrl: '',
+    attachmentName: '',
+    attachmentType: ''
   });
   const [isTyping, setIsTyping] = useState(false);
   const [replyContent, setReplyContent] = useState('');
+  const [messageReactions, setMessageReactions] = useState<Record<string, any[]>>({});
+  const [showFileUpload, setShowFileUpload] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   const text = {
@@ -81,7 +100,14 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
       invisible: 'Invisible',
       lastSeen: 'Last seen',
       delivered: 'Delivered',
-      read: 'Read'
+      read: 'Read',
+      notifications: 'Notifications',
+      attachFile: 'Attach File',
+      removeAttachment: 'Remove Attachment',
+      filter: 'Filter',
+      all: 'All',
+      unread: 'Unread',
+      attachments: 'With Attachments'
     },
     es: {
       messageCenter: 'Centro de Mensajes',
@@ -107,7 +133,14 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
       invisible: 'Invisible',
       lastSeen: 'Visto por última vez',
       delivered: 'Entregado',
-      read: 'Leído'
+      read: 'Leído',
+      notifications: 'Notificaciones',
+      attachFile: 'Adjuntar Archivo',
+      removeAttachment: 'Eliminar Adjunto',
+      filter: 'Filtrar',
+      all: 'Todos',
+      unread: 'No leídos',
+      attachments: 'Con Adjuntos'
     }
   };
 
@@ -115,7 +148,50 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
 
   useEffect(() => {
     fetchProfiles();
+    fetchAllMessageReactions();
+    
+    // Request notification permission on mount
+    if (permission === 'default') {
+      requestPermission();
+    }
   }, []);
+
+  useEffect(() => {
+    // Show notification for new messages
+    if (messages.length > 0) {
+      const latestMessage = messages[0];
+      if (latestMessage.recipient_id === user?.id && !latestMessage.is_read) {
+        const senderName = getDisplayName(latestMessage.sender);
+        showMessageNotification(senderName, latestMessage.content);
+      }
+    }
+  }, [messages]);
+
+  const fetchAllMessageReactions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('message_reactions')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching reactions:', error);
+        return;
+      }
+
+      // Group reactions by message_id
+      const grouped = (data || []).reduce((acc, reaction) => {
+        if (!acc[reaction.message_id]) {
+          acc[reaction.message_id] = [];
+        }
+        acc[reaction.message_id].push(reaction);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      setMessageReactions(grouped);
+    } catch (error) {
+      console.error('Error fetching reactions:', error);
+    }
+  };
 
   const fetchProfiles = async () => {
     try {
@@ -135,11 +211,22 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
     }
   };
 
-  const filteredMessages = messages.filter(message =>
-    message.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    message.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getDisplayName(message.sender).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMessages = messages.filter(message => {
+    const matchesSearch = message.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      message.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getDisplayName(message.sender).toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (!matchesSearch) return false;
+    
+    switch (searchFilter) {
+      case 'unread':
+        return !message.is_read && message.recipient_id === user?.id;
+      case 'attachments':
+        return !!message.attachment_url;
+      default:
+        return true;
+    }
+  });
 
   const getDisplayName = (profile?: any) => {
     if (!profile) return 'Unknown User';
@@ -180,8 +267,39 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
       newMessage.attachmentUrl
     );
 
-    setNewMessage({ recipient: '', subject: '', content: '', attachmentUrl: '' });
+    setNewMessage({ 
+      recipient: '', 
+      subject: '', 
+      content: '', 
+      attachmentUrl: '',
+      attachmentName: '',
+      attachmentType: ''
+    });
     setIsComposeOpen(false);
+    setShowFileUpload(false);
+  };
+
+  const handleFileUploaded = (url: string, fileName: string, fileType: string) => {
+    setNewMessage(prev => ({
+      ...prev,
+      attachmentUrl: url,
+      attachmentName: fileName,
+      attachmentType: fileType
+    }));
+    setShowFileUpload(false);
+  };
+
+  const removeAttachment = () => {
+    setNewMessage(prev => ({
+      ...prev,
+      attachmentUrl: '',
+      attachmentName: '',
+      attachmentType: ''
+    }));
+  };
+
+  const handleReactionsChange = () => {
+    fetchAllMessageReactions();
   };
 
   const handleReply = () => {
@@ -316,6 +434,48 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
                       rows={4}
                     />
                   </div>
+                  
+                  {/* File Upload Section */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium">{t.attachFile}</label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowFileUpload(!showFileUpload)}
+                      >
+                        <Paperclip className="h-4 w-4 mr-1" />
+                        {t.attachFile}
+                      </Button>
+                    </div>
+                    
+                    {showFileUpload && (
+                      <div className="animate-fade-in">
+                        <FileUpload onFileUploaded={handleFileUploaded} />
+                      </div>
+                    )}
+                    
+                    {newMessage.attachmentUrl && (
+                      <div className="mt-2 animate-fade-in">
+                        <div className="flex items-center justify-between p-2 bg-muted rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Paperclip className="h-4 w-4" />
+                            <span className="text-sm truncate">{newMessage.attachmentName || 'Attachment'}</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={removeAttachment}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
                   <div>
                     <label className="text-sm font-medium">{t.attachment}</label>
                     <Input
@@ -338,14 +498,26 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
             </Dialog>
           </div>
         </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t.search}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t.search}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-20"
+            />
+          </div>
+          <Select value={searchFilter} onValueChange={(value: any) => setSearchFilter(value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t.all}</SelectItem>
+              <SelectItem value="unread">{t.unread}</SelectItem>
+              <SelectItem value="attachments">{t.attachments}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -404,6 +576,12 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
                           <p className="text-sm text-muted-foreground truncate">
                             {message.content}
                           </p>
+                          {message.attachment_url && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <Paperclip className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground">Attachment</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -469,17 +647,24 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
                     <p className="whitespace-pre-wrap">{selectedMessage.content}</p>
                     {selectedMessage.attachment_url && (
                       <div className="mt-4">
-                        <a 
-                          href={selectedMessage.attachment_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          View Attachment
-                        </a>
+                        <AttachmentPreview
+                          url={selectedMessage.attachment_url}
+                          fileName={selectedMessage.attachment_url.split('/').pop() || 'attachment'}
+                          fileType="application/octet-stream"
+                          size="md"
+                        />
                       </div>
                     )}
                   </div>
+                  
+                  {/* Message Reactions */}
+                  {selectedMessage && (
+                    <MessageReactions
+                      messageId={selectedMessage.id}
+                      reactions={messageReactions[selectedMessage.id] || []}
+                      onReactionChange={handleReactionsChange}
+                    />
+                  )}
                   
                   {/* Typing Indicator */}
                   {(() => {
