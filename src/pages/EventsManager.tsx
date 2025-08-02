@@ -409,7 +409,7 @@ export default function EventsManager() {
         <div className="mb-6">
           <Button
             variant="outline"
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate('/dashboard/admin')}
             className="mb-4"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />

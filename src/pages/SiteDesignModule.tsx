@@ -141,7 +141,7 @@ const SiteDesignModule = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => navigate('/admin')}
+                  onClick={() => navigate('/dashboard/admin')}
                   className="bg-background/80 backdrop-blur-sm"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
