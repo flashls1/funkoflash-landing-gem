@@ -58,25 +58,28 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Wait for auth to be fully loaded before redirecting
-    if (!user && !loading) {
-      navigate('/auth');
-      return;
-    }
-
-    // Check role after profile is loaded
-    if (user && profile && profile.role !== 'admin') {
-      navigate('/auth');
-      return;
-    }
-
     // Update time every minute
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
 
     return () => clearInterval(timer);
-  }, [user, profile, navigate, loading]);
+  }, []);
+
+  // Handle authentication and authorization separately
+  useEffect(() => {
+    if (loading) return; // Wait for auth to initialize
+
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    if (profile && profile.role !== 'admin') {
+      navigate('/auth');
+      return;
+    }
+  }, [user, profile, loading, navigate]);
 
   const moveCard = (dragIndex: number, hoverIndex: number) => {
     const newOrder = [...cardOrder];
@@ -185,7 +188,7 @@ const AdminDashboard = () => {
   const t = content[language];
 
   // Show loading state while checking auth
-  if (loading || !user || !profile) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -196,8 +199,8 @@ const AdminDashboard = () => {
     );
   }
 
-  // Check permissions
-  if (profile.role !== 'admin') {
+  // If not authenticated or not admin, don't render anything (redirect will happen in useEffect)
+  if (!user || !profile || profile.role !== 'admin') {
     return null;
   }
 

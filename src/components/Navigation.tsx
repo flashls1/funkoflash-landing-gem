@@ -108,25 +108,27 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
             {user && profile ? (
               <Button 
                 variant="funko" 
-                className="font-medium tracking-wide group relative overflow-hidden"
+                className="font-medium tracking-wide"
                 onClick={() => {
                   const dashboardPath = `/dashboard/${profile.role}`;
                   const currentPath = window.location.pathname;
                   
-                  // If already on dashboard page or admin module, show logout
-                  if (currentPath === dashboardPath || currentPath.startsWith('/admin/') || currentPath.startsWith('/dashboard/')) {
+                  // If on dashboard or admin pages, logout. Otherwise, go to dashboard
+                  if (currentPath.startsWith('/dashboard/') || currentPath.startsWith('/admin/')) {
                     signOut();
+                    navigate('/');
                   } else {
                     navigate(dashboardPath);
                   }
                 }}
               >
-                <span className="group-hover:opacity-0 transition-opacity duration-300">
-                  {language === 'en' ? 'DASHBOARD' : 'PANEL'}
-                </span>
-                <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  {language === 'en' ? 'LOG OUT' : 'CERRAR SESIÓN'}
-                </span>
+                {(() => {
+                  const currentPath = window.location.pathname;
+                  const isOnDashboard = currentPath.startsWith('/dashboard/') || currentPath.startsWith('/admin/');
+                  return isOnDashboard 
+                    ? (language === 'en' ? 'LOG OUT' : 'CERRAR SESIÓN')
+                    : (language === 'en' ? 'DASHBOARD' : 'PANEL');
+                })()}
               </Button>
             ) : (
               <Button 
@@ -210,26 +212,28 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
               {user && profile ? (
                 <Button 
                   variant="funko" 
-                  className="w-full font-medium tracking-wide group relative overflow-hidden"
+                  className="w-full font-medium tracking-wide"
                   onClick={() => {
                     const dashboardPath = `/dashboard/${profile.role}`;
                     const currentPath = window.location.pathname;
                     
-                    // If already on dashboard page or admin module, show logout
-                    if (currentPath === dashboardPath || currentPath.startsWith('/admin/') || currentPath.startsWith('/dashboard/')) {
+                    // If on dashboard or admin pages, logout. Otherwise, go to dashboard
+                    if (currentPath.startsWith('/dashboard/') || currentPath.startsWith('/admin/')) {
                       signOut();
+                      navigate('/');
                     } else {
                       navigate(dashboardPath);
                     }
                     setIsMobileMenuOpen(false);
                   }}
                 >
-                  <span className="group-hover:opacity-0 transition-opacity duration-300">
-                    {language === 'en' ? 'DASHBOARD' : 'PANEL'}
-                  </span>
-                  <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    {language === 'en' ? 'LOG OUT' : 'CERRAR SESIÓN'}
-                  </span>
+                  {(() => {
+                    const currentPath = window.location.pathname;
+                    const isOnDashboard = currentPath.startsWith('/dashboard/') || currentPath.startsWith('/admin/');
+                    return isOnDashboard 
+                      ? (language === 'en' ? 'LOG OUT' : 'CERRAR SESIÓN')
+                      : (language === 'en' ? 'DASHBOARD' : 'PANEL');
+                  })()}
                 </Button>
               ) : (
                 <Button 
