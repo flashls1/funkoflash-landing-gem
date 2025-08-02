@@ -277,14 +277,14 @@ const AdminDashboard = () => {
           <ProfileManager language={language} />
           
           {/* Combined Module Layout and Navigation Bar - Flush with profile */}
-          <Card className="border-2 border-black border-t-0 rounded-t-none bg-white/90 backdrop-blur-sm">
+          <Card className="border-2 border-black border-t-0 rounded-t-none bg-funko-orange/90 backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-8">
                   {/* Module Layout Controls */}
                   <div className="flex items-center gap-3">
-                    {isDragEnabled ? <Unlock className="h-4 w-4 text-gray-600" /> : <Lock className="h-4 w-4 text-gray-600" />}
-                    <span className="text-sm font-medium text-gray-700">
+                    {isDragEnabled ? <Unlock className="h-4 w-4 text-white" /> : <Lock className="h-4 w-4 text-white" />}
+                    <span className="text-sm font-medium text-white">
                       {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
                     </span>
                     <Switch
@@ -292,7 +292,7 @@ const AdminDashboard = () => {
                       onCheckedChange={setIsDragEnabled}
                       className="data-[state=checked]:bg-green-500"
                     />
-                    <span className="text-gray-600 text-xs">
+                    <span className="text-white/80 text-xs">
                       {isDragEnabled 
                         ? (language === 'en' ? 'Unlocked' : 'Desbloqueado')
                         : (language === 'en' ? 'Locked' : 'Bloqueado')
@@ -304,10 +304,10 @@ const AdminDashboard = () => {
                   <nav className="flex space-x-6">
                     <button 
                       onClick={() => setActiveTab('overview')}
-                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'overview'
-                          ? 'border-funko-orange text-funko-orange'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                          ? 'border-white text-white'
+                          : 'border-transparent text-white/70 hover:text-white'
                       }`}
                     >
                       <BarChart3 className="h-4 w-4" />
@@ -315,10 +315,10 @@ const AdminDashboard = () => {
                     </button>
                     <button 
                       onClick={() => setActiveTab('users')}
-                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'users'
-                          ? 'border-funko-orange text-funko-orange'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                          ? 'border-white text-white'
+                          : 'border-transparent text-white/70 hover:text-white'
                       }`}
                     >
                       <Users className="h-4 w-4" />
@@ -326,10 +326,10 @@ const AdminDashboard = () => {
                     </button>
                     <button 
                       onClick={() => setActiveTab('messages')}
-                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'messages'
-                          ? 'border-funko-orange text-funko-orange'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                          ? 'border-white text-white'
+                          : 'border-transparent text-white/70 hover:text-white'
                       }`}
                     >
                       <MessageSquare className="h-4 w-4" />
@@ -337,10 +337,10 @@ const AdminDashboard = () => {
                     </button>
                     <button 
                       onClick={() => setActiveTab('events')}
-                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'events'
-                          ? 'border-funko-orange text-funko-orange'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                          ? 'border-white text-white'
+                          : 'border-transparent text-white/70 hover:text-white'
                       }`}
                     >
                       <Calendar className="h-4 w-4" />
@@ -348,10 +348,10 @@ const AdminDashboard = () => {
                     </button>
                     <button 
                       onClick={() => setActiveTab('settings')}
-                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'settings'
-                          ? 'border-funko-orange text-funko-orange'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                          ? 'border-white text-white'
+                          : 'border-transparent text-white/70 hover:text-white'
                       }`}
                     >
                       <Settings className="h-4 w-4" />
@@ -369,49 +369,49 @@ const AdminDashboard = () => {
             <div className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="border-2 border-black bg-white">
+              <Card className="border-2 border-black bg-funko-orange">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.totalUsers}</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-white">{t.totalUsers}</CardTitle>
+                  <Users className="h-4 w-4 text-white/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-muted-foreground">Platform users</p>
+                  <div className="text-2xl font-bold text-white">0</div>
+                  <p className="text-xs text-white/80">Platform users</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-white">
+              <Card className="border-2 border-black bg-funko-orange">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.pendingRequests}</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-white">{t.pendingRequests}</CardTitle>
+                  <FileText className="h-4 w-4 text-white/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-muted-foreground">Awaiting review</p>
+                  <div className="text-2xl font-bold text-white">0</div>
+                  <p className="text-xs text-white/80">Awaiting review</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-white">
+              <Card className="border-2 border-black bg-funko-orange">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.activeEvents}</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-white">{t.activeEvents}</CardTitle>
+                  <Calendar className="h-4 w-4 text-white/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-muted-foreground">Current events</p>
+                  <div className="text-2xl font-bold text-white">0</div>
+                  <p className="text-xs text-white/80">Current events</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-white">
+              <Card className="border-2 border-black bg-funko-orange">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.systemHealth}</CardTitle>
+                  <CardTitle className="text-sm font-medium text-white">{t.systemHealth}</CardTitle>
                   <Badge variant="default" className="bg-green-500">
                     Healthy
                   </Badge>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">99.9%</div>
-                  <p className="text-xs text-muted-foreground">Uptime</p>
+                  <div className="text-2xl font-bold text-white">99.9%</div>
+                  <p className="text-xs text-white/80">Uptime</p>
                 </CardContent>
               </Card>
             </div>
@@ -429,13 +429,13 @@ const AdminDashboard = () => {
                     moveCard={moveCard}
                     isDragEnabled={isDragEnabled}
                   >
-                    <Card className="border-2 border-black bg-white transition-transform hover:scale-105">
+                    <Card className="border-2 border-black bg-funko-orange transition-transform hover:scale-105">
                       <CardHeader>
-                        <CardTitle className={`flex items-center gap-2 ${card.color}`}>
+                        <CardTitle className="flex items-center gap-2 text-white">
                           <IconComponent className="h-5 w-5" />
                           {card.title}
                         </CardTitle>
-                        <CardDescription>{card.desc}</CardDescription>
+                        <CardDescription className="text-white/80">{card.desc}</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <Button 
