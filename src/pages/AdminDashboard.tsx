@@ -187,19 +187,19 @@ const AdminDashboard = () => {
 
   const t = content[language];
 
-  // Show loading state while checking auth
+  // Show loading while authentication is being checked
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-funko-orange mx-auto mb-4"></div>
-          <p>Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <p className="mt-4 text-lg">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-  // If not authenticated or not admin, don't render anything (redirect will happen in useEffect)
+  // If not authenticated or not admin, don't render dashboard content
   if (!user || !profile || profile.role !== 'admin') {
     return null;
   }

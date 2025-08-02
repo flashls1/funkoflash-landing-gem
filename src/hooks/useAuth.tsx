@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastActivity, setLastActivity] = useState(Date.now());
   const { toast } = useToast();
 
   const fetchProfile = async (userId: string) => {
@@ -59,6 +60,43 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Auto-logout after 15 minutes of inactivity
+  useEffect(() => {
+    if (!user) return;
+
+    const handleActivity = () => {
+      setLastActivity(Date.now());
+    };
+
+    const checkInactivity = setInterval(() => {
+      const now = Date.now();
+      const timeSinceActivity = now - lastActivity;
+      const fifteenMinutes = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+      if (timeSinceActivity >= fifteenMinutes) {
+        toast({
+          title: "Session Expired",
+          description: "You have been logged out due to inactivity.",
+          variant: "destructive",
+        });
+        signOut();
+      }
+    }, 60000); // Check every minute
+
+    // Listen for user activity
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    return () => {
+      clearInterval(checkInactivity);
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity, true);
+      });
+    };
+  }, [user, lastActivity]);
+
   useEffect(() => {
     let mounted = true;
 
@@ -66,6 +104,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       (event, session) => {
         if (!mounted) return;
 
+        console.log('Auth state change:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -93,6 +132,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       
+      console.log('Initial session:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
