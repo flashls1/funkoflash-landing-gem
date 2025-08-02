@@ -324,11 +324,11 @@ const SiteDesignModule = () => {
                         </div>
 
                         <div>
-                          <Label className="text-sm">Hero Background Image</Label>
+                          <Label className="text-sm">Hero Background Media (Image/Video)</Label>
                           <FileUpload
                             onFileUploaded={(url) => handleHeroImageUpload(url)}
-                            acceptedTypes={['image/*']}
-                            maxSize={10 * 1024 * 1024} // 10MB
+                            acceptedTypes={['image/*', 'video/*']}
+                            maxSize={50 * 1024 * 1024} // 50MB for videos
                           />
                           {currentSettings.hero.backgroundImage && (
                             <div className="mt-3 p-3 bg-muted rounded-lg">
@@ -453,7 +453,7 @@ const SiteDesignModule = () => {
 
                 {/* Save/Reset Actions */}
                 <div className="flex gap-3 mt-8">
-                  <Button onClick={handleSaveSettings} className="flex-1">
+                  <Button onClick={handleSaveSettings} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
                     <Save className="w-4 h-4 mr-2" />
                     Save Changes
                   </Button>
