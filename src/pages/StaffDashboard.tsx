@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import MessageCenter from '@/components/MessageCenter';
+import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import ProfileManager from '@/components/ProfileManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -392,7 +392,7 @@ const StaffDashboard = () => {
           </TabsContent>
 
           <TabsContent value="messages">
-            <MessageCenter language={language} />
+            <RealtimeMessageCenter language={language} />
           </TabsContent>
 
           <TabsContent value="tasks">
