@@ -204,7 +204,7 @@ const Auth = () => {
             className="absolute inset-0 bg-no-repeat bg-center bg-contain opacity-10 pointer-events-none"
             style={{
               backgroundImage: "url('/lovable-uploads/67bbac87-013f-4469-bfeb-bc5f77732cdc.png')",
-              backgroundSize: '60%',
+              backgroundSize: 'cover',
               backgroundPosition: 'center center'
             }}
           ></div>
