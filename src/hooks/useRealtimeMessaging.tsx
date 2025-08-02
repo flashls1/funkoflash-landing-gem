@@ -41,18 +41,28 @@ export const useRealtimeMessaging = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const [userPresence, setUserPresence] = useState<Map<string, { status: string; lastSeen: Date }>>(new Map());
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const channelRef = useRef<any>(null);
+  const presenceChannelRef = useRef<any>(null);
   const typingTimeoutRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Set up real-time subscription for user presence
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel('user-presence')
+    const presenceChannel = supabase
+      .channel('user-presence', {
+        config: {
+          presence: {
+            key: user.id,
+          },
+        },
+      });
+    
+    presenceChannelRef.current = presenceChannel;
+
+    presenceChannel
       .on('presence', { event: 'sync' }, () => {
-        const newState = channel.presenceState();
+        const newState = presenceChannel.presenceState();
         const presenceMap = new Map();
         
         Object.entries(newState).forEach(([userId, presence]: [string, any]) => {
@@ -65,16 +75,34 @@ export const useRealtimeMessaging = () => {
         });
         
         setUserPresence(presenceMap);
+        console.log('Presence synced:', presenceMap.size, 'users online');
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
         console.log('User joined:', key, newPresences);
+        setUserPresence(prev => {
+          const newMap = new Map(prev);
+          if (newPresences[0]) {
+            newMap.set(key, {
+              status: newPresences[0].status || 'online',
+              lastSeen: new Date(newPresences[0].lastSeen || Date.now())
+            });
+          }
+          return newMap;
+        });
       })
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
         console.log('User left:', key, leftPresences);
+        setUserPresence(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(key);
+          return newMap;
+        });
       })
       .subscribe(async (status) => {
+        console.log('Presence subscription status:', status);
         if (status === 'SUBSCRIBED') {
-          await channel.track({
+          setIsConnected(true);
+          await presenceChannel.track({
             user_id: user.id,
             status: 'online',
             lastSeen: new Date().toISOString()
@@ -83,113 +111,100 @@ export const useRealtimeMessaging = () => {
       });
 
     return () => {
-      supabase.removeChannel(channel);
+      if (presenceChannelRef.current) {
+        supabase.removeChannel(presenceChannelRef.current);
+        presenceChannelRef.current = null;
+      }
     };
   }, [user]);
 
-  const connect = useCallback(async () => {
+  // Set up real-time message subscriptions
+  useEffect(() => {
     if (!user) return;
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) return;
+    const channel = supabase
+      .channel('messages-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `or(sender_id.eq.${user.id},recipient_id.eq.${user.id})`
+        },
+        async (payload) => {
+          console.log('New message received via realtime:', payload);
+          
+          // Fetch the complete message with profile data
+          const { data: messageWithProfiles } = await supabase
+            .from('messages')
+            .select(`
+              *,
+              sender:profiles!messages_sender_id_fkey(id, first_name, last_name, avatar_url),
+              recipient:profiles!messages_recipient_id_fkey(id, first_name, last_name, avatar_url)
+            `)
+            .eq('id', payload.new.id)
+            .maybeSingle();
 
-      const wsUrl = `wss://gytjgmeoepglbrjrbfie.functions.supabase.co/messaging-websocket?token=${session.access_token}`;
-      const ws = new WebSocket(wsUrl);
-
-      ws.onopen = () => {
-        console.log('WebSocket connected');
-        setIsConnected(true);
-        if (reconnectTimeoutRef.current) {
-          clearTimeout(reconnectTimeoutRef.current);
+          if (messageWithProfiles) {
+            setMessages(prev => {
+              // Avoid duplicates
+              const exists = prev.some(msg => msg.id === messageWithProfiles.id);
+              if (exists) return prev;
+              
+              // Show toast notification if this message is from someone else
+              if (messageWithProfiles.sender_id !== user.id) {
+                toast({
+                  title: "New Message",
+                  description: "You have received a new message",
+                });
+              }
+              
+              // Type the message properly  
+              const typedMessage = messageWithProfiles as unknown as Message;
+              
+              return [typedMessage, ...prev];
+            });
+          }
         }
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          handleWebSocketMessage(data);
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `or(sender_id.eq.${user.id},recipient_id.eq.${user.id})`
+        },
+        (payload) => {
+          console.log('Message updated via realtime:', payload);
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === payload.new.id
+                ? { ...msg, ...payload.new }
+                : msg
+            )
+          );
         }
-      };
+      )
+      .subscribe((status) => {
+        console.log('Messages subscription status:', status);
+      });
 
-      ws.onclose = () => {
-        console.log('WebSocket disconnected');
-        setIsConnected(false);
-        wsRef.current = null;
-        
-        // Auto-reconnect after 3 seconds
-        reconnectTimeoutRef.current = setTimeout(() => {
-          connect();
-        }, 3000);
-      };
+    channelRef.current = channel;
 
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        toast({
-          title: "Connection Error",
-          description: "Failed to connect to messaging service",
-          variant: "destructive",
-        });
-      };
-
-      wsRef.current = ws;
-    } catch (error) {
-      console.error('Error connecting to WebSocket:', error);
-    }
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
   }, [user, toast]);
 
-  const handleWebSocketMessage = useCallback((data: any) => {
-    switch (data.type) {
-      case 'connection_established':
-        console.log('Connection established:', data);
-        break;
-      
-      case 'new_message':
-        setMessages(prev => [data.message, ...prev]);
-        toast({
-          title: "New Message",
-          description: `Message from ${data.message.sender?.first_name || 'Unknown'}`,
-        });
-        break;
-      
-      case 'message_sent':
-        setMessages(prev => [data.message, ...prev]);
-        break;
-      
-      case 'typing_indicator':
-        handleTypingIndicator(data);
-        break;
-      
-      case 'message_read':
-        setMessages(prev => prev.map(msg => 
-          msg.id === data.messageId 
-            ? { ...msg, is_read: true, read_at: data.readAt }
-            : msg
-        ));
-        break;
-      
-      case 'user_presence_update':
-        setUserPresence(prev => {
-          const newMap = new Map(prev);
-          newMap.set(data.userId, {
-            status: data.status,
-            lastSeen: new Date(data.lastSeen)
-          });
-          return newMap;
-        });
-        break;
-      
-      case 'error':
-        toast({
-          title: "Error",
-          description: data.message,
-          variant: "destructive",
-        });
-        break;
-    }
-  }, [toast]);
+  const connect = useCallback(async () => {
+    // No longer needed with Supabase realtime - connection is automatic
+    console.log('Using Supabase Realtime - no manual connection needed');
+  }, []);
 
   const handleTypingIndicator = useCallback((data: any) => {
     const { userId, isTyping, conversationId } = data;
@@ -222,50 +237,73 @@ export const useRealtimeMessaging = () => {
     }
   }, []);
 
-  const sendMessage = useCallback((recipientId: string, content: string, subject?: string, threadId?: string, attachmentUrl?: string) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+  const sendMessage = useCallback(async (recipientId: string, content: string, subject?: string, threadId?: string, attachmentUrl?: string) => {
+    if (!user) {
       toast({
-        title: "Connection Error",
-        description: "Not connected to messaging service",
+        title: "Authentication Error",
+        description: "You must be logged in to send messages",
         variant: "destructive",
       });
       return;
     }
 
-    const message = {
-      type: 'send_message',
-      recipientId,
-      content,
-      subject,
-      threadId,
-      attachmentUrl
-    };
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          sender_id: user.id,
+          recipient_id: recipientId,
+          content,
+          subject,
+          thread_id: threadId,
+          attachment_url: attachmentUrl
+        });
 
-    wsRef.current.send(JSON.stringify(message));
-  }, [toast]);
+      if (error) {
+        console.error('Error sending message:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send message",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      console.log('Message sent successfully');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  }, [user, toast]);
 
   const sendTypingIndicator = useCallback((recipientId: string, isTyping: boolean, conversationId?: string) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    if (!presenceChannelRef.current || !user) return;
 
-    const message = {
-      type: isTyping ? 'typing_start' : 'typing_stop',
-      recipientId,
-      conversationId: conversationId || `${user?.id}-${recipientId}`
-    };
+    // Update presence with typing status
+    presenceChannelRef.current.track({
+      user_id: user.id,
+      status: 'online',
+      lastSeen: new Date().toISOString(),
+      typing: isTyping ? recipientId : null
+    });
+  }, [user]);
 
-    wsRef.current.send(JSON.stringify(message));
-  }, [user?.id]);
+  const markAsRead = useCallback(async (messageId: string) => {
+    if (!user) return;
 
-  const markAsRead = useCallback((messageId: string) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('id', messageId)
+        .eq('recipient_id', user.id);
 
-    const message = {
-      type: 'mark_read',
-      messageId
-    };
-
-    wsRef.current.send(JSON.stringify(message));
-  }, []);
+      if (error) {
+        console.error('Error marking message as read:', error);
+      }
+    } catch (error) {
+      console.error('Error marking message as read:', error);
+    }
+  }, [user]);
 
   const fetchMessages = useCallback(async () => {
     if (!user) return;
@@ -298,14 +336,16 @@ export const useRealtimeMessaging = () => {
   }, [user]);
 
   const disconnect = useCallback(() => {
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
+    // Clean up Supabase channels
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    if (presenceChannelRef.current) {
+      supabase.removeChannel(presenceChannelRef.current);
+      presenceChannelRef.current = null;
     }
     setIsConnected(false);
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-    }
     // Clear all typing timeouts
     typingTimeoutRef.current.forEach(timeout => clearTimeout(timeout));
     typingTimeoutRef.current.clear();
