@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Lock, Unlock } from 'lucide-react';
 import UserManagement from '@/components/UserManagement';
+import AccessRequestManager from '@/components/AccessRequestManager';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
@@ -183,7 +184,7 @@ const AdminDashboard = () => {
   // Module definitions with colors
   const moduleCards = [
     { id: 'user-management', icon: Users, color: 'text-blue-500', title: t.userManagement, desc: t.userManagementDesc, action: t.manageUsers, onClick: () => setActiveTab('users') },
-    { id: 'access-requests', icon: FileText, color: 'text-purple-500', title: t.accessRequests, desc: t.accessRequestsDesc, action: t.reviewRequests },
+    { id: 'access-requests', icon: FileText, color: 'text-purple-500', title: t.accessRequests, desc: t.accessRequestsDesc, action: t.reviewRequests, onClick: () => setActiveTab('access-requests') },
     { id: 'event-management', icon: Calendar, color: 'text-green-500', title: t.eventManagement, desc: t.eventManagementDesc, action: t.manageEvents, onClick: () => navigate('/admin/events-manager') },
     { id: 'system-settings', icon: Settings, color: 'text-gray-500', title: t.systemSettings, desc: t.systemSettingsDesc, action: t.configureSystem },
     { id: 'reports-analytics', icon: BarChart3, color: 'text-orange-500', title: t.reportsAnalytics, desc: t.reportsAnalyticsDesc, action: t.viewReports },
@@ -431,6 +432,13 @@ const AdminDashboard = () => {
 
           {activeTab === 'users' && (
             <UserManagement 
+              language={language} 
+              onBack={() => setActiveTab('overview')} 
+            />
+          )}
+
+          {activeTab === 'access-requests' && (
+            <AccessRequestManager 
               language={language} 
               onBack={() => setActiveTab('overview')} 
             />
