@@ -34,9 +34,12 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
     messages, 
     isConnected, 
     typingUsers, 
+    userPresence,
     sendMessage, 
     sendTypingIndicator, 
-    markAsRead 
+    markAsRead,
+    getUserPresence,
+    getLastSeenText
   } = useRealtimeMessaging();
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -72,7 +75,13 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
       connectionStatus: 'Connection Status',
       connected: 'Connected',
       disconnected: 'Disconnected',
-      typing: 'is typing...'
+      typing: 'is typing...',
+      online: 'Online',
+      offline: 'Offline',
+      invisible: 'Invisible',
+      lastSeen: 'Last seen',
+      delivered: 'Delivered',
+      read: 'Read'
     },
     es: {
       messageCenter: 'Centro de Mensajes',
@@ -92,7 +101,13 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
       connectionStatus: 'Estado de Conexión',
       connected: 'Conectado',
       disconnected: 'Desconectado',
-      typing: 'está escribiendo...'
+      typing: 'está escribiendo...',
+      online: 'En línea',
+      offline: 'Desconectado',
+      invisible: 'Invisible',
+      lastSeen: 'Visto por última vez',
+      delivered: 'Entregado',
+      read: 'Leído'
     }
   };
 
@@ -132,6 +147,21 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
       return `${profile.first_name} ${profile.last_name}`;
     }
     return profile.first_name || profile.last_name || profile.email || 'Unknown User';
+  };
+
+  const getPresenceIndicator = (userId: string) => {
+    const presence = getUserPresence(userId);
+    const statusColors = {
+      online: 'text-green-500',
+      offline: 'text-red-500',
+      invisible: 'text-blue-500'
+    };
+    
+    return {
+      color: statusColors[presence.status as keyof typeof statusColors] || statusColors.offline,
+      text: t[presence.status as keyof typeof t] || t.offline,
+      lastSeen: getLastSeenText(presence.lastSeen)
+    };
   };
 
   const formatDate = (dateString: string) => {
@@ -247,14 +277,21 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
                       <SelectTrigger>
                         <SelectValue placeholder={t.recipient} />
                       </SelectTrigger>
-                      <SelectContent>
+                       <SelectContent>
                         {profiles
                           .filter(profile => profile.user_id !== user?.id)
-                          .map(profile => (
-                            <SelectItem key={profile.id} value={profile.user_id}>
-                              {getDisplayName(profile)}
-                            </SelectItem>
-                          ))
+                          .map(profile => {
+                            const presence = getUserPresence(profile.user_id);
+                            return (
+                              <SelectItem key={profile.id} value={profile.user_id}>
+                                <div className="flex items-center gap-2">
+                                  <div className={`h-2 w-2 rounded-full ${getPresenceIndicator(profile.user_id).color}`} />
+                                  {getDisplayName(profile)}
+                                  <span className="text-xs text-muted-foreground">({getPresenceIndicator(profile.user_id).text})</span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })
                         }
                       </SelectContent>
                     </Select>
@@ -339,9 +376,19 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium truncate">
-                              {getDisplayName(message.sender)}
-                            </h4>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-sm font-medium truncate">
+                                {getDisplayName(message.sender)}
+                              </h4>
+                              {message.sender_id !== user?.id && (
+                                <div className="flex items-center gap-1">
+                                  <div className={`h-2 w-2 rounded-full ${getPresenceIndicator(message.sender_id).color} ${getPresenceIndicator(message.sender_id).color === 'text-green-500' ? 'animate-pulse' : ''}`} />
+                                  <span className="text-xs text-muted-foreground">
+                                    {getPresenceIndicator(message.sender_id).text}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                             <div className="flex items-center gap-1">
                               {!message.is_read && message.recipient_id === user?.id && (
                                 <Badge variant="secondary" className="h-2 w-2 p-0 rounded-full" />
@@ -371,29 +418,49 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
             {selectedMessage ? (
               <>
                 <div className="p-4 border-b">
-                  <div className="flex items-start gap-3">
-                    <Avatar>
-                      <AvatarImage src={selectedMessage.sender?.avatar_url} />
-                      <AvatarFallback>
-                        {getDisplayName(selectedMessage.sender).charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{getDisplayName(selectedMessage.sender)}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedMessage.subject || 'No Subject'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(selectedMessage.created_at)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {selectedMessage.is_read ? (
-                        <Badge variant="secondary">Read</Badge>
-                      ) : (
-                        <Badge>Unread</Badge>
-                      )}
-                    </div>
+                    <div className="flex items-start gap-3">
+                      <Avatar>
+                        <AvatarImage src={selectedMessage.sender?.avatar_url} />
+                        <AvatarFallback>
+                          {getDisplayName(selectedMessage.sender).charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold">{getDisplayName(selectedMessage.sender)}</h3>
+                          {selectedMessage.sender_id !== user?.id && (
+                            <div className="flex items-center gap-1">
+                              <div className={`h-2 w-2 rounded-full ${getPresenceIndicator(selectedMessage.sender_id).color} ${getPresenceIndicator(selectedMessage.sender_id).color === 'text-green-500' ? 'animate-pulse' : ''}`} />
+                              <span className="text-xs text-muted-foreground">
+                                {getPresenceIndicator(selectedMessage.sender_id).text}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedMessage.subject || 'No Subject'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(selectedMessage.created_at)}
+                        </p>
+                        {selectedMessage.sender_id !== user?.id && (
+                          <p className="text-xs text-muted-foreground">
+                            {t.lastSeen} {getPresenceIndicator(selectedMessage.sender_id).lastSeen}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {selectedMessage.is_read ? (
+                          <div className="flex items-center gap-1">
+                            <Badge variant="secondary" className="text-green-600">{t.read}</Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(selectedMessage.updated_at)}
+                            </span>
+                          </div>
+                        ) : (
+                          <Badge className="bg-blue-600">{t.delivered}</Badge>
+                        )}
+                      </div>
                   </div>
                 </div>
                 

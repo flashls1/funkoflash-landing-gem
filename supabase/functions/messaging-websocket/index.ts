@@ -56,6 +56,9 @@ serve(async (req) => {
       userId,
       connectionId
     }));
+
+    // Broadcast user online status
+    broadcastPresenceUpdate(userId, 'online');
   };
 
   socket.onmessage = async (event) => {
@@ -98,12 +101,30 @@ serve(async (req) => {
       userConns.delete(connectionId);
       if (userConns.size === 0) {
         userConnections.delete(userId);
+        // Broadcast user offline status only if no other connections
+        broadcastPresenceUpdate(userId, 'offline');
       }
     }
   };
 
   return response;
 });
+
+function broadcastPresenceUpdate(userId: string, status: string) {
+  const presencePayload = {
+    type: 'user_presence_update',
+    userId,
+    status,
+    lastSeen: new Date().toISOString()
+  };
+
+  // Broadcast to all connected users
+  connections.forEach((socket, connId) => {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(presencePayload));
+    }
+  });
+}
 
 async function handleSendMessage(supabase: any, message: any, senderId: string) {
   try {
@@ -217,7 +238,8 @@ async function handleMarkRead(supabase: any, message: any, userId: string) {
         const readPayload = {
           type: 'message_read',
           messageId: message.messageId,
-          readBy: userId
+          readBy: userId,
+          readAt: new Date().toISOString()
         };
 
         senderConnections.forEach(connId => {

@@ -40,9 +40,52 @@ export const useRealtimeMessaging = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
+  const [userPresence, setUserPresence] = useState<Map<string, { status: string; lastSeen: Date }>>(new Map());
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const typingTimeoutRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Set up real-time subscription for user presence
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('user-presence')
+      .on('presence', { event: 'sync' }, () => {
+        const newState = channel.presenceState();
+        const presenceMap = new Map();
+        
+        Object.entries(newState).forEach(([userId, presence]: [string, any]) => {
+          if (presence && presence[0]) {
+            presenceMap.set(userId, {
+              status: presence[0].status || 'offline',
+              lastSeen: new Date(presence[0].lastSeen || Date.now())
+            });
+          }
+        });
+        
+        setUserPresence(presenceMap);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('User joined:', key, newPresences);
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('User left:', key, leftPresences);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user_id: user.id,
+            status: 'online',
+            lastSeen: new Date().toISOString()
+          });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const connect = useCallback(async () => {
     if (!user) return;
@@ -122,9 +165,20 @@ export const useRealtimeMessaging = () => {
       case 'message_read':
         setMessages(prev => prev.map(msg => 
           msg.id === data.messageId 
-            ? { ...msg, is_read: true }
+            ? { ...msg, is_read: true, read_at: data.readAt }
             : msg
         ));
+        break;
+      
+      case 'user_presence_update':
+        setUserPresence(prev => {
+          const newMap = new Map(prev);
+          newMap.set(data.userId, {
+            status: data.status,
+            lastSeen: new Date(data.lastSeen)
+          });
+          return newMap;
+        });
         break;
       
       case 'error':
@@ -257,6 +311,23 @@ export const useRealtimeMessaging = () => {
     typingTimeoutRef.current.clear();
   }, []);
 
+  const getUserPresence = useCallback((userId: string) => {
+    return userPresence.get(userId) || { status: 'offline', lastSeen: new Date() };
+  }, [userPresence]);
+
+  const getLastSeenText = useCallback((lastSeen: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - lastSeen.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  }, []);
+
   useEffect(() => {
     if (user) {
       fetchMessages();
@@ -272,11 +343,14 @@ export const useRealtimeMessaging = () => {
     messages,
     isConnected,
     typingUsers,
+    userPresence,
     sendMessage,
     sendTypingIndicator,
     markAsRead,
     fetchMessages,
     connect,
-    disconnect
+    disconnect,
+    getUserPresence,
+    getLastSeenText
   };
 };
