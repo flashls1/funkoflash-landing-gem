@@ -74,6 +74,8 @@ export const useSiteDesign = () => {
           page_name: pageName,
           settings: pageSettings as unknown as Record<string, any>,
           updated_by: (await supabase.auth.getUser()).data.user?.id
+        }, {
+          onConflict: 'page_name'
         });
 
       if (error) throw error;
