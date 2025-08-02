@@ -233,29 +233,31 @@ const TalentDashboard = () => {
           </div>
         </div>
 
-        {/* Drag Toggle */}
-        <div className="mb-6 flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-4 border-2 border-black">
-          <div className="flex items-center gap-2">
-            {isDragEnabled ? <Unlock className="h-4 w-4 text-white" /> : <Lock className="h-4 w-4 text-white" />}
-            <span className="text-white font-medium">
-              {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
-            </span>
+        {/* Profile Section with integrated lock toggle */}
+        <div className="mb-6 space-y-4">
+          <ProfileManager language={language} />
+          
+          {/* Lock Toggle integrated in profile area */}
+          <div className="flex items-center justify-end bg-white/90 backdrop-blur-sm border-2 border-black rounded-lg p-3">
+            <div className="flex items-center gap-3">
+              {isDragEnabled ? <Unlock className="h-4 w-4 text-gray-600" /> : <Lock className="h-4 w-4 text-gray-600" />}
+              <span className="text-sm font-medium text-gray-700">
+                {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
+              </span>
+              <Switch
+                checked={isDragEnabled}
+                onCheckedChange={setIsDragEnabled}
+                className="data-[state=checked]:bg-green-500"
+              />
+              <span className="text-gray-600 text-xs">
+                {isDragEnabled 
+                  ? (language === 'en' ? 'Unlocked' : 'Desbloqueado')
+                  : (language === 'en' ? 'Locked' : 'Bloqueado')
+                }
+              </span>
+            </div>
           </div>
-          <Switch
-            checked={isDragEnabled}
-            onCheckedChange={setIsDragEnabled}
-            className="data-[state=checked]:bg-green-500"
-          />
-          <span className="text-white/80 text-sm">
-            {isDragEnabled 
-              ? (language === 'en' ? 'Unlocked - Drag to reorder' : 'Desbloqueado - Arrastra para reordenar')
-              : (language === 'en' ? 'Locked' : 'Bloqueado')
-            }
-          </span>
         </div>
-
-        {/* Profile Section */}
-        <ProfileManager language={language} />
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5 border-2 border-black bg-white">

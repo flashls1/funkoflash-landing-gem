@@ -24,9 +24,13 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
     first_name: '',
     last_name: '',
     phone: '',
-    avatar_url: ''
+    avatar_url: '',
+    status: 'online',
+    name_color: '#ffffff',
+    background_image_url: ''
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const backgroundInputRef = useRef<HTMLInputElement>(null);
 
   const content = {
     en: {
@@ -41,6 +45,13 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
       role: "Role",
       changePhoto: "Change Photo",
       uploadPhoto: "Upload Photo",
+      status: "Status",
+      nameColor: "Name Color",
+      backgroundImage: "Background Image",
+      changeBackground: "Change Background",
+      online: "Online Now",
+      offline: "Offline", 
+      invisible: "Invisible",
       profileUpdated: "Profile updated successfully",
       uploadFailed: "Failed to upload image",
       updateFailed: "Failed to update profile"
@@ -57,6 +68,13 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
       role: "Rol",
       changePhoto: "Cambiar Foto",
       uploadPhoto: "Subir Foto",
+      status: "Estado",
+      nameColor: "Color del Nombre",
+      backgroundImage: "Imagen de Fondo",
+      changeBackground: "Cambiar Fondo",
+      online: "En Línea",
+      offline: "Fuera de Línea",
+      invisible: "Invisible",
       profileUpdated: "Perfil actualizado exitosamente",
       uploadFailed: "Error al subir imagen",
       updateFailed: "Error al actualizar perfil"
@@ -71,10 +89,35 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
         first_name: profile.first_name || '',
         last_name: profile.last_name || '',
         phone: profile.phone || '',
-        avatar_url: (profile as any).avatar_url || ''
+        avatar_url: (profile as any).avatar_url || '',
+        status: (profile as any).status || 'online',
+        name_color: (profile as any).name_color || '#ffffff',
+        background_image_url: (profile as any).background_image_url || ''
       });
     }
   }, [profile]);
+
+  // Set user online status when component mounts
+  useEffect(() => {
+    if (user && profile) {
+      const updateOnlineStatus = async () => {
+        await supabase
+          .from('profiles')
+          .update({ status: 'online' })
+          .eq('user_id', user.id);
+      };
+      updateOnlineStatus();
+
+      // Set offline on page unload
+      const handleBeforeUnload = () => {
+        navigator.sendBeacon(`https://gytjgmeoepglbrjrbfie.supabase.co/rest/v1/profiles?user_id=eq.${user.id}`, 
+          JSON.stringify({ status: 'offline' }));
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }
+  }, [user, profile]);
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -85,13 +128,13 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
     }
   };
 
-  const uploadAvatar = async (file: File) => {
+  const uploadImage = async (file: File, type: 'avatar' | 'background') => {
     if (!user) return null;
 
     setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `avatar_${user.id}_${Date.now()}.${fileExt}`;
+      const fileName = `${type}_${user.id}_${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -106,7 +149,7 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
 
       return publicUrl;
     } catch (error) {
-      console.error('Error uploading avatar:', error);
+      console.error('Error uploading image:', error);
       toast({
         title: t.uploadFailed,
         variant: "destructive",
@@ -141,9 +184,39 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
       return;
     }
 
-    const avatarUrl = await uploadAvatar(file);
+    const avatarUrl = await uploadImage(file, 'avatar');
     if (avatarUrl) {
       setProfileData(prev => ({ ...prev, avatar_url: avatarUrl }));
+    }
+  };
+
+  const handleBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const backgroundUrl = await uploadImage(file, 'background');
+    if (backgroundUrl) {
+      setProfileData(prev => ({ ...prev, background_image_url: backgroundUrl }));
     }
   };
 
@@ -155,11 +228,16 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
         first_name: profileData.first_name,
         last_name: profileData.last_name,
         phone: profileData.phone,
+        status: profileData.status,
+        name_color: profileData.name_color,
       };
       
-      // Only update avatar_url if a new one was uploaded
+      // Only update image URLs if new ones were uploaded
       if (profileData.avatar_url) {
         updateData.avatar_url = profileData.avatar_url;
+      }
+      if (profileData.background_image_url) {
+        updateData.background_image_url = profileData.background_image_url;
       }
 
       const { error } = await supabase
@@ -190,9 +268,33 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
 
   if (!profile) return null;
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'online': return 'text-green-500';
+      case 'offline': return 'text-red-500';
+      case 'invisible': return 'text-blue-500';
+      default: return 'text-gray-500';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'online': return t.online;
+      case 'offline': return t.offline;
+      case 'invisible': return t.invisible;
+      default: return t.offline;
+    }
+  };
+
   return (
-    <Card className="border-2 border-black bg-white">
-      <CardHeader>
+    <Card 
+      className="border-2 border-black bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: profileData.background_image_url ? `url(${profileData.background_image_url})` : 'none',
+        backgroundColor: profileData.background_image_url ? 'transparent' : 'white'
+      }}
+    >
+      <CardHeader className={profileData.background_image_url ? 'bg-black/50 backdrop-blur-sm' : ''}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16 border-2 border-black">
@@ -206,8 +308,15 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
                 <User className="h-5 w-5" />
                 {t.profile}
               </CardTitle>
-              <CardDescription>
-                {profile.first_name} {profile.last_name}
+              <CardDescription 
+                className="flex flex-col gap-1"
+              >
+                <span style={{ color: profileData.name_color || '#ffffff' }} className="font-medium">
+                  {profile.first_name} {profile.last_name}
+                </span>
+                <span className={`text-xs font-semibold ${getStatusColor(profileData.status)}`}>
+                  {getStatusText(profileData.status)}
+                </span>
               </CardDescription>
             </div>
           </div>
@@ -246,6 +355,53 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
                     type="file"
                     accept="image/*"
                     onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="status">{t.status}</Label>
+                    <select
+                      id="status"
+                      value={profileData.status}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, status: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="online">{t.online}</option>
+                      <option value="offline">{t.offline}</option>
+                      <option value="invisible">{t.invisible}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="nameColor">{t.nameColor}</Label>
+                    <Input
+                      id="nameColor"
+                      type="color"
+                      value={profileData.name_color}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, name_color: e.target.value }))}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="backgroundImage">{t.backgroundImage}</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => backgroundInputRef.current?.click()}
+                    disabled={uploading}
+                    className="w-full mt-2"
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    {uploading ? 'Uploading...' : t.changeBackground}
+                  </Button>
+                  <input
+                    ref={backgroundInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleBackgroundUpload}
                     className="hidden"
                   />
                 </div>
@@ -293,7 +449,7 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className={profileData.background_image_url ? 'bg-black/50 backdrop-blur-sm text-white' : ''}>
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 text-muted-foreground" />
