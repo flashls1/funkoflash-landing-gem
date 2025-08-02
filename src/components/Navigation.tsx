@@ -111,7 +111,10 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
                 className="font-medium tracking-wide group relative overflow-hidden"
                 onClick={() => {
                   const dashboardPath = `/dashboard/${profile.role}`;
-                  if (window.location.pathname === dashboardPath) {
+                  const currentPath = window.location.pathname;
+                  
+                  // If already on dashboard page or admin module, show logout
+                  if (currentPath === dashboardPath || currentPath.startsWith('/admin/') || currentPath.startsWith('/dashboard/')) {
                     signOut();
                   } else {
                     navigate(dashboardPath);
@@ -210,7 +213,10 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
                   className="w-full font-medium tracking-wide group relative overflow-hidden"
                   onClick={() => {
                     const dashboardPath = `/dashboard/${profile.role}`;
-                    if (window.location.pathname === dashboardPath) {
+                    const currentPath = window.location.pathname;
+                    
+                    // If already on dashboard page or admin module, show logout
+                    if (currentPath === dashboardPath || currentPath.startsWith('/admin/') || currentPath.startsWith('/dashboard/')) {
                       signOut();
                     } else {
                       navigate(dashboardPath);

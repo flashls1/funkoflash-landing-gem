@@ -54,11 +54,18 @@ const AdminDashboard = () => {
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const [activeTab, setActiveTab] = useState('overview');
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user || !profile || profile.role !== 'admin') {
+    // Wait for auth to be fully loaded before redirecting
+    if (!user && !loading) {
+      navigate('/auth');
+      return;
+    }
+
+    // Check role after profile is loaded
+    if (user && profile && profile.role !== 'admin') {
       navigate('/auth');
       return;
     }
@@ -69,7 +76,7 @@ const AdminDashboard = () => {
     }, 60000);
 
     return () => clearInterval(timer);
-  }, [user, profile, navigate]);
+  }, [user, profile, navigate, loading]);
 
   const moveCard = (dragIndex: number, hoverIndex: number) => {
     const newOrder = [...cardOrder];
@@ -177,7 +184,20 @@ const AdminDashboard = () => {
 
   const t = content[language];
 
-  if (!user || !profile || profile.role !== 'admin') {
+  // Show loading state while checking auth
+  if (loading || !user || !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-funko-orange mx-auto mb-4"></div>
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check permissions
+  if (profile.role !== 'admin') {
     return null;
   }
 

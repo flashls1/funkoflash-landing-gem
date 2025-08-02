@@ -47,8 +47,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
-          setTimeout(async () => {
+          // Fetch user profile - improved error handling and retry mechanism
+          const fetchProfile = async () => {
             try {
               const { data: profileData, error } = await supabase
                 .from('profiles')
@@ -56,15 +56,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 .eq('user_id', session.user.id)
                 .single();
               
-              if (error && error.code !== 'PGRST116') {
-                console.error('Error fetching profile:', error);
+              if (error) {
+                if (error.code === 'PGRST116') {
+                  // Profile not found - this is ok for new users
+                  setProfile(null);
+                } else {
+                  console.error('Error fetching profile:', error);
+                  // Retry once after a delay
+                  setTimeout(() => fetchProfile(), 1000);
+                }
               } else {
                 setProfile(profileData);
               }
             } catch (err) {
               console.error('Profile fetch error:', err);
+              setProfile(null);
             }
-          }, 0);
+          };
+          
+          // Use setTimeout to prevent auth state change loop
+          setTimeout(fetchProfile, 0);
         } else {
           setProfile(null);
         }

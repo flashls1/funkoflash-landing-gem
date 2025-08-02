@@ -324,9 +324,7 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
                 <User className="h-5 w-5" />
                 {t.profile}
               </CardTitle>
-              <CardDescription 
-                className="flex flex-col gap-1"
-              >
+              <div className="flex flex-col gap-1">
                 <span style={{ color: profileData.name_color || '#ffffff' }} className="font-medium">
                   {profile.first_name} {profile.last_name}
                 </span>
@@ -355,7 +353,7 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
                     }`} />
                   </button>
                 </div>
-              </CardDescription>
+              </div>
             </div>
           </div>
           <Dialog open={isEditing} onOpenChange={setIsEditing}>
