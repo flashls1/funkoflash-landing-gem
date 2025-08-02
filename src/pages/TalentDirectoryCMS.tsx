@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, GripVertical, Upload } from "lucide-react";
+import { Plus, Edit, Trash2, GripVertical, Upload, ArrowLeft } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
@@ -31,6 +31,7 @@ interface DirectorySettings {
 
 const TalentDirectoryCMS = () => {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [talents, setTalents] = useState<TalentProfile[]>([]);
   const [settings, setSettings] = useState<DirectorySettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -267,6 +268,18 @@ const TalentDirectoryCMS = () => {
       
       <main className="pt-20 p-8">
         <div className="max-w-6xl mx-auto space-y-8">
+          {/* Back to Admin Dashboard Button */}
+          <div className="mb-6">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/admin')}
+              className="mb-4"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Admin Dashboard
+            </Button>
+          </div>
+
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold">Talent Directory Management</h1>
             <Button onClick={() => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarDays, MapPin, Users, Edit, Trash2, Plus, Upload, X, Settings } from 'lucide-react';
+import { CalendarDays, MapPin, Users, Edit, Trash2, Plus, Upload, X, Settings, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -49,6 +50,7 @@ interface TalentProfile {
 
 export default function EventsManager() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [talentProfiles, setTalentProfiles] = useState<TalentProfile[]>([]);
@@ -403,6 +405,18 @@ export default function EventsManager() {
       </div>
 
       <div className="container mx-auto p-6">
+        {/* Back to Admin Dashboard Button */}
+        <div className="mb-6">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/admin')}
+            className="mb-4"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Admin Dashboard
+          </Button>
+        </div>
+
         {/* Create Event Button - Centered */}
         <div className="flex justify-center mb-8">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

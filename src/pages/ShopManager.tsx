@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, Upload, X, Save } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X, Save, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Product {
@@ -299,6 +299,18 @@ const ShopManager = () => {
       <Navigation language={language} setLanguage={setLanguage} />
       
       <main className="container mx-auto px-4 py-8">
+        {/* Back to Admin Dashboard Button */}
+        <div className="mb-6">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/admin')}
+            className="mb-4"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Admin Dashboard
+          </Button>
+        </div>
+
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold mb-2">Shop Manager</h1>
