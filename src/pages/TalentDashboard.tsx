@@ -2,17 +2,54 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import MessageCenter from '@/components/MessageCenter';
 import ProfileManager from '@/components/ProfileManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MessageSquare, User, Star, FileText, BarChart3 } from 'lucide-react';
+import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock } from 'lucide-react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useDrag, useDrop } from 'react-dnd';
+
+// Draggable card component for talent
+const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'card',
+    item: { id, index },
+    canDrag: isDragEnabled,
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const [, drop] = useDrop({
+    accept: 'card',
+    hover: (item: any) => {
+      if (!isDragEnabled || item.index === index) return;
+      moveCard(item.index, index);
+      item.index = index;
+    },
+  });
+
+  return (
+    <div
+      ref={(node) => drag(drop(node))}
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+      className={isDragEnabled ? 'cursor-move' : 'cursor-default'}
+    >
+      {children}
+    </div>
+  );
+};
 
 const TalentDashboard = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isDragEnabled, setIsDragEnabled] = useState(false);
+  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5]);
   const { user, profile } = useAuth();
   const navigate = useNavigate();
 
@@ -29,6 +66,14 @@ const TalentDashboard = () => {
 
     return () => clearInterval(timer);
   }, [user, profile, navigate]);
+
+  const moveCard = (dragIndex: number, hoverIndex: number) => {
+    const newOrder = [...cardOrder];
+    const draggedCard = newOrder[dragIndex];
+    newOrder.splice(dragIndex, 1);
+    newOrder.splice(hoverIndex, 0, draggedCard);
+    setCardOrder(newOrder);
+  };
 
   const getGreeting = () => {
     const cstTime = new Date(currentTime.toLocaleString("en-US", {timeZone: "America/Chicago"}));
@@ -124,24 +169,35 @@ const TalentDashboard = () => {
     return null;
   }
 
+  // Module definitions with colors for talent
+  const moduleCards = [
+    { id: 'portfolio-management', icon: User, color: 'text-purple-500', title: t.portfolioManagement, desc: t.portfolioManagementDesc, action: t.updatePortfolio },
+    { id: 'booking-management', icon: Calendar, color: 'text-blue-500', title: t.bookingManagement, desc: t.bookingManagementDesc, action: t.viewBookings },
+    { id: 'availability-calendar', icon: Calendar, color: 'text-green-500', title: t.availabilityCalendar, desc: t.availabilityCalendarDesc, action: t.setAvailability },
+    { id: 'earnings-reports', icon: DollarSign, color: 'text-yellow-500', title: t.earningsReports, desc: t.earningsReportsDesc, action: t.viewEarnings },
+    { id: 'profile-settings', icon: Settings, color: 'text-gray-500', title: t.profileSettings, desc: t.profileSettingsDesc, action: t.updateProfile },
+    { id: 'performance-analytics', icon: TrendingUp, color: 'text-orange-500', title: t.performanceAnalytics, desc: t.performanceAnalyticsDesc, action: t.viewAnalytics }
+  ];
+
   return (
-    <div 
-      className="min-h-screen"
-      style={{
-        backgroundImage: 'var(--site-background)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      <Navigation language={language} setLanguage={setLanguage} />
-      
-      <div className="container mx-auto px-4 py-8">
+    <DndProvider backend={HTML5Backend}>
+      <div 
+        className="min-h-screen"
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <Navigation language={language} setLanguage={setLanguage} />
+        
+        <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{getGreeting()}</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold mb-2 text-white drop-shadow-lg">{getGreeting()}</h1>
+          <p className="text-white/90 text-lg drop-shadow-md">
             {currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
               weekday: 'long',
               year: 'numeric',
@@ -150,6 +206,27 @@ const TalentDashboard = () => {
               timeZone: 'America/Chicago'
             })}
           </p>
+        </div>
+
+        {/* Drag Toggle */}
+        <div className="mb-6 flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-4 border-2 border-black">
+          <div className="flex items-center gap-2">
+            {isDragEnabled ? <Unlock className="h-4 w-4 text-white" /> : <Lock className="h-4 w-4 text-white" />}
+            <span className="text-white font-medium">
+              {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
+            </span>
+          </div>
+          <Switch
+            checked={isDragEnabled}
+            onCheckedChange={setIsDragEnabled}
+            className="data-[state=checked]:bg-green-500"
+          />
+          <span className="text-white/80 text-sm">
+            {isDragEnabled 
+              ? (language === 'en' ? 'Unlocked - Drag to reorder' : 'Desbloqueado - Arrastra para reordenar')
+              : (language === 'en' ? 'Locked' : 'Bloqueado')
+            }
+          </span>
         </div>
 
         {/* Profile Section */}
@@ -229,83 +306,34 @@ const TalentDashboard = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    {t.portfolioManagement}
-                  </CardTitle>
-                  <CardDescription>{t.portfolioManagementDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.updatePortfolio}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    {t.bookingManagement}
-                  </CardTitle>
-                  <CardDescription>{t.bookingManagementDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.viewBookings}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    {t.availabilityCalendar}
-                  </CardTitle>
-                  <CardDescription>{t.availabilityCalendarDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.setAvailability}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    {t.earningsReports}
-                  </CardTitle>
-                  <CardDescription>{t.earningsReportsDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.viewEarnings}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    {t.profileSettings}
-                  </CardTitle>
-                  <CardDescription>{t.profileSettingsDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.updateProfile}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    {t.performanceAnalytics}
-                  </CardTitle>
-                  <CardDescription>{t.performanceAnalyticsDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.viewAnalytics}</Button>
-                </CardContent>
-              </Card>
+              {cardOrder.map((cardIndex, index) => {
+                const card = moduleCards[cardIndex];
+                const IconComponent = card.icon;
+                return (
+                  <DraggableCard
+                    key={card.id}
+                    id={card.id}
+                    index={index}
+                    moveCard={moveCard}
+                    isDragEnabled={isDragEnabled}
+                  >
+                    <Card className="border-2 border-black bg-white transition-transform hover:scale-105">
+                      <CardHeader>
+                        <CardTitle className={`flex items-center gap-2 ${card.color}`}>
+                          <IconComponent className="h-5 w-5" />
+                          {card.title}
+                        </CardTitle>
+                        <CardDescription>{card.desc}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button className="w-full">
+                          {card.action}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </DraggableCard>
+                );
+              })}
             </div>
           </TabsContent>
 
@@ -351,8 +379,9 @@ const TalentDashboard = () => {
         </Tabs>
       </div>
 
-      <Footer language={language} />
-    </div>
+        <Footer language={language} />
+      </div>
+    </DndProvider>
   );
 };
 

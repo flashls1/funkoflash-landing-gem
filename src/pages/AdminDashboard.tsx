@@ -3,17 +3,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import MessageCenter from '@/components/MessageCenter';
 import ProfileManager from '@/components/ProfileManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette } from 'lucide-react';
+import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Lock, Unlock } from 'lucide-react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useDrag, useDrop } from 'react-dnd';
+
+// Draggable card component
+const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'card',
+    item: { id, index },
+    canDrag: isDragEnabled,
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const [, drop] = useDrop({
+    accept: 'card',
+    hover: (item: any) => {
+      if (!isDragEnabled || item.index === index) return;
+      moveCard(item.index, index);
+      item.index = index;
+    },
+  });
+
+  return (
+    <div
+      ref={(node) => drag(drop(node))}
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+      className={isDragEnabled ? 'cursor-move' : 'cursor-default'}
+    >
+      {children}
+    </div>
+  );
+};
 
 const AdminDashboard = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isDragEnabled, setIsDragEnabled] = useState(false);
+  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const { user, profile } = useAuth();
   const navigate = useNavigate();
 
@@ -30,6 +67,14 @@ const AdminDashboard = () => {
 
     return () => clearInterval(timer);
   }, [user, profile, navigate]);
+
+  const moveCard = (dragIndex: number, hoverIndex: number) => {
+    const newOrder = [...cardOrder];
+    const draggedCard = newOrder[dragIndex];
+    newOrder.splice(dragIndex, 1);
+    newOrder.splice(hoverIndex, 0, draggedCard);
+    setCardOrder(newOrder);
+  };
 
   const getGreeting = () => {
     const cstTime = new Date(currentTime.toLocaleString("en-US", {timeZone: "America/Chicago"}));
@@ -133,24 +178,39 @@ const AdminDashboard = () => {
     return null;
   }
 
+  // Module definitions with colors
+  const moduleCards = [
+    { id: 'user-management', icon: Users, color: 'text-blue-500', title: t.userManagement, desc: t.userManagementDesc, action: t.manageUsers },
+    { id: 'access-requests', icon: FileText, color: 'text-purple-500', title: t.accessRequests, desc: t.accessRequestsDesc, action: t.reviewRequests },
+    { id: 'event-management', icon: Calendar, color: 'text-green-500', title: t.eventManagement, desc: t.eventManagementDesc, action: t.manageEvents, onClick: () => navigate('/admin/events-manager') },
+    { id: 'system-settings', icon: Settings, color: 'text-gray-500', title: t.systemSettings, desc: t.systemSettingsDesc, action: t.configureSystem },
+    { id: 'reports-analytics', icon: BarChart3, color: 'text-orange-500', title: t.reportsAnalytics, desc: t.reportsAnalyticsDesc, action: t.viewReports },
+    { id: 'content-management', icon: FileText, color: 'text-indigo-500', title: t.contentManagement, desc: t.contentManagementDesc, action: t.manageContent },
+    { id: 'site-design', icon: Palette, color: 'text-pink-500', title: `✨ ${t.siteDesign}`, desc: t.siteDesignDesc, action: t.manageSiteDesign, onClick: () => navigate('/admin/site-design') },
+    { id: 'talent-directory', icon: Users, color: 'text-cyan-500', title: language === 'en' ? 'Talent Directory' : 'Directorio de Talento', desc: language === 'en' ? 'Manage talent profiles and directory banner' : 'Gestionar perfiles de talento y banner del directorio', action: language === 'en' ? 'Manage Talent Directory' : 'Gestionar Directorio de Talento', onClick: () => navigate('/admin/talent-directory') },
+    { id: 'shop-manager', icon: ShoppingBag, color: 'text-emerald-500', title: language === 'en' ? 'Shop Manager' : 'Gestor de Tienda', desc: language === 'en' ? 'Manage products, images, and shop inventory' : 'Gestionar productos, imágenes e inventario de la tienda', action: language === 'en' ? 'Manage Shop' : 'Gestionar Tienda', onClick: () => navigate('/admin/shop-manager') },
+    { id: 'events-manager', icon: Calendar, color: 'text-red-500', title: language === 'en' ? 'Events Manager' : 'Gestor de Eventos', desc: language === 'en' ? 'Create, manage, and publish events with talent assignments' : 'Crear, gestionar y publicar eventos con asignaciones de talento', action: language === 'en' ? 'Manage Events' : 'Gestionar Eventos', onClick: () => navigate('/admin/events-manager') }
+  ];
+
   return (
-    <div 
-      className="min-h-screen"
-      style={{
-        backgroundImage: 'var(--site-background)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      <Navigation language={language} setLanguage={setLanguage} />
-      
-      <div className="container mx-auto px-4 py-8">
+    <DndProvider backend={HTML5Backend}>
+      <div 
+        className="min-h-screen"
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <Navigation language={language} setLanguage={setLanguage} />
+        
+        <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{getGreeting()}</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold mb-2 text-white drop-shadow-lg">{getGreeting()}</h1>
+          <p className="text-white/90 text-lg drop-shadow-md">
             {currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
               weekday: 'long',
               year: 'numeric',
@@ -159,6 +219,27 @@ const AdminDashboard = () => {
               timeZone: 'America/Chicago'
             })}
           </p>
+        </div>
+
+        {/* Drag Toggle */}
+        <div className="mb-6 flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-4 border-2 border-black">
+          <div className="flex items-center gap-2">
+            {isDragEnabled ? <Unlock className="h-4 w-4 text-white" /> : <Lock className="h-4 w-4 text-white" />}
+            <span className="text-white font-medium">
+              {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
+            </span>
+          </div>
+          <Switch
+            checked={isDragEnabled}
+            onCheckedChange={setIsDragEnabled}
+            className="data-[state=checked]:bg-green-500"
+          />
+          <span className="text-white/80 text-sm">
+            {isDragEnabled 
+              ? (language === 'en' ? 'Unlocked - Drag to reorder' : 'Desbloqueado - Arrastra para reordenar')
+              : (language === 'en' ? 'Locked' : 'Bloqueado')
+            }
+          </span>
         </div>
 
         {/* Profile Section */}
@@ -240,166 +321,37 @@ const AdminDashboard = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    {t.userManagement}
-                  </CardTitle>
-                  <CardDescription>{t.userManagementDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.manageUsers}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    {t.accessRequests}
-                  </CardTitle>
-                  <CardDescription>{t.accessRequestsDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.reviewRequests}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    {t.eventManagement}
-                  </CardTitle>
-                  <CardDescription>{t.eventManagementDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => navigate('/admin/events-manager')}
+              {cardOrder.map((cardIndex, index) => {
+                const card = moduleCards[cardIndex];
+                const IconComponent = card.icon;
+                return (
+                  <DraggableCard
+                    key={card.id}
+                    id={card.id}
+                    index={index}
+                    moveCard={moveCard}
+                    isDragEnabled={isDragEnabled}
                   >
-                    {t.manageEvents}
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    {t.systemSettings}
-                  </CardTitle>
-                  <CardDescription>{t.systemSettingsDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.configureSystem}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    {t.reportsAnalytics}
-                  </CardTitle>
-                  <CardDescription>{t.reportsAnalyticsDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.viewReports}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    {t.contentManagement}
-                  </CardTitle>
-                  <CardDescription>{t.contentManagementDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">{t.manageContent}</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Palette className="h-5 w-5 text-funko-orange" />
-                    ✨ {t.siteDesign}
-                  </CardTitle>
-                  <CardDescription>{t.siteDesignDesc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => navigate('/admin/site-design')}
-                  >
-                    {t.manageSiteDesign}
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-funko-orange" />
-                    {language === 'en' ? 'Talent Directory' : 'Directorio de Talento'}
-                  </CardTitle>
-                  <CardDescription>
-                    {language === 'en' ? 'Manage talent profiles and directory banner' : 'Gestionar perfiles de talento y banner del directorio'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => navigate('/admin/talent-directory')}
-                  >
-                    {language === 'en' ? 'Manage Talent Directory' : 'Gestionar Directorio de Talento'}
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <span className="text-funko-green">🛍️</span>
-                    {language === 'en' ? 'Shop Manager' : 'Gestor de Tienda'}
-                  </CardTitle>
-                  <CardDescription>
-                    {language === 'en' ? 'Manage products, images, and shop inventory' : 'Gestionar productos, imágenes e inventario de la tienda'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => navigate('/admin/shop-manager')}
-                  >
-                    {language === 'en' ? 'Manage Shop' : 'Gestionar Tienda'}
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-black bg-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-funko-blue" />
-                    {language === 'en' ? 'Events Manager' : 'Gestor de Eventos'}
-                  </CardTitle>
-                  <CardDescription>
-                    {language === 'en' ? 'Create, manage, and publish events with talent assignments' : 'Crear, gestionar y publicar eventos con asignaciones de talento'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => navigate('/admin/events-manager')}
-                  >
-                    {language === 'en' ? 'Manage Events' : 'Gestionar Eventos'}
-                  </Button>
-                </CardContent>
-              </Card>
+                    <Card className="border-2 border-black bg-white transition-transform hover:scale-105">
+                      <CardHeader>
+                        <CardTitle className={`flex items-center gap-2 ${card.color}`}>
+                          <IconComponent className="h-5 w-5" />
+                          {card.title}
+                        </CardTitle>
+                        <CardDescription>{card.desc}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button 
+                          className="w-full" 
+                          onClick={card.onClick}
+                        >
+                          {card.action}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </DraggableCard>
+                );
+              })}
             </div>
           </TabsContent>
 
@@ -445,8 +397,9 @@ const AdminDashboard = () => {
         </Tabs>
       </div>
 
-      <Footer language={language} />
-    </div>
+        <Footer language={language} />
+      </div>
+    </DndProvider>
   );
 };
 
