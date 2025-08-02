@@ -16,6 +16,8 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 import heroEventsManager from '@/assets/hero-events-manager.jpg';
 
 interface Event {
@@ -52,6 +54,7 @@ export default function EventsManager() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [events, setEvents] = useState<Event[]>([]);
   const [talentProfiles, setTalentProfiles] = useState<TalentProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -377,7 +380,17 @@ export default function EventsManager() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen bg-background"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <Navigation language={language} setLanguage={setLanguage} />
       {/* Hero Section */}
       <div className="relative h-60 overflow-hidden">
         <img
@@ -735,6 +748,7 @@ export default function EventsManager() {
           </DialogContent>
         </Dialog>
       </div>
+      <Footer language={language} />
     </div>
   );
 }

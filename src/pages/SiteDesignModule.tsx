@@ -40,11 +40,14 @@ import { LivePreview } from '@/components/LivePreview';
 import FileUpload from '@/components/FileUpload';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 
 const SiteDesignModule = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [language, setLanguage] = useState<'en' | 'es'>('en');
   const {
     settings,
     loading,
@@ -164,7 +167,18 @@ const SiteDesignModule = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30">
+    <div 
+      className="min-h-screen bg-background"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <Navigation language={language} setLanguage={setLanguage} />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30">
       <div className="container mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -628,6 +642,8 @@ const SiteDesignModule = () => {
           </CardContent>
         </Card>
       </div>
+      </div>
+      <Footer language={language} />
     </div>
   );
 };
