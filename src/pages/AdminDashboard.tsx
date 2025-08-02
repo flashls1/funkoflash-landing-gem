@@ -11,6 +11,7 @@ import ProfileManager from '@/components/ProfileManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Lock, Unlock } from 'lucide-react';
+import UserManagement from '@/components/UserManagement';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
@@ -51,6 +52,7 @@ const AdminDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const [activeTab, setActiveTab] = useState('overview');
   const { user, profile } = useAuth();
   const navigate = useNavigate();
 
@@ -180,7 +182,7 @@ const AdminDashboard = () => {
 
   // Module definitions with colors
   const moduleCards = [
-    { id: 'user-management', icon: Users, color: 'text-blue-500', title: t.userManagement, desc: t.userManagementDesc, action: t.manageUsers },
+    { id: 'user-management', icon: Users, color: 'text-blue-500', title: t.userManagement, desc: t.userManagementDesc, action: t.manageUsers, onClick: () => setActiveTab('users') },
     { id: 'access-requests', icon: FileText, color: 'text-purple-500', title: t.accessRequests, desc: t.accessRequestsDesc, action: t.reviewRequests },
     { id: 'event-management', icon: Calendar, color: 'text-green-500', title: t.eventManagement, desc: t.eventManagementDesc, action: t.manageEvents, onClick: () => navigate('/admin/events-manager') },
     { id: 'system-settings', icon: Settings, color: 'text-gray-500', title: t.systemSettings, desc: t.systemSettingsDesc, action: t.configureSystem },
@@ -276,23 +278,58 @@ const AdminDashboard = () => {
 
                   {/* Navigation Tabs */}
                   <nav className="flex space-x-6">
-                    <button className="py-2 px-3 border-b-2 border-funko-orange text-funko-orange font-medium text-sm transition-colors flex items-center gap-2">
+                    <button 
+                      onClick={() => setActiveTab('overview')}
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        activeTab === 'overview'
+                          ? 'border-funko-orange text-funko-orange'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
                       <BarChart3 className="h-4 w-4" />
                       {t.overview}
                     </button>
-                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                    <button 
+                      onClick={() => setActiveTab('users')}
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        activeTab === 'users'
+                          ? 'border-funko-orange text-funko-orange'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
                       <Users className="h-4 w-4" />
                       {t.users}
                     </button>
-                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                    <button 
+                      onClick={() => setActiveTab('messages')}
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        activeTab === 'messages'
+                          ? 'border-funko-orange text-funko-orange'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
                       <MessageSquare className="h-4 w-4" />
                       {t.messages}
                     </button>
-                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                    <button 
+                      onClick={() => setActiveTab('events')}
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        activeTab === 'events'
+                          ? 'border-funko-orange text-funko-orange'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
                       <Calendar className="h-4 w-4" />
                       {t.events}
                     </button>
-                    <button className="py-2 px-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm transition-colors flex items-center gap-2">
+                    <button 
+                      onClick={() => setActiveTab('settings')}
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        activeTab === 'settings'
+                          ? 'border-funko-orange text-funko-orange'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
                       <Settings className="h-4 w-4" />
                       {t.settings}
                     </button>
@@ -303,9 +340,9 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-
-          <TabsContent value="overview" className="space-y-6">
+        <div className="space-y-6">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card className="border-2 border-black bg-white">
@@ -389,48 +426,34 @@ const AdminDashboard = () => {
                 );
               })}
             </div>
-          </TabsContent>
+            </div>
+          )}
 
-          <TabsContent value="users">
-            <Card className="border-2 border-black bg-white">
-              <CardHeader>
-                <CardTitle>{t.userManagement}</CardTitle>
-                <CardDescription>Manage platform users and their roles</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">User management functionality will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {activeTab === 'users' && (
+            <UserManagement 
+              language={language} 
+              onBack={() => setActiveTab('overview')} 
+            />
+          )}
 
-          <TabsContent value="messages">
+          {activeTab === 'messages' && (
             <RealtimeMessageCenter language={language} />
-          </TabsContent>
+          )}
 
-          <TabsContent value="events">
-            <Card className="border-2 border-black bg-white">
-              <CardHeader>
-                <CardTitle>{t.eventManagement}</CardTitle>
-                <CardDescription>Create and manage platform events</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Event management functionality will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {activeTab === 'events' && (
+            <div className="text-center py-8">
+              <h3 className="text-lg font-semibold mb-2">Events Module</h3>
+              <p className="text-muted-foreground">Event management functionality coming soon.</p>
+            </div>
+          )}
 
-          <TabsContent value="settings">
-            <Card className="border-2 border-black bg-white">
-              <CardHeader>
-                <CardTitle>{t.systemSettings}</CardTitle>
-                <CardDescription>Configure platform settings and preferences</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">System settings will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          {activeTab === 'settings' && (
+            <div className="text-center py-8">
+              <h3 className="text-lg font-semibold mb-2">Settings Module</h3>
+              <p className="text-muted-foreground">Settings management functionality coming soon.</p>
+            </div>
+          )}
+        </div>
       </div>
 
         <Footer language={language} />
