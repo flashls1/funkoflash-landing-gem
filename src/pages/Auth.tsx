@@ -188,9 +188,9 @@ const Auth = () => {
 
   return (
     <div 
-      className="min-h-screen bg-background flex flex-col"
+      className="min-h-screen flex flex-col"
       style={{
-        backgroundImage: 'var(--site-background)',
+        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
@@ -234,7 +234,7 @@ const Auth = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" variant="funko" disabled={loading}>
                 {loading ? "..." : t.loginButton}
               </Button>
             </form>
@@ -249,7 +249,7 @@ const Auth = () => {
               </button>
 
               <Button
-                variant="outline"
+                variant="funko-outline"
                 onClick={() => setShowRequestAccess(true)}
                 className="w-full mt-4"
               >
@@ -287,7 +287,7 @@ const Auth = () => {
             <Button variant="outline" onClick={() => setShowForgotPassword(false)}>
               {t.cancel}
             </Button>
-            <Button onClick={handleForgotPassword}>
+            <Button onClick={handleForgotPassword} variant="funko">
               {t.sendReset}
             </Button>
           </DialogFooter>
@@ -349,7 +349,7 @@ const Auth = () => {
             <Button variant="outline" onClick={() => setShowRequestAccess(false)}>
               {t.cancel}
             </Button>
-            <Button onClick={handleRequestAccess}>
+            <Button onClick={handleRequestAccess} variant="funko">
               {t.submitRequest}
             </Button>
           </DialogFooter>

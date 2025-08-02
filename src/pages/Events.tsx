@@ -145,7 +145,7 @@ export default function Events() {
       <div 
         className="min-h-screen bg-background"
         style={{
-          backgroundImage: 'var(--site-background)',
+          backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
@@ -168,7 +168,7 @@ export default function Events() {
     <div 
       className="min-h-screen bg-background"
       style={{
-        backgroundImage: 'var(--site-background)',
+        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'

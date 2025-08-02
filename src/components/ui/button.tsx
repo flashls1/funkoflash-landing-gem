@@ -18,9 +18,9 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        funko: "bg-funko-orange text-white hover:bg-funko-orange-dark shadow-funko transition-all duration-300 transform hover:scale-105",
-        "funko-blue": "bg-funko-blue text-white hover:bg-funko-blue-dark shadow-funko-blue transition-all duration-300 transform hover:scale-105",
-        "funko-outline": "border-2 border-funko-orange text-funko-orange bg-transparent hover:bg-funko-orange hover:text-white transition-all duration-300",
+        funko: "bg-[hsl(25,100%,60%)] text-white hover:bg-[hsl(25,100%,45%)] shadow-lg transition-all duration-300 transform hover:scale-105",
+        "funko-blue": "bg-[hsl(220,90%,45%)] text-white hover:bg-[hsl(220,90%,30%)] shadow-lg transition-all duration-300 transform hover:scale-105",
+        "funko-outline": "border-2 border-[hsl(25,100%,60%)] text-[hsl(25,100%,60%)] bg-transparent hover:bg-[hsl(25,100%,60%)] hover:text-white transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",
