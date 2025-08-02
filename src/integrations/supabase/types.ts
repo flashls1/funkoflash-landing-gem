@@ -281,12 +281,15 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active: boolean | null
           avatar_url: string | null
           background_image_url: string | null
           created_at: string
+          created_by: string | null
           email: string
           first_name: string | null
           id: string
+          last_login: string | null
           last_name: string | null
           name_color: string | null
           phone: string | null
@@ -296,12 +299,15 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          active?: boolean | null
           avatar_url?: string | null
           background_image_url?: string | null
           created_at?: string
+          created_by?: string | null
           email: string
           first_name?: string | null
           id?: string
+          last_login?: string | null
           last_name?: string | null
           name_color?: string | null
           phone?: string | null
@@ -311,12 +317,15 @@ export type Database = {
           user_id: string
         }
         Update: {
+          active?: boolean | null
           avatar_url?: string | null
           background_image_url?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string
           first_name?: string | null
           id?: string
+          last_login?: string | null
           last_name?: string | null
           name_color?: string | null
           phone?: string | null
@@ -435,6 +444,87 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activity_logs: {
+        Row: {
+          action: string
+          admin_user_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          admin_user_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_impersonation_sessions: {
+        Row: {
+          active: boolean
+          admin_user_id: string
+          ended_at: string | null
+          id: string
+          started_at: string
+          target_user_id: string
+        }
+        Insert: {
+          active?: boolean
+          admin_user_id: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          target_user_id: string
+        }
+        Update: {
+          active?: boolean
+          admin_user_id?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          target_user_id?: string
+        }
+        Relationships: []
+      }
+      user_login_history: {
+        Row: {
+          id: string
+          ip_address: string
+          location_info: Json | null
+          login_time: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          ip_address: string
+          location_info?: Json | null
+          login_time?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          ip_address?: string
+          location_info?: Json | null
+          login_time?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_by: string | null
@@ -474,6 +564,15 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      track_user_login: {
+        Args: {
+          p_user_id: string
+          p_ip_address: string
+          p_user_agent?: string
+          p_location_info?: Json
+        }
+        Returns: string
       }
     }
     Enums: {
