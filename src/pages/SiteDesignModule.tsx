@@ -414,7 +414,7 @@ const SiteDesignModule = () => {
                           <Alert className="mt-2 mb-3 border-blue-200 bg-blue-50">
                             <AlertTriangle className="h-4 w-4" />
                             <AlertDescription className="text-xs">
-                              <strong>Recommended dimensions:</strong> 1920x240px or 1920x480px for optimal display across all devices.
+                              <strong>Recommended dimensions:</strong> 1920x240px for optimal display across all devices.
                             </AlertDescription>
                           </Alert>
                           <FileUpload

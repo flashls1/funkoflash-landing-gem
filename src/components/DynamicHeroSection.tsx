@@ -13,7 +13,7 @@ export const DynamicHeroSection = ({
   fallbackTitle,
   fallbackSubtitle,
   fallbackImage,
-  className = "relative h-[600px] flex items-center justify-center overflow-hidden"
+  className = "relative h-[240px] flex items-center justify-center overflow-hidden"
 }: DynamicHeroSectionProps) => {
   const { getCurrentPageSettings } = useSiteDesign();
   const settings = getCurrentPageSettings();
