@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import MessageCenter from '@/components/MessageCenter';
+import ProfileManager from '@/components/ProfileManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MessageSquare, User, Star, FileText, BarChart3 } from 'lucide-react';
@@ -151,8 +152,11 @@ const TalentDashboard = () => {
           </p>
         </div>
 
+        {/* Profile Section */}
+        <ProfileManager language={language} />
+
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-5 border-2 border-black bg-white">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               {t.overview}
@@ -178,7 +182,7 @@ const TalentDashboard = () => {
           <TabsContent value="overview" className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.upcomingBookings}</CardTitle>
                   <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -189,7 +193,7 @@ const TalentDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.totalEarnings}</CardTitle>
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -200,7 +204,7 @@ const TalentDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.profileViews}</CardTitle>
                   <User className="h-4 w-4 text-muted-foreground" />
@@ -211,7 +215,7 @@ const TalentDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.averageRating}</CardTitle>
                   <Star className="h-4 w-4 text-muted-foreground" />
@@ -225,7 +229,7 @@ const TalentDashboard = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <User className="h-5 w-5" />
@@ -238,7 +242,7 @@ const TalentDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
@@ -251,7 +255,7 @@ const TalentDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
@@ -264,7 +268,7 @@ const TalentDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5" />
@@ -277,7 +281,7 @@ const TalentDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <User className="h-5 w-5" />
@@ -290,7 +294,7 @@ const TalentDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5" />
@@ -306,7 +310,7 @@ const TalentDashboard = () => {
           </TabsContent>
 
           <TabsContent value="bookings">
-            <Card>
+            <Card className="border-2 border-black bg-white">
               <CardHeader>
                 <CardTitle>{t.bookingManagement}</CardTitle>
                 <CardDescription>View and manage your event bookings</CardDescription>
@@ -322,7 +326,7 @@ const TalentDashboard = () => {
           </TabsContent>
 
           <TabsContent value="portfolio">
-            <Card>
+            <Card className="border-2 border-black bg-white">
               <CardHeader>
                 <CardTitle>{t.portfolioManagement}</CardTitle>
                 <CardDescription>Manage your portfolio and showcase your work</CardDescription>
@@ -334,7 +338,7 @@ const TalentDashboard = () => {
           </TabsContent>
 
           <TabsContent value="earnings">
-            <Card>
+            <Card className="border-2 border-black bg-white">
               <CardHeader>
                 <CardTitle>{t.earningsReports}</CardTitle>
                 <CardDescription>Track your earnings and payment history</CardDescription>

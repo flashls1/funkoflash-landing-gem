@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import MessageCenter from '@/components/MessageCenter';
+import ProfileManager from '@/components/ProfileManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MessageSquare, FileText, Users, BarChart3, Settings } from 'lucide-react';
@@ -151,8 +152,11 @@ const StaffDashboard = () => {
           </p>
         </div>
 
+        {/* Profile Section */}
+        <ProfileManager language={language} />
+
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-5 border-2 border-black bg-white">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               {t.overview}
@@ -178,7 +182,7 @@ const StaffDashboard = () => {
           <TabsContent value="overview" className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.mySchedule}</CardTitle>
                   <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -189,7 +193,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.upcomingEvents}</CardTitle>
                   <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -200,7 +204,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.tasksAssigned}</CardTitle>
                   <FileText className="h-4 w-4 text-muted-foreground" />
@@ -211,7 +215,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{t.completionRate}</CardTitle>
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -225,7 +229,7 @@ const StaffDashboard = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
@@ -238,7 +242,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
@@ -251,7 +255,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
@@ -264,7 +268,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5" />
@@ -277,7 +281,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
@@ -290,7 +294,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Settings className="h-5 w-5" />
@@ -303,7 +307,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
@@ -323,7 +327,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="border-funko-green/20 bg-funko-green/5">
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <span className="text-funko-green">🛍️</span>
@@ -343,7 +347,7 @@ const StaffDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="border-funko-blue/20 bg-funko-blue/5">
+              <Card className="border-2 border-black bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-funko-blue" />
@@ -366,7 +370,7 @@ const StaffDashboard = () => {
           </TabsContent>
 
           <TabsContent value="schedule">
-            <Card>
+            <Card className="border-2 border-black bg-white">
               <CardHeader>
                 <CardTitle>{t.scheduleManagement}</CardTitle>
                 <CardDescription>Manage your work schedule and upcoming events</CardDescription>
@@ -382,7 +386,7 @@ const StaffDashboard = () => {
           </TabsContent>
 
           <TabsContent value="tasks">
-            <Card>
+            <Card className="border-2 border-black bg-white">
               <CardHeader>
                 <CardTitle>{t.taskManagement}</CardTitle>
                 <CardDescription>View and manage your assigned tasks</CardDescription>
@@ -394,7 +398,7 @@ const StaffDashboard = () => {
           </TabsContent>
 
           <TabsContent value="reports">
-            <Card>
+            <Card className="border-2 border-black bg-white">
               <CardHeader>
                 <CardTitle>{t.reportGeneration}</CardTitle>
                 <CardDescription>Generate and view reports for your assigned areas</CardDescription>
