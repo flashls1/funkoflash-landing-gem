@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format, isAfter } from "date-fns";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { useSiteDesign } from "@/hooks/useSiteDesign";
 import heroEvents from "@/assets/hero-events.jpg";
 
 interface Event {
@@ -36,10 +37,14 @@ export default function Events() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  
+  const { setCurrentPage, getCurrentPageSettings } = useSiteDesign();
+  const pageSettings = getCurrentPageSettings();
 
   useEffect(() => {
+    setCurrentPage('events');
     fetchEvents();
-  }, []);
+  }, [setCurrentPage]);
 
   const fetchEvents = async () => {
     try {
@@ -174,17 +179,17 @@ export default function Events() {
       <section 
         className="relative h-[400px] flex items-center justify-center text-white"
         style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${heroEvents})`,
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, ${pageSettings.hero.overlayOpacity || 0.5}), rgba(0, 0, 0, ${pageSettings.hero.overlayOpacity || 0.5})), url(${pageSettings.hero.backgroundImage || heroEvents})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
       >
         <div className="text-center max-w-4xl mx-auto px-4">
           <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
-            {content[language].heroTitle}
+            {pageSettings.hero.title || content[language].heroTitle}
           </h1>
           <p className="text-xl md:text-2xl text-white/90">
-            {content[language].heroSubtitle}
+            {pageSettings.hero.subtitle || content[language].heroSubtitle}
           </p>
         </div>
       </section>
