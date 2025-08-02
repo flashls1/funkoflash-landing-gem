@@ -69,23 +69,46 @@ const TalentProfile = () => {
     return `${supabase.storage.from('talent-images').getPublicUrl(url).data.publicUrl}`;
   };
 
+  const content = {
+    en: {
+      backButton: "Back to Talent Directory",
+      bookTitle: "Book This Talent",
+      bookDescription: "Interested in working with",
+      bookDescriptionEnd: "? Get in touch to discuss your project and check availability.",
+      contactButton: "Contact for Booking"
+    },
+    es: {
+      backButton: "Volver al Directorio de Talento",
+      bookTitle: "Contratar Este Talento",
+      bookDescription: "¿Interesado en trabajar con",
+      bookDescriptionEnd: "? Ponte en contacto para discutir tu proyecto y verificar disponibilidad.",
+      contactButton: "Contactar para Reservar"
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div 
+        className="min-h-screen bg-background"
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
+      >
         <Navigation language={language} setLanguage={setLanguage} />
-        <main className="pt-20">
-          <div className="container mx-auto px-4 py-12">
-            <div className="animate-pulse">
-              <div className="h-8 bg-muted rounded w-1/4 mb-8"></div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="aspect-square bg-muted rounded-lg"></div>
-                <div className="space-y-4">
-                  <div className="h-8 bg-muted rounded w-3/4"></div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-muted rounded"></div>
-                    <div className="h-4 bg-muted rounded"></div>
-                    <div className="h-4 bg-muted rounded w-3/4"></div>
-                  </div>
+        <main className="container mx-auto px-4 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-card/80 backdrop-blur-sm rounded w-1/4 mb-8 border border-border"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="aspect-square bg-card/80 backdrop-blur-sm rounded-lg border border-border"></div>
+              <div className="space-y-4">
+                <div className="h-8 bg-card/80 backdrop-blur-sm rounded w-3/4 border border-border"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-card/80 backdrop-blur-sm rounded border border-border"></div>
+                  <div className="h-4 bg-card/80 backdrop-blur-sm rounded border border-border"></div>
+                  <div className="h-4 bg-card/80 backdrop-blur-sm rounded w-3/4 border border-border"></div>
                 </div>
               </div>
             </div>
@@ -105,70 +128,76 @@ const TalentProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen bg-background"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      <main className="pt-20">
-        <div className="container mx-auto px-4 py-12">
-          {/* Back Button */}
-          <Button 
-            variant="ghost" 
-            onClick={() => window.history.back()}
-            className="mb-8"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Talent Directory
-          </Button>
+      <main className="container mx-auto px-4 py-8">
+        {/* Back Button */}
+        <Button 
+          variant="ghost" 
+          onClick={() => window.history.back()}
+          className="mb-8 bg-card/80 backdrop-blur-sm border border-border hover:bg-card/90"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          {content[language].backButton}
+        </Button>
 
-          {/* Profile Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Headshot */}
-            <div className="max-w-md mx-auto lg:mx-0">
-              <div className="aspect-square relative overflow-hidden rounded-lg">
-                {talent.headshot_url ? (
-                  <img 
-                    src={getImageUrl(talent.headshot_url)}
-                    alt={`${talent.name} headshot`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <span className="text-muted-foreground text-6xl font-medium">
-                      {talent.name.charAt(0)}
-                    </span>
-                  </div>
-                )}
-              </div>
+        {/* Profile Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Headshot */}
+          <div className="max-w-md mx-auto lg:mx-0">
+            <div className="aspect-square relative overflow-hidden rounded-lg bg-card/80 backdrop-blur-sm border border-border shadow-lg">
+              {talent.headshot_url ? (
+                <img 
+                  src={getImageUrl(talent.headshot_url)}
+                  alt={`${talent.name} headshot`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-muted flex items-center justify-center">
+                  <span className="text-muted-foreground text-6xl font-medium">
+                    {talent.name.charAt(0)}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bio and Details */}
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-4xl font-bold text-foreground mb-4">
+                {talent.name}
+              </h1>
+              
+              {talent.bio && (
+                <div className="prose prose-lg max-w-none">
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {talent.bio}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {/* Bio and Details */}
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-4xl font-bold text-foreground mb-4">
-                  {talent.name}
-                </h1>
-                
-                {talent.bio && (
-                  <div className="prose prose-lg max-w-none">
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {talent.bio}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Contact Section */}
-              <div className="bg-muted/50 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold text-foreground mb-4">
-                  Book This Talent
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Interested in working with {talent.name}? Get in touch to discuss your project and check availability.
-                </p>
-                <Button size="lg" className="w-full sm:w-auto">
-                  Contact for Booking
-                </Button>
-              </div>
+            {/* Contact Section */}
+            <div className="bg-card/80 backdrop-blur-sm border border-border p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-semibold text-foreground mb-4">
+                {content[language].bookTitle}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {content[language].bookDescription} {talent.name}{content[language].bookDescriptionEnd}
+              </p>
+              <Button size="lg" className="w-full sm:w-auto">
+                {content[language].contactButton}
+              </Button>
             </div>
           </div>
         </div>

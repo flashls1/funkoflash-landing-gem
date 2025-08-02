@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
+import heroTalentDirectory from "@/assets/hero-talent-directory.jpg";
 
 interface TalentProfile {
   id: string;
@@ -74,14 +75,60 @@ const TalentDirectory = () => {
     return `${supabase.storage.from('talent-images').getPublicUrl(url).data.publicUrl}`;
   };
 
+  const content = {
+    en: {
+      heroTitle: "Talent Directory",
+      heroSubtitle: "Meet Our Amazing Voice Talent and Performers",
+      title: "Our Talent",
+      description: "Meet our amazing voice talent and performers available for your next project",
+      noTalent: "No talent profiles available at this time.",
+      viewProfile: "View Profile"
+    },
+    es: {
+      heroTitle: "Directorio de Talento",
+      heroSubtitle: "Conoce a Nuestros Increíbles Talentos de Voz y Artistas",
+      title: "Nuestro Talento",
+      description: "Conoce a nuestros increíbles talentos de voz y artistas disponibles para tu próximo proyecto",
+      noTalent: "No hay perfiles de talento disponibles en este momento.",
+      viewProfile: "Ver Perfil"
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen bg-background"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      <main className="pt-20">
-        {/* Banner Section */}
+      {/* Hero Section */}
+      <section 
+        className="relative h-[400px] flex items-center justify-center text-white"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${heroTalentDirectory})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="text-center max-w-4xl mx-auto px-4">
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
+            {content[language].heroTitle}
+          </h1>
+          <p className="text-xl md:text-2xl text-white/90">
+            {content[language].heroSubtitle}
+          </p>
+        </div>
+      </section>
+      
+      <main className="container mx-auto px-4 py-8">
+        {/* Optional Banner Section for Custom Settings */}
         {settings?.banner_image_url && (
-          <div className="w-full min-h-[200px] relative overflow-hidden">
+          <div className="w-full h-[240px] relative overflow-hidden rounded-lg mb-8">
             <img 
               src={getImageUrl(settings.banner_image_url)} 
               alt={settings.banner_alt_text || "Talent Directory Banner"}
@@ -90,74 +137,71 @@ const TalentDirectory = () => {
           </div>
         )}
 
-        {/* Talent Grid */}
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
-              Our Talent
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Meet our amazing voice talent and performers available for your next project
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-foreground mb-4">
+            {content[language].title}
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            {content[language].description}
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <Card key={i} className="overflow-hidden bg-card/80 backdrop-blur-sm border-border">
+                <Skeleton className="aspect-square w-full" />
+                <CardContent className="p-4">
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {talents.map((talent) => (
+              <Card key={talent.id} className="overflow-hidden hover:shadow-xl transition-shadow bg-card/80 backdrop-blur-sm border-border">
+                <div className="aspect-square relative overflow-hidden">
+                  {talent.headshot_url ? (
+                    <img 
+                      src={getImageUrl(talent.headshot_url)}
+                      alt={`${talent.name} headshot`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <span className="text-muted-foreground text-lg font-medium">
+                        {talent.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    {talent.name}
+                  </h3>
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => window.location.href = `/talent/${talent.slug}`}
+                  >
+                    {content[language].viewProfile}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {!loading && talents.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-lg">
+              {content[language].noTalent}
             </p>
           </div>
-
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <Skeleton className="aspect-square w-full" />
-                  <CardContent className="p-4">
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-10 w-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {talents.map((talent) => (
-                <Card key={talent.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-square relative overflow-hidden">
-                    {talent.headshot_url ? (
-                      <img 
-                        src={getImageUrl(talent.headshot_url)}
-                        alt={`${talent.name} headshot`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <span className="text-muted-foreground text-lg font-medium">
-                          {talent.name.charAt(0)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
-                      {talent.name}
-                    </h3>
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => window.location.href = `/talent/${talent.slug}`}
-                    >
-                      View Profile
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {!loading && talents.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">
-                No talent profiles available at this time.
-              </p>
-            </div>
-          )}
-        </div>
+        )}
       </main>
 
       <Footer language={language} />

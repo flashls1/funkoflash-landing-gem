@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import heroShop from "@/assets/hero-shop.jpg";
 
 interface Product {
   id: string;
@@ -139,89 +140,127 @@ const Shop = () => {
     }).format(price);
   };
 
+  const content = {
+    en: {
+      heroTitle: "Shop",
+      heroSubtitle: "Discover Exclusive Collectibles and Merchandise",
+      title: "FunkoFlash Shop",
+      description: "Discover exclusive Funko Pop collectibles and merchandise",
+      noProducts: "No products listed yet.",
+      checkBack: "Check back soon for exciting new products!"
+    },
+    es: {
+      heroTitle: "Tienda",
+      heroSubtitle: "Descubre Coleccionables y Mercancía Exclusiva",
+      title: "Tienda FunkoFlash",
+      description: "Descubre coleccionables exclusivos de Funko Pop y mercancía",
+      noProducts: "Aún no hay productos listados.",
+      checkBack: "¡Regresa pronto para ver nuevos productos emocionantes!"
+    }
+  };
+
   return (
-    <>
-      <head>
-        <title>Shop - FunkoFlash</title>
-        <meta name="description" content="Browse and purchase exclusive Funko Pop collectibles and merchandise at FunkoFlash." />
-        <meta name="keywords" content="Funko Pop, collectibles, merchandise, shop, buy" />
-      </head>
+    <div 
+      className="min-h-screen bg-background"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <Navigation language={language} setLanguage={setLanguage} />
       
-      <div className="min-h-screen bg-background">
-        <Navigation language={language} setLanguage={setLanguage} />
-        
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
-              FunkoFlash Shop
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover exclusive Funko Pop collectibles and merchandise
+      {/* Hero Section */}
+      <section 
+        className="relative h-[400px] flex items-center justify-center text-white"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${heroShop})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="text-center max-w-4xl mx-auto px-4">
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
+            {content[language].heroTitle}
+          </h1>
+          <p className="text-xl md:text-2xl text-white/90">
+            {content[language].heroSubtitle}
+          </p>
+        </div>
+      </section>
+      
+      <main className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h2 className="text-4xl font-bold mb-4 text-foreground">
+            {content[language].title}
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            {content[language].description}
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="overflow-hidden bg-card/80 backdrop-blur-sm border-border">
+                <div className="w-full h-64 bg-muted animate-pulse" />
+                <CardContent className="p-6">
+                  <div className="h-6 bg-muted rounded animate-pulse mb-2" />
+                  <div className="h-4 bg-muted rounded animate-pulse mb-4" />
+                  <div className="h-10 bg-muted rounded animate-pulse" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 mx-auto mb-6 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border border-border">
+              <span className="text-4xl">🛍️</span>
+            </div>
+            <h3 className="text-2xl font-semibold mb-2 text-foreground">{content[language].noProducts}</h3>
+            <p className="text-muted-foreground">
+              {content[language].checkBack}
             </p>
           </div>
-
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <div className="w-full h-64 bg-muted animate-pulse" />
-                  <CardContent className="p-6">
-                    <div className="h-6 bg-muted rounded animate-pulse mb-2" />
-                    <div className="h-4 bg-muted rounded animate-pulse mb-4" />
-                    <div className="h-10 bg-muted rounded animate-pulse" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 mx-auto mb-6 bg-muted rounded-full flex items-center justify-center">
-                <span className="text-4xl">🛍️</span>
-              </div>
-              <h2 className="text-2xl font-semibold mb-2">No products listed yet.</h2>
-              <p className="text-muted-foreground">
-                Check back soon for exciting new products!
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => (
-                <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <ImageSlider 
-                    images={product.image_urls}
-                    autoplayInterval={product.autoplay_interval}
-                    productTitle={product.title}
-                  />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <Card key={product.id} className="overflow-hidden hover:shadow-xl transition-shadow bg-card/80 backdrop-blur-sm border-border">
+                <ImageSlider 
+                  images={product.image_urls}
+                  autoplayInterval={product.autoplay_interval}
+                  productTitle={product.title}
+                />
+                
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-lg line-clamp-2">{product.title}</h3>
+                    <Badge variant="secondary" className="ml-2 shrink-0">
+                      {formatPrice(product.price)}
+                    </Badge>
+                  </div>
                   
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-lg line-clamp-2">{product.title}</h3>
-                      <Badge variant="secondary" className="ml-2 shrink-0">
-                        {formatPrice(product.price)}
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                      {product.description}
-                    </p>
-                    
-                    <Button 
-                      className="w-full" 
-                      onClick={() => window.open(product.square_checkout_url, '_blank')}
-                    >
-                      Buy Now
-                      <ExternalLink className="w-4 h-4 ml-2" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </main>
-        
-        <Footer language={language} />
-      </div>
-    </>
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                    {product.description}
+                  </p>
+                  
+                  <Button 
+                    className="w-full" 
+                    onClick={() => window.open(product.square_checkout_url, '_blank')}
+                  >
+                    Buy Now
+                    <ExternalLink className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </main>
+      
+      <Footer language={language} />
+    </div>
   );
 };
 
