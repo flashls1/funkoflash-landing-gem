@@ -4,13 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
-import ProfileManager from '@/components/ProfileManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Lock, Unlock } from 'lucide-react';
+import { useColorTheme } from '@/hooks/useColorTheme';
+import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Lock, Unlock, ChevronDown } from 'lucide-react';
 import UserManagement from '@/components/UserManagement';
 import AccessRequestManager from '@/components/AccessRequestManager';
 import { DndProvider } from 'react-dnd';
@@ -55,6 +57,7 @@ const AdminDashboard = () => {
   const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const [activeTab, setActiveTab] = useState('overview');
   const { user, profile, loading } = useAuth();
+  const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -227,72 +230,101 @@ const AdminDashboard = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
+          backgroundAttachment: 'fixed',
+          backgroundColor: currentTheme.background
         }}
       >
         <Navigation language={language} setLanguage={setLanguage} />
         
         <div className="container mx-auto px-4 py-8">
-        {/* Header with Enhanced Design */}
-        <div className="relative mb-8 overflow-hidden">
-          {/* Background gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent rounded-2xl"></div>
-          
-          {/* Content */}
-          <div className="relative p-8 bg-gradient-to-r from-blue-900/80 via-purple-900/80 to-orange-900/80 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl">
-            <div className="flex items-center gap-4">
-              {/* Decorative accent */}
-              <div className="w-2 h-16 bg-gradient-to-b from-orange-400 via-blue-400 to-purple-400 rounded-full shadow-lg"></div>
+        {/* Combined Profile Header with Greeting and Date */}
+        <div className="mb-6">
+          <Card 
+            className="border-2 rounded-2xl overflow-hidden"
+            style={{
+              backgroundColor: currentTheme.cardBackground,
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
+            <div 
+              className="relative h-48 bg-cover bg-center bg-no-repeat"
+              style={{
+                backgroundImage: (profile as any)?.background_image_url 
+                  ? `url(${(profile as any).background_image_url})` 
+                  : "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')"
+              }}
+            >
+              {/* Overlay for better text visibility */}
+              <div className="absolute inset-0 bg-black/40"></div>
               
-              <div>
-                <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-2xl tracking-tight">
-                  {getGreeting()}
-                </h1>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
-                  <p className="text-xl text-white/95 font-medium drop-shadow-lg">
-                    {currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      timeZone: 'America/Chicago'
-                    })}
-                  </p>
+              {/* Profile content */}
+              <div className="relative flex items-end justify-between h-full p-6">
+                {/* Left side - Profile info */}
+                <div className="flex items-end gap-4">
+                  <Avatar className="h-20 w-20 border-4 border-white shadow-xl">
+                    <AvatarImage src={(profile as any)?.avatar_url || ''} />
+                    <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-white mb-2">
+                    <h2 className="text-2xl font-bold drop-shadow-lg">
+                      {profile?.first_name} {profile?.last_name}
+                    </h2>
+                    <p className="text-white/90 capitalize">{profile?.role}</p>
+                    <Badge variant="secondary" className="mt-1 bg-green-500/20 text-green-300 border-green-500/30">
+                      {(profile as any)?.status === 'online' ? 'Online' : 'Offline'}
+                    </Badge>
+                  </div>
+                </div>
+                
+                {/* Right side - Greeting and Date */}
+                <div className="text-right text-white">
+                  <h1 className="text-3xl font-bold mb-1 drop-shadow-lg">
+                    {getGreeting()}
+                  </h1>
+                  <div className="flex items-center gap-2 justify-end">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <p className="text-lg font-medium drop-shadow-lg">
+                      {currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        timeZone: 'America/Chicago'
+                      })}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-            
-            {/* Additional decorative elements */}
-            <div className="absolute top-4 right-4 flex space-x-2">
-              <div className="w-3 h-3 bg-white/20 rounded-full"></div>
-              <div className="w-3 h-3 bg-white/30 rounded-full"></div>
-              <div className="w-3 h-3 bg-white/40 rounded-full"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Combined Profile and Module Layout Bar */}
-        <div className="mb-6 space-y-0">
-          <ProfileManager language={language} />
+          </Card>
           
-          {/* Combined Module Layout and Navigation Bar - Flush with profile */}
-          <Card className="border-2 border-black border-t-0 rounded-t-none bg-funko-orange/90 backdrop-blur-sm">
+          {/* Control Bar - Module Layout and Dashboard Colors */}
+          <Card 
+            className="border-2 border-t-0 rounded-t-none"
+            style={{
+              backgroundColor: currentTheme.cardBackground,
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-8">
                   {/* Module Layout Controls */}
                   <div className="flex items-center gap-3">
-                    {isDragEnabled ? <Unlock className="h-4 w-4 text-white" /> : <Lock className="h-4 w-4 text-white" />}
-                    <span className="text-sm font-medium text-white">
+                    {isDragEnabled ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                    <span className="text-sm font-medium">
                       {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
                     </span>
                     <Switch
                       checked={isDragEnabled}
                       onCheckedChange={setIsDragEnabled}
-                      className="data-[state=checked]:bg-green-500"
+                      style={{ backgroundColor: isDragEnabled ? currentTheme.accent : undefined }}
                     />
-                    <span className="text-white/80 text-xs">
+                    <span className="text-xs opacity-70">
                       {isDragEnabled 
                         ? (language === 'en' ? 'Unlocked' : 'Desbloqueado')
                         : (language === 'en' ? 'Locked' : 'Bloqueado')
@@ -304,61 +336,111 @@ const AdminDashboard = () => {
                   <nav className="flex space-x-6">
                     <button 
                       onClick={() => setActiveTab('overview')}
-                        className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'overview'
-                          ? 'border-white text-white'
-                          : 'border-transparent text-white/70 hover:text-white'
+                          ? `border-current`
+                          : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
+                      style={{ color: activeTab === 'overview' ? currentTheme.accent : currentTheme.cardForeground }}
                     >
                       <BarChart3 className="h-4 w-4" />
                       {t.overview}
                     </button>
                     <button 
                       onClick={() => setActiveTab('users')}
-                        className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'users'
-                          ? 'border-white text-white'
-                          : 'border-transparent text-white/70 hover:text-white'
+                          ? `border-current`
+                          : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
+                      style={{ color: activeTab === 'users' ? currentTheme.accent : currentTheme.cardForeground }}
                     >
                       <Users className="h-4 w-4" />
                       {t.users}
                     </button>
                     <button 
                       onClick={() => setActiveTab('messages')}
-                        className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'messages'
-                          ? 'border-white text-white'
-                          : 'border-transparent text-white/70 hover:text-white'
+                          ? `border-current`
+                          : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
+                      style={{ color: activeTab === 'messages' ? currentTheme.accent : currentTheme.cardForeground }}
                     >
                       <MessageSquare className="h-4 w-4" />
                       {t.messages}
                     </button>
                     <button 
                       onClick={() => setActiveTab('events')}
-                        className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'events'
-                          ? 'border-white text-white'
-                          : 'border-transparent text-white/70 hover:text-white'
+                          ? `border-current`
+                          : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
+                      style={{ color: activeTab === 'events' ? currentTheme.accent : currentTheme.cardForeground }}
                     >
                       <Calendar className="h-4 w-4" />
                       {t.events}
                     </button>
                     <button 
                       onClick={() => setActiveTab('settings')}
-                        className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'settings'
-                          ? 'border-white text-white'
-                          : 'border-transparent text-white/70 hover:text-white'
+                          ? `border-current`
+                          : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
+                      style={{ color: activeTab === 'settings' ? currentTheme.accent : currentTheme.cardForeground }}
                     >
                       <Settings className="h-4 w-4" />
                       {t.settings}
                     </button>
                   </nav>
                 </div>
+                
+                {/* Dashboard Colors Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      style={{
+                        backgroundColor: currentTheme.cardBackground,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.cardForeground
+                      }}
+                    >
+                      <Palette className="h-4 w-4 mr-2" />
+                      {language === 'en' ? 'Dashboard Colors' : 'Colores del Panel'}
+                      <ChevronDown className="h-4 w-4 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-48"
+                    style={{
+                      backgroundColor: currentTheme.cardBackground,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.cardForeground
+                    }}
+                  >
+                    {colorThemes.map((theme) => (
+                      <DropdownMenuItem
+                        key={theme.id}
+                        onClick={() => changeTheme(theme.id)}
+                        className="flex items-center gap-3 cursor-pointer"
+                        style={{
+                          backgroundColor: currentTheme.id === theme.id ? currentTheme.accent + '20' : 'transparent'
+                        }}
+                      >
+                        <div 
+                          className="w-4 h-4 rounded-full border"
+                          style={{ backgroundColor: theme.accent, borderColor: theme.border }}
+                        />
+                        {theme.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardContent>
           </Card>
@@ -369,49 +451,77 @@ const AdminDashboard = () => {
             <div className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="border-2 border-black bg-funko-orange">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-white">{t.totalUsers}</CardTitle>
-                  <Users className="h-4 w-4 text-white/80" />
+                  <CardTitle className="text-sm font-medium">{t.totalUsers}</CardTitle>
+                  <Users className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">0</div>
-                  <p className="text-xs text-white/80">Platform users</p>
+                  <div className="text-2xl font-bold">0</div>
+                  <p className="text-xs opacity-80">Platform users</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-funko-orange">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-white">{t.pendingRequests}</CardTitle>
-                  <FileText className="h-4 w-4 text-white/80" />
+                  <CardTitle className="text-sm font-medium">{t.pendingRequests}</CardTitle>
+                  <FileText className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">0</div>
-                  <p className="text-xs text-white/80">Awaiting review</p>
+                  <div className="text-2xl font-bold">0</div>
+                  <p className="text-xs opacity-80">Awaiting review</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-funko-orange">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-white">{t.activeEvents}</CardTitle>
-                  <Calendar className="h-4 w-4 text-white/80" />
+                  <CardTitle className="text-sm font-medium">{t.activeEvents}</CardTitle>
+                  <Calendar className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">0</div>
-                  <p className="text-xs text-white/80">Current events</p>
+                  <div className="text-2xl font-bold">0</div>
+                  <p className="text-xs opacity-80">Current events</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-black bg-funko-orange">
+              <Card 
+                className="border-2 transition-transform hover:scale-105"
+                style={{
+                  backgroundColor: currentTheme.cardBackground,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-white">{t.systemHealth}</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t.systemHealth}</CardTitle>
                   <Badge variant="default" className="bg-green-500">
                     Healthy
                   </Badge>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">99.9%</div>
-                  <p className="text-xs text-white/80">Uptime</p>
+                  <div className="text-2xl font-bold">99.9%</div>
+                  <p className="text-xs opacity-80">Uptime</p>
                 </CardContent>
               </Card>
             </div>
@@ -429,18 +539,30 @@ const AdminDashboard = () => {
                     moveCard={moveCard}
                     isDragEnabled={isDragEnabled}
                   >
-                    <Card className="border-2 border-black bg-funko-orange transition-transform hover:scale-105">
+                    <Card 
+                      className="border-2 transition-transform hover:scale-105"
+                      style={{
+                        backgroundColor: currentTheme.cardBackground,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.cardForeground
+                      }}
+                    >
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-white">
-                          <IconComponent className="h-5 w-5" />
+                        <CardTitle className="flex items-center gap-2">
+                          <IconComponent className="h-5 w-5" style={{ color: currentTheme.accent }} />
                           {card.title}
                         </CardTitle>
-                        <CardDescription className="text-white/80">{card.desc}</CardDescription>
+                        <CardDescription className="opacity-80">{card.desc}</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <Button 
                           className="w-full" 
                           onClick={card.onClick}
+                          style={{
+                            backgroundColor: currentTheme.accent,
+                            color: currentTheme.background,
+                            borderColor: currentTheme.accent
+                          }}
                         >
                           {card.action}
                         </Button>
