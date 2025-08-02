@@ -262,7 +262,12 @@ const AdminDashboard = () => {
                   <CardDescription>{t.eventManagementDesc}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full">{t.manageEvents}</Button>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => navigate('/admin/events-manager')}
+                  >
+                    {t.manageEvents}
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -359,6 +364,26 @@ const AdminDashboard = () => {
                     onClick={() => navigate('/admin/shop-manager')}
                   >
                     {language === 'en' ? 'Manage Shop' : 'Gestionar Tienda'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="border-funko-blue/20 bg-funko-blue/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-funko-blue" />
+                    {language === 'en' ? 'Events Manager' : 'Gestor de Eventos'}
+                  </CardTitle>
+                  <CardDescription>
+                    {language === 'en' ? 'Create, manage, and publish events with talent assignments' : 'Crear, gestionar y publicar eventos con asignaciones de talento'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => navigate('/admin/events-manager')}
+                  >
+                    {language === 'en' ? 'Manage Events' : 'Gestionar Eventos'}
                   </Button>
                 </CardContent>
               </Card>

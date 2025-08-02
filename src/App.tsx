@@ -15,6 +15,8 @@ import TalentProfile from "./pages/TalentProfile";
 import TalentDirectoryCMS from "./pages/TalentDirectoryCMS";
 import Shop from "./pages/Shop";
 import ShopManager from "./pages/ShopManager";
+import Events from "./pages/Events";
+import EventsManager from "./pages/EventsManager";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +40,8 @@ const App = () => (
             <Route path="/admin/talent-directory" element={<TalentDirectoryCMS />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/admin/shop-manager" element={<ShopManager />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/admin/events-manager" element={<EventsManager />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

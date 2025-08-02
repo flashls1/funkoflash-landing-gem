@@ -76,6 +76,102 @@ export type Database = {
           },
         ]
       }
+      event_talent_assignments: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          status: string | null
+          talent_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: string | null
+          talent_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: string | null
+          talent_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_talent_assignments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_talent_assignments_talent_id_fkey"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          active: boolean
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_date: string
+          external_url: string | null
+          hero_image_url: string | null
+          id: string
+          location: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+          visibility_end: string | null
+          visibility_start: string | null
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_date: string
+          external_url?: string | null
+          hero_image_url?: string | null
+          id?: string
+          location?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          visibility_end?: string | null
+          visibility_start?: string | null
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_date?: string
+          external_url?: string | null
+          hero_image_url?: string | null
+          id?: string
+          location?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          visibility_end?: string | null
+          visibility_start?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           attachment_url: string | null
