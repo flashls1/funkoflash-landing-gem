@@ -1,4 +1,5 @@
 import { useSiteDesign } from '@/hooks/useSiteDesign';
+import { useState, useEffect } from 'react';
 
 interface DynamicHeroSectionProps {
   language: 'en' | 'es';
@@ -17,6 +18,8 @@ export const DynamicHeroSection = ({
 }: DynamicHeroSectionProps) => {
   const { getCurrentPageSettings } = useSiteDesign();
   const settings = getCurrentPageSettings();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
 
   // Use site design settings or fallback to defaults
   const heroTitle = settings.hero?.title || fallbackTitle || 'Welcome';
@@ -24,14 +27,50 @@ export const DynamicHeroSection = ({
   const heroImage = settings.hero?.backgroundImage || fallbackImage || '/src/assets/hero-banner-main.jpg';
   const overlayOpacity = settings.hero?.overlayOpacity || 0.5;
 
+  // Preload and manage image changes to prevent caching flashes
+  useEffect(() => {
+    if (heroImage && heroImage !== currentImageUrl) {
+      setImageLoaded(false);
+      
+      // Add cache-busting parameter to force fresh load
+      const imageUrl = heroImage.includes('?') 
+        ? `${heroImage}&t=${Date.now()}` 
+        : `${heroImage}?t=${Date.now()}`;
+      
+      const img = new Image();
+      img.onload = () => {
+        setCurrentImageUrl(imageUrl);
+        setImageLoaded(true);
+      };
+      img.onerror = () => {
+        // Fallback to original URL if cache-busted version fails
+        const fallbackImg = new Image();
+        fallbackImg.onload = () => {
+          setCurrentImageUrl(heroImage);
+          setImageLoaded(true);
+        };
+        fallbackImg.src = heroImage;
+      };
+      img.src = imageUrl;
+    }
+  }, [heroImage, currentImageUrl]);
+
   return (
     <section className={className}>
       {/* Dynamic Background */}
-      {heroImage && (
+      {currentImageUrl && imageLoaded && (
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroImage})` }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-300"
+          style={{ 
+            backgroundImage: `url(${currentImageUrl})`,
+            opacity: imageLoaded ? 1 : 0
+          }}
         />
+      )}
+      
+      {/* Loading placeholder to prevent layout shift */}
+      {!imageLoaded && (
+        <div className="absolute inset-0 bg-muted animate-pulse" />
       )}
       
       {/* Overlay */}
