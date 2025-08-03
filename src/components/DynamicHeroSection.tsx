@@ -16,14 +16,14 @@ export const DynamicHeroSection = ({
   fallbackImage,
   className = "relative h-[240px] flex items-center justify-center overflow-hidden"
 }: DynamicHeroSectionProps) => {
-  const { getCurrentPageSettings } = useSiteDesign();
+  const { getCurrentPageSettings, loading } = useSiteDesign();
   const settings = getCurrentPageSettings();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
 
-  // Use site design settings or fallback to defaults
-  const heroTitle = settings.hero?.title || fallbackTitle || 'Welcome';
-  const heroSubtitle = settings.hero?.subtitle || fallbackSubtitle || 'Your subtitle here';
+  // Only use fallbacks if loading is complete and no settings exist
+  const heroTitle = loading ? '' : (settings.hero?.title || fallbackTitle || 'Welcome');
+  const heroSubtitle = loading ? '' : (settings.hero?.subtitle || fallbackSubtitle || 'Your subtitle here');
   const heroImage = settings.hero?.backgroundImage || fallbackImage || '/src/assets/hero-banner-main.jpg';
   const overlayOpacity = settings.hero?.overlayOpacity || 0.5;
 
