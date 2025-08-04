@@ -638,7 +638,16 @@ export default function EventsManager() {
                   </div>
                 </CardHeader>
                 
-                {/* Hero image display removed - controlled by site-design module only */}
+                {/* Event Image Display */}
+                {event.hero_image_url && (
+                  <div className="aspect-video relative overflow-hidden">
+                    <img
+                      src={event.hero_image_url}
+                      alt={event.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 
                 <CardContent className="flex-grow">
                   {event.description && (
