@@ -33,36 +33,45 @@ export const UnifiedHeroSection = ({
 
   // Preload and manage media changes to prevent caching flashes
   useEffect(() => {
-    if (heroMedia && heroMedia !== currentMediaUrl) {
-      setMediaLoaded(false);
-      
-      if (mediaType === 'image') {
-        // Add cache-busting parameter to force fresh load for images
-        const mediaUrl = heroMedia.includes('?') 
-          ? `${heroMedia}&t=${Date.now()}` 
-          : `${heroMedia}?t=${Date.now()}`;
+    const loadMedia = async () => {
+      if (!heroMedia) {
+        setCurrentMediaUrl('');
+        setMediaLoaded(true);
+        return;
+      }
+
+      if (heroMedia !== currentMediaUrl) {
+        setMediaLoaded(false);
         
-        const img = new Image();
-        img.onload = () => {
-          setCurrentMediaUrl(mediaUrl);
-          setMediaLoaded(true);
-        };
-        img.onerror = () => {
-          // Fallback to original URL if cache-busted version fails
-          const fallbackImg = new Image();
-          fallbackImg.onload = () => {
-            setCurrentMediaUrl(heroMedia);
+        if (mediaType === 'image') {
+          // Add cache-busting parameter to force fresh load for images
+          const mediaUrl = heroMedia.includes('?') 
+            ? `${heroMedia}&cb=${Date.now()}` 
+            : `${heroMedia}?cb=${Date.now()}`;
+          
+          const img = new Image();
+          img.onload = () => {
+            setCurrentMediaUrl(mediaUrl);
             setMediaLoaded(true);
           };
-          fallbackImg.src = heroMedia;
-        };
-        img.src = mediaUrl;
-      } else {
-        // For videos, set URL directly
-        setCurrentMediaUrl(heroMedia);
-        setMediaLoaded(true);
+          img.onerror = () => {
+            console.error('Failed to load hero image:', heroMedia);
+            setCurrentMediaUrl('');
+            setMediaLoaded(true);
+          };
+          img.src = mediaUrl;
+        } else {
+          // For videos, set URL directly with cache busting
+          const mediaUrl = heroMedia.includes('?') 
+            ? `${heroMedia}&cb=${Date.now()}` 
+            : `${heroMedia}?cb=${Date.now()}`;
+          setCurrentMediaUrl(mediaUrl);
+          setMediaLoaded(true);
+        }
       }
-    }
+    };
+
+    loadMedia();
   }, [heroMedia, currentMediaUrl, mediaType]);
 
   // Don't render anything if still loading or no media to show

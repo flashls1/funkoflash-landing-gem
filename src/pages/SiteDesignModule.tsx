@@ -287,7 +287,7 @@ export const SiteDesignModule = () => {
                           };
                           input.click();
                         }}>
-                          <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
+                          <div className="border-2 border-dashed border-green-300 rounded-lg p-6 text-center hover:border-green-500 hover:bg-green-50 transition-colors cursor-pointer">
                             <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                             <p className="text-sm text-muted-foreground">
                               Drop image or video here, or click to browse
@@ -388,7 +388,7 @@ export const SiteDesignModule = () => {
                 <div className="space-y-3">
                   <Button 
                     onClick={handleSaveSettings} 
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium disabled:bg-green-300 disabled:text-gray-600"
                     disabled={isSaving}
                     size="lg"
                   >
