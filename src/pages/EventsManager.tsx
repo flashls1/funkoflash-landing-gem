@@ -29,7 +29,7 @@ interface Event {
   description?: string;
   event_date: string;
   location?: string;
-  hero_image_url?: string;
+  // removed hero_image_url since hero images are now controlled by site-design module only
   external_url?: string;
   category?: string;
   tags?: string[];
@@ -40,12 +40,7 @@ interface Event {
   updated_at: string;
 }
 
-interface EventsPageSettings {
-  id: string;
-  hero_image_url?: string;
-  hero_alt_text?: string;
-  updated_by?: string;
-}
+// Removed EventsPageSettings interface since hero images are now controlled by site-design module only
 
 interface TalentProfile {
   id: string;
@@ -67,8 +62,7 @@ export default function EventsManager() {
   const [currentEventId, setCurrentEventId] = useState<string | null>(null);
   const [selectedTalent, setSelectedTalent] = useState<string[]>([]);
   const [assignedTalent, setAssignedTalent] = useState<any[]>([]);
-  const [isHeroDialogOpen, setIsHeroDialogOpen] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  // Hero dialog state removed - controlled by site-design module only
 
   // Form state
   const [formData, setFormData] = useState({
@@ -82,7 +76,7 @@ export default function EventsManager() {
     category: "",
     tags: "",
     active: true,
-    hero_image_url: "",
+    // hero_image_url removed - controlled by site-design module only
   });
 
   useEffect(() => {
@@ -138,7 +132,7 @@ export default function EventsManager() {
       return null;
     }
 
-    setUploading(true);
+    // uploading state removed since hero images are handled by site-design
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `event-${Date.now()}.${fileExt}`;
@@ -164,7 +158,7 @@ export default function EventsManager() {
       });
       return null;
     } finally {
-      setUploading(false);
+      // uploading state removed since hero images are handled by site-design
     }
   };
 
@@ -192,7 +186,7 @@ export default function EventsManager() {
         active: formData.active,
         visibility_start: formData.visibility_start || null,
         visibility_end: formData.visibility_end || null,
-        hero_image_url: formData.hero_image_url || null,
+        // hero_image_url removed - controlled by site-design module only
         created_by: user.id,
         updated_by: user.id,
       };
@@ -261,23 +255,7 @@ export default function EventsManager() {
     }
   };
 
-  const handleHeroImageUpload = async (file: File) => {
-    if (!user || profile?.role !== 'admin') {
-      toast({
-        title: "Error",
-        description: "Only administrators can change the hero image",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // For now, just show a toast that the feature will be available after database update
-    toast({
-      title: "Feature Coming Soon",
-      description: "Hero image customization will be available after database updates are complete",
-    });
-    setIsHeroDialogOpen(false);
-  };
+  // Hero image upload functionality removed - controlled by site-design module only
 
   const handleDelete = async (eventId: string) => {
     if (!confirm('Are you sure you want to delete this event?')) return;
@@ -319,7 +297,7 @@ export default function EventsManager() {
       category: event.category || "",
       tags: event.tags?.join(", ") || "",
       active: event.active,
-      hero_image_url: event.hero_image_url || "",
+      // hero_image_url removed - controlled by site-design module only
     });
 
     // Fetch existing talent assignments
@@ -351,7 +329,7 @@ export default function EventsManager() {
       category: "",
       tags: "",
       active: true,
-      hero_image_url: "",
+      // hero_image_url removed - controlled by site-design module only
     });
     setSelectedTalent([]);
     setAssignedTalent([]);
@@ -406,17 +384,7 @@ export default function EventsManager() {
           <div className="text-center text-white">
             <h1 className="text-4xl font-bold mb-2">Events Manager</h1>
             <p className="text-xl opacity-90">Create and manage events for your organization</p>
-            {profile?.role === 'admin' && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4 bg-white/10 border-white/20 text-white hover:bg-white/20"
-                onClick={() => setIsHeroDialogOpen(true)}
-              >
-                <Settings className="mr-2 h-4 w-4" />
-                Change Hero Image
-              </Button>
-            )}
+            {/* Hero image button removed - controlled by site-design module only */}
           </div>
         </div>
       </div>
@@ -577,34 +545,7 @@ export default function EventsManager() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="hero_image">Hero Image</Label>
-                  <Input
-                    id="hero_image"
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const url = await handleImageUpload(file);
-                        if (url) {
-                          setFormData(prev => ({ ...prev, hero_image_url: url }));
-                        }
-                      }
-                    }}
-                    disabled={uploading}
-                  />
-                  {uploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
-                  {formData.hero_image_url && (
-                    <div className="mt-2">
-                      <img
-                        src={formData.hero_image_url}
-                        alt="Preview"
-                        className="w-32 h-32 object-cover rounded-md"
-                      />
-                    </div>
-                  )}
-                </div>
+                {/* Hero image upload removed - controlled by site-design module only */}
 
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -619,9 +560,7 @@ export default function EventsManager() {
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={uploading}>
-                    {isEditing ? "Update" : "Create"} Event
-                  </Button>
+                  <Button type="submit">{isEditing ? "Update" : "Create"} Event</Button>
                 </div>
               </form>
             </DialogContent>
@@ -666,15 +605,7 @@ export default function EventsManager() {
                   </div>
                 </CardHeader>
                 
-                {event.hero_image_url && (
-                  <div className="px-6 pb-4 flex-shrink-0">
-                    <img
-                      src={event.hero_image_url}
-                      alt={event.title}
-                      className="w-full h-32 object-cover rounded-md"
-                    />
-                  </div>
-                )}
+                {/* Hero image display removed - controlled by site-design module only */}
                 
                 <CardContent className="flex-grow">
                   {event.description && (
@@ -728,29 +659,7 @@ export default function EventsManager() {
           </div>
         )}
 
-        {/* Hero Image Settings Dialog */}
-        <Dialog open={isHeroDialogOpen} onOpenChange={setIsHeroDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Change Hero Image</DialogTitle>
-              <DialogDescription>
-                Upload a new hero image for the Events Manager page (1920x240px recommended)
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    handleHeroImageUpload(file);
-                  }
-                }}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Hero Image Settings Dialog removed - controlled by site-design module only */}
       </div>
       <Footer language={language} />
     </div>

@@ -124,7 +124,6 @@ export type Database = {
           description: string | null
           event_date: string
           external_url: string | null
-          hero_image_url: string | null
           id: string
           location: string | null
           tags: string[] | null
@@ -142,7 +141,6 @@ export type Database = {
           description?: string | null
           event_date: string
           external_url?: string | null
-          hero_image_url?: string | null
           id?: string
           location?: string | null
           tags?: string[] | null
@@ -160,7 +158,6 @@ export type Database = {
           description?: string | null
           event_date?: string
           external_url?: string | null
-          hero_image_url?: string | null
           id?: string
           location?: string | null
           tags?: string[] | null

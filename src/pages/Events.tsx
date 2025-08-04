@@ -18,7 +18,7 @@ interface Event {
   description: string | null;
   location: string | null;
   external_url: string | null;
-  hero_image_url: string | null;
+  // hero_image_url removed - controlled by site-design module only
   event_date: string;
   tags: string[] | null;
   category: string | null;
@@ -240,13 +240,7 @@ export default function Events() {
           </DialogHeader>
           {selectedEvent && (
             <div className="space-y-4">
-              {selectedEvent.hero_image_url && (
-                <img 
-                  src={selectedEvent.hero_image_url} 
-                  alt={selectedEvent.title}
-                  className="w-full h-64 object-cover rounded-lg"
-                />
-              )}
+              {/* Hero images removed - now controlled by site-design module only */}
               
               <div className="flex flex-wrap gap-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -329,18 +323,10 @@ function EventCard({ event, onClick, isPast = false }: EventCardProps) {
       onClick={() => onClick(event)}
     >
       <div className="aspect-square relative overflow-hidden">
-        {event.hero_image_url ? (
-          <img 
-            src={event.hero_image_url} 
-            alt={event.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
-            <Calendar className="w-16 h-16 text-muted-foreground" />
-          </div>
-        )}
+        {/* Hero images removed - now controlled by site-design module only */}
+        <div className="w-full h-full bg-muted flex items-center justify-center">
+          <Calendar className="w-16 h-16 text-muted-foreground" />
+        </div>
         {event.category && (
           <Badge className="absolute top-2 left-2" variant="secondary">
             {event.category}
