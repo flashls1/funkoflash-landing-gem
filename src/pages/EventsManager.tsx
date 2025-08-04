@@ -657,7 +657,7 @@ export default function EventsManager() {
                   )}
                   
                   {event.category && (
-                    <Badge variant="outline" className="mr-2 mb-2">
+                    <Badge variant="secondary" className="mr-2 mb-2">
                       {event.category}
                     </Badge>
                   )}
