@@ -390,7 +390,10 @@ export const SiteDesignModule = () => {
                     key={page.id}
                     variant={currentPage === page.id ? "default" : "outline"}
                     className="flex flex-col gap-2 h-auto py-4"
-                    onClick={() => setCurrentPage(page.id)}
+                    onClick={() => {
+                      console.log('🔧 Page button clicked:', page.id, 'Current page:', currentPage);
+                      setCurrentPage(page.id);
+                    }}
                     style={currentPage === page.id ? {
                       backgroundColor: currentTheme.accent,
                       borderColor: currentTheme.accent,
