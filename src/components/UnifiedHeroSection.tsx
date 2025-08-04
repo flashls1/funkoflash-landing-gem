@@ -10,16 +10,29 @@ export const UnifiedHeroSection = ({
   language, 
   className 
 }: UnifiedHeroSectionProps) => {
-  const { getCurrentPageSettings, loading, currentPage } = useSiteDesign();
-  const settings = getCurrentPageSettings();
+  const { getCurrentPageSettings, loading, currentPage, error } = useSiteDesign();
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [currentMediaUrl, setCurrentMediaUrl] = useState<string>('');
+  const [imageLoadError, setImageLoadError] = useState(false);
 
+  // Get settings after loading is complete
+  const settings = getCurrentPageSettings();
+  
   // Only show media when backgroundMedia is set - no default text
   const heroMedia = settings.hero?.backgroundMedia || '';
   const mediaType = settings.hero?.mediaType || 'image';
   const overlayOpacity = settings.hero?.overlayOpacity || 0.5;
   const heroHeight = settings.hero?.height || '240';
+
+  console.log('🎬 UnifiedHeroSection render:', {
+    currentPage,
+    loading,
+    heroMedia,
+    mediaType,
+    mediaLoaded,
+    imageLoadError,
+    settingsHasHero: !!settings.hero
+  });
 
   // Determine height based on page and settings
   const getHeightClass = () => {
@@ -31,41 +44,78 @@ export const UnifiedHeroSection = ({
 
   const heightClass = className || `relative ${getHeightClass()} flex items-center justify-center overflow-hidden`;
 
-  // Simplified media loading - direct assignment without cache busting
+  // Enhanced media loading with proper error handling and debugging
   useEffect(() => {
-    if (!heroMedia) {
-      setCurrentMediaUrl('');
-      setMediaLoaded(true);
+    console.log('🔄 Media loading effect triggered:', { heroMedia, mediaType, loading });
+    
+    // Don't proceed if still loading settings
+    if (loading) {
+      console.log('⏳ Still loading settings, skipping media load');
       return;
     }
 
+    if (!heroMedia || heroMedia.trim() === '') {
+      console.log('❌ No hero media URL provided');
+      setCurrentMediaUrl('');
+      setMediaLoaded(true);
+      setImageLoadError(false);
+      return;
+    }
+
+    console.log('🎯 Loading hero media:', heroMedia);
     setMediaLoaded(false);
+    setImageLoadError(false);
     setCurrentMediaUrl(heroMedia);
     
     if (mediaType === 'image') {
       const img = new Image();
-      img.onload = () => setMediaLoaded(true);
+      img.onload = () => {
+        console.log('✅ Hero image loaded successfully:', heroMedia);
+        setMediaLoaded(true);
+        setImageLoadError(false);
+      };
       img.onerror = (error) => {
-        console.error('Failed to load hero image:', heroMedia, error);
+        console.error('❌ Failed to load hero image:', heroMedia, error);
+        setImageLoadError(true);
         setMediaLoaded(true);
       };
       img.src = heroMedia;
-    } else {
+    } else if (mediaType === 'video') {
+      console.log('🎥 Video media type, setting as loaded');
       setMediaLoaded(true);
+      setImageLoadError(false);
     }
-  }, [heroMedia, mediaType]);
+  }, [heroMedia, mediaType, loading]);
 
-  // Show a placeholder if still loading
+  // Show loading state while fetching settings
   if (loading) {
+    console.log('⏳ Showing loading placeholder');
     return (
       <section className={heightClass}>
         <div className="absolute inset-0 bg-muted animate-pulse" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-muted-foreground">Loading hero section...</div>
+        </div>
       </section>
     );
   }
 
-  // If no media, show empty hero section (not null)
-  if (!heroMedia) {
+  // Show error state if there's an error loading settings
+  if (error) {
+    console.log('❌ Showing error state');
+    return (
+      <section className={heightClass}>
+        <div className="absolute inset-0 bg-destructive/10" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-destructive">Error loading hero section</div>
+        </div>
+      </section>
+    );
+  }
+
+  // If no media URL, show fallback gradient
+  if (!heroMedia || heroMedia.trim() === '') {
+    console.log('🎨 No hero media, showing gradient fallback');
     return (
       <section className={heightClass}>
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20" />
@@ -73,10 +123,12 @@ export const UnifiedHeroSection = ({
     );
   }
 
+  console.log('🎬 Rendering hero section with media:', { currentMediaUrl, mediaLoaded, imageLoadError });
+
   return (
     <section className={heightClass}>
       {/* Dynamic Background Media */}
-      {currentMediaUrl && mediaLoaded && (
+      {currentMediaUrl && mediaLoaded && !imageLoadError && (
         <>
           {mediaType === 'video' ? (
             <video
@@ -85,35 +137,51 @@ export const UnifiedHeroSection = ({
               muted
               loop
               playsInline
-              style={{ opacity: mediaLoaded ? 1 : 0 }}
+              onLoadStart={() => console.log('🎥 Video started loading')}
+              onCanPlay={() => console.log('🎥 Video can play')}
+              onError={(e) => {
+                console.error('🎥 Video failed to load:', e);
+                setImageLoadError(true);
+              }}
             >
               <source src={currentMediaUrl} type="video/mp4" />
               <source src={currentMediaUrl} type="video/webm" />
             </video>
           ) : (
             <div 
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-300"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500"
               style={{ 
                 backgroundImage: `url(${currentMediaUrl})`,
-                opacity: mediaLoaded ? 1 : 0
+                opacity: 1
               }}
             />
           )}
         </>
       )}
       
-      {/* Loading placeholder to prevent layout shift */}
-      {!mediaLoaded && heroMedia && (
-        <div className="absolute inset-0 bg-muted animate-pulse" />
+      {/* Loading placeholder */}
+      {!mediaLoaded && heroMedia && !imageLoadError && (
+        <div className="absolute inset-0 bg-muted animate-pulse">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-muted-foreground text-sm">Loading media...</div>
+          </div>
+        </div>
+      )}
+      
+      {/* Error fallback */}
+      {imageLoadError && (
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-muted-foreground text-sm">Media failed to load</div>
+          </div>
+        </div>
       )}
       
       {/* Overlay */}
       <div 
-        className="absolute inset-0 bg-black"
+        className="absolute inset-0 bg-black transition-opacity duration-500"
         style={{ opacity: overlayOpacity }}
       />
-      
-      {/* No default content - only show media */}
     </section>
   );
 };

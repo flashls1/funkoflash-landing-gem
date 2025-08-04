@@ -39,27 +39,46 @@ export interface SiteDesignSettings {
 export const useSiteDesign = () => {
   const [settings, setSettings] = useState<Record<string, SiteDesignSettings>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState('home');
   const { toast } = useToast();
 
-  // Load all page settings
+  // Load all page settings with enhanced debugging
   const loadSettings = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log('🔄 Loading site design settings...');
+      
       const { data, error } = await supabase
         .from('site_design_settings')
         .select('*');
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error loading site design settings:', error);
+        setError('Failed to load site design settings');
+        throw error;
+      }
 
       const settingsMap: Record<string, SiteDesignSettings> = {};
-      data?.forEach((setting) => {
-        settingsMap[setting.page_name] = setting.settings as unknown as SiteDesignSettings;
-      });
+      
+      if (data) {
+        data.forEach((setting) => {
+          const settingsData = setting.settings as unknown as SiteDesignSettings;
+          settingsMap[setting.page_name] = settingsData;
+          console.log(`✅ Loaded settings for ${setting.page_name}:`, {
+            hasHero: !!settingsData?.hero,
+            heroMedia: settingsData?.hero?.backgroundMedia,
+            mediaType: settingsData?.hero?.mediaType
+          });
+        });
+      }
 
       setSettings(settingsMap);
+      console.log('📋 All settings loaded:', Object.keys(settingsMap));
     } catch (error) {
-      console.error('Error loading site design settings:', error);
+      console.error('💥 Error in loadSettings:', error);
+      setError('Unexpected error loading settings');
       toast({
         title: "Error",
         description: "Failed to load design settings",
@@ -182,9 +201,17 @@ export const useSiteDesign = () => {
     return data.publicUrl;
   };
 
-  // Get current page settings
+  // Get current page settings with debugging
   const getCurrentPageSettings = (): SiteDesignSettings => {
-    return settings[currentPage] || {
+    const pageSettings = settings[currentPage];
+    console.log(`🎯 Getting settings for page: ${currentPage}`, {
+      found: !!pageSettings,
+      heroMedia: pageSettings?.hero?.backgroundMedia,
+      mediaType: pageSettings?.hero?.mediaType,
+      loading: loading
+    });
+    
+    return pageSettings || {
       background: { type: 'image', value: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')" },
       hero: { 
         title: '', 
@@ -246,6 +273,7 @@ export const useSiteDesign = () => {
   return {
     settings,
     loading,
+    error,
     currentPage,
     setCurrentPage,
     getCurrentPageSettings,
