@@ -46,7 +46,7 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
 
   return (
     <nav 
-      className="animated-nav border-b border-border sticky top-0 z-50 shadow-sm"
+      className="border-b border-border sticky top-0 z-50 shadow-sm"
       style={{ 
         backgroundColor: navStyles.backgroundColor,
         fontFamily: navStyles.fontFamily 
