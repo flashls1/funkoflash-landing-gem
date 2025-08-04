@@ -271,7 +271,7 @@ export const SiteDesignModule = () => {
           <div className="flex items-center gap-4">
             <Button 
               variant="outline" 
-              onClick={() => window.location.href = profile?.role === 'admin' ? '/admin' : '/staff'}
+              onClick={() => window.location.href = profile?.role === 'admin' ? '/dashboard/admin' : '/dashboard/staff'}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
