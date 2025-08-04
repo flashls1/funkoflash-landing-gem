@@ -223,8 +223,13 @@ export const useSiteDesign = () => {
       [currentPage]: updatedSettings
     }));
 
-    // Apply immediately for live preview
+    // Apply immediately for live preview with cache busting for media
     applySettingsToCSS(updatedSettings);
+    
+    // Force re-render of components by triggering a state update
+    setTimeout(() => {
+      setSettings(prev => ({ ...prev }));
+    }, 100);
   };
 
   useEffect(() => {

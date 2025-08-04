@@ -16,14 +16,10 @@ interface LivePreviewProps {
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
 
 const PageComponentWrapper = ({ pageName, language }: { pageName: string; language: 'en' | 'es' }) => {
-  const { setCurrentPage, getCurrentPageSettings } = useSiteDesign();
-  
-  // Set current page for design system context
-  React.useEffect(() => {
-    setCurrentPage(pageName);
-  }, [pageName, setCurrentPage]);
+  const { getCurrentPageSettings } = useSiteDesign();
   
   // Get current settings to trigger re-render when they change
+  // Force fresh settings on every render to ensure real-time updates
   const currentSettings = getCurrentPageSettings();
 
   const fallbackContent = {

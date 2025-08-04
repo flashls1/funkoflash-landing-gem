@@ -14,7 +14,7 @@ import FileUpload from '@/components/FileUpload';
 import { ColorPicker } from '@/components/ColorPicker';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import UnifiedHeroSection from '@/components/UnifiedHeroSection';
+import { LivePreview } from '@/components/LivePreview';
 import { 
   Save, 
   RefreshCw, 
@@ -98,10 +98,28 @@ export const SiteDesignModule = () => {
         status: 'success', 
         message: `Settings saved successfully for ${pages.find(p => p.id === currentPage)?.name}!` 
       });
+      
+      // Enhanced success toast
+      toast({
+        title: "✅ Settings Saved!",
+        description: `All design changes for ${pages.find(p => p.id === currentPage)?.name} have been saved and are now live.`,
+      });
+      
+      // Auto-clear success status after 3 seconds
+      setTimeout(() => {
+        setUploadStatus({ status: 'idle', message: '' });
+      }, 3000);
+      
     } catch (error) {
       setUploadStatus({ 
         status: 'error', 
         message: 'Failed to save settings. Please try again.' 
+      });
+      
+      toast({
+        title: "❌ Save Failed",
+        description: "There was an error saving your settings. Please check your connection and try again.",
+        variant: "destructive"
       });
     } finally {
       setIsSaving(false);
@@ -110,6 +128,7 @@ export const SiteDesignModule = () => {
 
   const handleHeroMediaUpload = async (file: File) => {
     setUploadStatus({ status: 'uploading', message: 'Uploading media...' });
+    
     try {
       const mediaUrl = await uploadFile(file, 'design-assets');
       const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
@@ -126,11 +145,29 @@ export const SiteDesignModule = () => {
         status: 'success', 
         message: `${mediaType === 'video' ? 'Video' : 'Image'} uploaded successfully!` 
       });
+      
+      // Enhanced upload success toast
+      toast({
+        title: `🎉 ${mediaType === 'video' ? 'Video' : 'Image'} Uploaded!`,
+        description: `Your hero ${mediaType} has been uploaded successfully. Preview it in the live preview panel on the right. Don't forget to save your changes!`,
+      });
+      
+      // Auto-clear upload status after 3 seconds
+      setTimeout(() => {
+        setUploadStatus({ status: 'idle', message: '' });
+      }, 3000);
+      
     } catch (error) {
       console.error('Error uploading hero media:', error);
       setUploadStatus({ 
         status: 'error', 
         message: 'Upload failed. Please try again.' 
+      });
+      
+      toast({
+        title: "❌ Upload Failed",
+        description: error instanceof Error ? error.message : "There was an error uploading your file. Please check your connection and try again.",
+        variant: "destructive"
       });
     }
   };
@@ -413,101 +450,11 @@ export const SiteDesignModule = () => {
             </Card>
           </div>
 
-          {/* Live Preview Panel */}
+          {/* Live Preview Panel - FULL INTEGRATION */}
           <div className="lg:col-span-3">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="w-5 h-5" />
-                  Live Preview - {pages.find(p => p.id === currentPage)?.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Mini Hero Preview */}
-                <div className="border rounded-lg overflow-hidden mb-4">
-                  <UnifiedHeroSection 
-                    language={language} 
-                    className={`relative ${currentPage === 'home' && currentSettings.hero?.height === '480' ? 'h-[240px]' : 'h-[120px]'} flex items-center justify-center overflow-hidden`}
-                  />
-                </div>
-
-                {/* Settings Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <div className="p-3 rounded-lg border bg-muted/50">
-                      <h4 className="font-medium text-sm mb-1">Hero Content</h4>
-                      <p className="text-xs text-muted-foreground">
-                        Mode: Media-only (no text overlays)<br/>
-                        Media: {currentSettings.hero?.backgroundMedia ? 
-                          `${currentSettings.hero.mediaType === 'video' ? 'Video' : 'Image'} uploaded` : 
-                          'Using gradient fallback'
-                        }
-                      </p>
-                    </div>
-                    
-                    <div className="p-3 rounded-lg border bg-muted/50">
-                      <h4 className="font-medium text-sm mb-1">Colors</h4>
-                      <div className="flex gap-2">
-                        <div 
-                          className="w-4 h-4 rounded border" 
-                          style={{ backgroundColor: currentSettings.colors?.primary }}
-                          title="Primary"
-                        />
-                        <div 
-                          className="w-4 h-4 rounded border" 
-                          style={{ backgroundColor: currentSettings.colors?.secondary }}
-                          title="Secondary"
-                        />
-                        <div 
-                          className="w-4 h-4 rounded border" 
-                          style={{ backgroundColor: currentSettings.colors?.accent }}
-                          title="Accent"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="p-3 rounded-lg border bg-muted/50">
-                      <h4 className="font-medium text-sm mb-1">Typography</h4>
-                      <p className="text-xs text-muted-foreground">
-                        Heading: {currentSettings.fonts?.heading || 'Inter'}<br/>
-                        Body: {currentSettings.fonts?.body || 'Inter'}
-                      </p>
-                    </div>
-
-                    {currentPage === 'home' && (
-                      <div className="p-3 rounded-lg border bg-muted/50">
-                        <h4 className="font-medium text-sm mb-1">Layout</h4>
-                        <p className="text-xs text-muted-foreground">
-                          Hero Height: {currentSettings.hero?.height === '480' ? 'Large (480px)' : 'Small (240px)'}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Status Checks */}
-                <div className="mt-4 p-3 rounded-lg border bg-blue-50">
-                  <h4 className="font-medium text-sm mb-2 text-blue-900">System Status</h4>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-xs">
-                      <CheckCircle className="w-3 h-3 text-green-500" />
-                      Hero section {currentSettings.hero?.backgroundMedia ? 'media-only mode' : 'gradient fallback mode'}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs">
-                      {currentSettings.hero?.backgroundMedia ? 
-                        <CheckCircle className="w-3 h-3 text-green-500" /> : 
-                        <AlertCircle className="w-3 h-3 text-yellow-500" />
-                      }
-                      Background media {currentSettings.hero?.backgroundMedia ? 'uploaded' : 'not uploaded'}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs">
-                      <CheckCircle className="w-3 h-3 text-green-500" />
-                      Colors and fonts configured
-                    </div>
-                  </div>
-                </div>
+            <Card className="h-[800px]">
+              <CardContent className="p-0 h-full">
+                <LivePreview currentPage={currentPage} />
               </CardContent>
             </Card>
           </div>

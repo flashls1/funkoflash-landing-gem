@@ -31,48 +31,59 @@ export const UnifiedHeroSection = ({
 
   const heightClass = className || `relative ${getHeightClass()} flex items-center justify-center overflow-hidden`;
 
-  // Preload and manage media changes to prevent caching flashes
+  // Enhanced media loading with real-time updates and cache busting
   useEffect(() => {
     const loadMedia = async () => {
       if (!heroMedia) {
-        setCurrentMediaUrl('');
+        // Clear current media immediately when no media is set
+        if (currentMediaUrl) {
+          setCurrentMediaUrl('');
+        }
         setMediaLoaded(true);
         return;
       }
 
-      if (heroMedia !== currentMediaUrl) {
-        setMediaLoaded(false);
+      // Check if we need to reload (different base URL or first load)
+      const currentBase = currentMediaUrl ? currentMediaUrl.split('?')[0] : '';
+      const newBase = heroMedia.split('?')[0];
+      
+      if (currentBase === newBase && mediaLoaded) {
+        return; // Same media already loaded
+      }
+
+      setMediaLoaded(false);
+      
+      try {
+        // Always use fresh cache-busting parameter for immediate updates
+        const timestamp = Date.now();
+        const mediaUrl = `${newBase}?cb=${timestamp}`;
         
         if (mediaType === 'image') {
-          // Add cache-busting parameter to force fresh load for images
-          const mediaUrl = heroMedia.includes('?') 
-            ? `${heroMedia}&cb=${Date.now()}` 
-            : `${heroMedia}?cb=${Date.now()}`;
-          
           const img = new Image();
           img.onload = () => {
             setCurrentMediaUrl(mediaUrl);
             setMediaLoaded(true);
           };
-          img.onerror = () => {
-            console.error('Failed to load hero image:', heroMedia);
+          img.onerror = (error) => {
+            console.error('Failed to load hero image:', heroMedia, error);
             setCurrentMediaUrl('');
             setMediaLoaded(true);
           };
           img.src = mediaUrl;
-        } else {
-          // For videos, set URL directly with cache busting
-          const mediaUrl = heroMedia.includes('?') 
-            ? `${heroMedia}&cb=${Date.now()}` 
-            : `${heroMedia}?cb=${Date.now()}`;
+        } else if (mediaType === 'video') {
+          // For videos, set URL directly
           setCurrentMediaUrl(mediaUrl);
           setMediaLoaded(true);
         }
+      } catch (error) {
+        console.error('Error loading hero media:', error);
+        setCurrentMediaUrl('');
+        setMediaLoaded(true);
       }
     };
 
     loadMedia();
-  }, [heroMedia, currentMediaUrl, mediaType]);
+  }, [heroMedia, mediaType]); // Removed currentMediaUrl and mediaLoaded to prevent loops
 
   // Show a placeholder if still loading
   if (loading) {
