@@ -130,12 +130,20 @@ export const useSiteDesign = () => {
       console.log('🎨 Applied global site background:', pageSettings.siteBackground.backgroundImage);
     }
 
+    // Add cache-busting parameter to hero media URL
+    let heroMediaWithCacheBust = pageSettings.hero?.backgroundMedia;
+    if (heroMediaWithCacheBust) {
+      const separator = heroMediaWithCacheBust.includes('?') ? '&' : '?';
+      heroMediaWithCacheBust = `${heroMediaWithCacheBust}${separator}t=${Date.now()}`;
+      console.log('🚫🗃️ Cache-busted hero media URL:', heroMediaWithCacheBust);
+    }
+
     // Force component re-render by updating a timestamp
     window.dispatchEvent(new CustomEvent('heroImageUpdate', { 
       detail: { 
         page: currentPage, 
         timestamp: Date.now(),
-        heroMedia: pageSettings.hero?.backgroundMedia,
+        heroMedia: heroMediaWithCacheBust,
         siteBackground: pageSettings.siteBackground?.backgroundImage
       } 
     }));
