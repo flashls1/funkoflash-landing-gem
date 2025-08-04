@@ -202,7 +202,7 @@ const Auth = () => {
       
       {/* Main Content with Background */}
       <div 
-        className="flex-1 flex items-center justify-center px-4 py-8"
+        className="flex-1"
         style={{
           backgroundImage: 'var(--site-background)',
           backgroundSize: 'cover',
@@ -211,74 +211,76 @@ const Auth = () => {
           backgroundAttachment: 'fixed'
         }}
       >
-        <Card className="w-full max-w-md relative overflow-hidden">
-          <div 
-            className="absolute inset-0 bg-no-repeat bg-center bg-contain opacity-10 pointer-events-none"
-            style={{
-              backgroundImage: "url('/lovable-uploads/67bbac87-013f-4469-bfeb-bc5f77732cdc.png')",
-              backgroundSize: 'cover',
-              backgroundPosition: 'center center'
-            }}
-          ></div>
-          <CardHeader className="text-center relative z-10">
-            <CardTitle className="text-2xl font-bold">
-              {t.loginTitle}
-            </CardTitle>
-            <CardDescription>
-              {t.loginDesc}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 relative z-10">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">{t.email}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  placeholder={t.email}
-                />
+        <div className="flex-1 flex items-center justify-center px-4 py-8">
+          <Card className="w-full max-w-md relative overflow-hidden">
+            <div 
+              className="absolute inset-0 bg-no-repeat bg-center bg-contain opacity-10 pointer-events-none"
+              style={{
+                backgroundImage: "url('/lovable-uploads/67bbac87-013f-4469-bfeb-bc5f77732cdc.png')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center center'
+              }}
+            ></div>
+            <CardHeader className="text-center relative z-10">
+              <CardTitle className="text-2xl font-bold">
+                {t.loginTitle}
+              </CardTitle>
+              <CardDescription>
+                {t.loginDesc}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 relative z-10">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">{t.email}</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder={t.email}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">{t.password}</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder={t.password}
+                  />
+                </div>
+
+                <Button type="submit" className="w-full" variant="funko" disabled={loading}>
+                  {loading ? "..." : t.loginButton}
+                </Button>
+              </form>
+
+              <div className="text-center space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {t.forgotPassword}
+                </button>
+
+                <Button
+                  variant="funko-outline"
+                  onClick={() => setShowRequestAccess(true)}
+                  className="w-full mt-4"
+                >
+                  {t.requestAccess}
+                </Button>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">{t.password}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  placeholder={t.password}
-                />
-              </div>
-
-              <Button type="submit" className="w-full" variant="funko" disabled={loading}>
-                {loading ? "..." : t.loginButton}
-              </Button>
-            </form>
-
-            <div className="text-center space-y-2">
-              <button
-                type="button"
-                onClick={() => setShowForgotPassword(true)}
-                className="text-sm text-primary hover:underline"
-              >
-                {t.forgotPassword}
-              </button>
-
-              <Button
-                variant="funko-outline"
-                onClick={() => setShowRequestAccess(true)}
-                className="w-full mt-4"
-              >
-                {t.requestAccess}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
+            </CardContent>
+          </Card>
+        </div>
+        
         <Footer language={language} />
       </div>
 
