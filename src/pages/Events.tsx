@@ -141,15 +141,7 @@ export default function Events() {
 
   if (loading) {
     return (
-      <div 
-        className="min-h-screen bg-background"
-        style={{
-          backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed'
-        }}
-      >
+      <div className="min-h-screen bg-background">
         <Navigation language={language} setLanguage={setLanguage} />
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -164,15 +156,7 @@ export default function Events() {
   }
 
   return (
-    <div 
-      className="min-h-screen bg-background"
-      style={{
-        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
       
       {/* Hero Section */}
