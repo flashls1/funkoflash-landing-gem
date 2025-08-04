@@ -19,14 +19,10 @@ interface TalentProfile {
   sort_rank: number;
 }
 
-interface DirectorySettings {
-  banner_image_url: string | null;
-  banner_alt_text: string | null;
-}
 
 const TalentDirectory = () => {
   const [talents, setTalents] = useState<TalentProfile[]>([]);
-  const [settings, setSettings] = useState<DirectorySettings | null>(null);
+  
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const { toast } = useToast();
@@ -48,19 +44,7 @@ const TalentDirectory = () => {
 
         if (talentError) throw talentError;
 
-        // Fetch directory settings
-        const { data: settingsData, error: settingsError } = await supabase
-          .from('directory_settings')
-          .select('banner_image_url, banner_alt_text')
-          .limit(1)
-          .single();
-
-        if (settingsError && settingsError.code !== 'PGRST116') {
-          throw settingsError;
-        }
-
         setTalents(talentData || []);
-        setSettings(settingsData);
       } catch (error) {
         console.error('Error fetching talent directory:', error);
         toast({
@@ -109,16 +93,6 @@ const TalentDirectory = () => {
       <UnifiedHeroSection language={language} />
       
       <main className="container mx-auto px-4 py-8">
-        {/* Optional Banner Section for Custom Settings */}
-        {settings?.banner_image_url && (
-          <div className="w-full h-[240px] relative overflow-hidden rounded-lg mb-8">
-            <img 
-              src={getImageUrl(settings.banner_image_url)} 
-              alt={settings.banner_alt_text || "Talent Directory Banner"}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
 
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-foreground mb-4">
