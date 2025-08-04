@@ -41,87 +41,89 @@ const About = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-background"
-      style={{
-        backgroundImage: 'var(--site-background)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
       
       {/* Hero Section */}
       <UnifiedHeroSection language={language} />
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-16 space-y-16">
-        {/* About Section */}
-        <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-          <h2 className="text-3xl font-bold mb-6 text-foreground">
-            {content[language].aboutTitle}
-          </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            {content[language].aboutText}
-          </p>
-        </section>
-
-        {/* Mission Section */}
-        <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-          <h2 className="text-3xl font-bold mb-6 text-foreground">
-            {content[language].missionTitle}
-          </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            {content[language].missionText}
-          </p>
-        </section>
-
-        {/* Team Section */}
-        <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-          <h2 className="text-3xl font-bold mb-6 text-foreground">
-            {content[language].teamTitle}
-          </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            {content[language].teamText}
-          </p>
-        </section>
-
-        {/* Values Section */}
-        <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-          <h2 className="text-3xl font-bold mb-6 text-foreground">
-            {content[language].valuesTitle}
-          </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            {content[language].valuesText}
-          </p>
-        </section>
-
-        {/* CTA Section */}
-        <section className="text-center">
-          <div className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-            <h2 className="text-3xl font-bold mb-4 text-foreground">
-              {language === 'en' ? 'Ready to Work Together?' : '¿Listo para Trabajar Juntos?'}
+      {/* Main Content with Background */}
+      <div 
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        {/* Main Content */}
+        <main className="max-w-4xl mx-auto px-4 py-16 space-y-16">
+          {/* About Section */}
+          <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
+            <h2 className="text-3xl font-bold mb-6 text-foreground">
+              {content[language].aboutTitle}
             </h2>
-            <p className="text-lg text-muted-foreground mb-6">
-              {language === 'en' 
-                ? 'Get in touch with us to discuss your next project.'
-                : 'Ponte en contacto con nosotros para discutir tu próximo proyecto.'
-              }
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              {content[language].aboutText}
             </p>
-            <Button 
-              variant="funko" 
-              size="lg"
-              onClick={() => window.location.href = '/contact'}
-            >
-              {language === 'en' ? 'Contact Us' : 'Contáctanos'}
-            </Button>
-          </div>
-        </section>
-      </main>
+          </section>
 
-      <Footer language={language} />
+          {/* Mission Section */}
+          <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
+            <h2 className="text-3xl font-bold mb-6 text-foreground">
+              {content[language].missionTitle}
+            </h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              {content[language].missionText}
+            </p>
+          </section>
+
+          {/* Team Section */}
+          <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
+            <h2 className="text-3xl font-bold mb-6 text-foreground">
+              {content[language].teamTitle}
+            </h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              {content[language].teamText}
+            </p>
+          </section>
+
+          {/* Values Section */}
+          <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
+            <h2 className="text-3xl font-bold mb-6 text-foreground">
+              {content[language].valuesTitle}
+            </h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              {content[language].valuesText}
+            </p>
+          </section>
+
+          {/* CTA Section */}
+          <section className="text-center">
+            <div className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
+              <h2 className="text-3xl font-bold mb-4 text-foreground">
+                {language === 'en' ? 'Ready to Work Together?' : '¿Listo para Trabajar Juntos?'}
+              </h2>
+              <p className="text-lg text-muted-foreground mb-6">
+                {language === 'en' 
+                  ? 'Get in touch with us to discuss your next project.'
+                  : 'Ponte en contacto con nosotros para discutir tu próximo proyecto.'
+                }
+              </p>
+              <Button 
+                variant="funko" 
+                size="lg"
+                onClick={() => window.location.href = '/contact'}
+              >
+                {language === 'en' ? 'Contact Us' : 'Contáctanos'}
+              </Button>
+            </div>
+          </section>
+        </main>
+
+        <Footer language={language} />
+      </div>
     </div>
   );
 };

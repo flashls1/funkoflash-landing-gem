@@ -14,20 +14,22 @@ const Index = () => {
   }, [setCurrentPage]);
 
   return (
-    <div 
-      className="min-h-screen bg-background"
-      style={{
-        backgroundImage: 'var(--site-background)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
       <UnifiedHeroSection language={language} />
-      <ContentTiles language={language} />
-      <Footer language={language} />
+      <div 
+        className="min-h-screen"
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <ContentTiles language={language} />
+        <Footer language={language} />
+      </div>
     </div>
   );
 };

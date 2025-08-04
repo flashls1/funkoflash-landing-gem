@@ -194,22 +194,23 @@ const Auth = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen flex flex-col bg-background"
-      style={{
-        backgroundImage: 'var(--site-background)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <div className="min-h-screen flex flex-col bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
       
       {/* Hero Section */}
       <UnifiedHeroSection language={language} />
       
-      <div className="flex-1 flex items-center justify-center px-4 py-8">
+      {/* Main Content with Background */}
+      <div 
+        className="flex-1 flex items-center justify-center px-4 py-8"
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
         <Card className="w-full max-w-md relative overflow-hidden">
           <div 
             className="absolute inset-0 bg-no-repeat bg-center bg-contain opacity-10 pointer-events-none"
@@ -277,9 +278,9 @@ const Auth = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      <Footer language={language} />
+        <Footer language={language} />
+      </div>
 
       {/* Forgot Password Dialog */}
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>

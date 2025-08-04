@@ -79,164 +79,166 @@ const Contact = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-background"
-      style={{
-        backgroundImage: 'var(--site-background)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
       
       {/* Hero Section */}
       <UnifiedHeroSection language={language} />
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-16">
-        {/* Intro Section */}
-        <section className="text-center mb-16">
-          <div className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-            <h2 className="text-3xl font-bold mb-6 text-foreground">
-              {content[language].getInTouchTitle}
-            </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-              {content[language].getInTouchText}
-            </p>
-          </div>
-        </section>
+      {/* Main Content with Background */}
+      <div 
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        {/* Main Content */}
+        <main className="max-w-6xl mx-auto px-4 py-16">
+          {/* Intro Section */}
+          <section className="text-center mb-16">
+            <div className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
+              <h2 className="text-3xl font-bold mb-6 text-foreground">
+                {content[language].getInTouchTitle}
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+                {content[language].getInTouchText}
+              </p>
+            </div>
+          </section>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Contact Form */}
-          <Card className="bg-card/80 backdrop-blur-sm shadow-lg border border-border">
-            <CardHeader>
-              <CardTitle className="text-2xl">
-                {content[language].contactFormTitle}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="name">{content[language].nameLabel}</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-2"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="email">{content[language].emailLabel}</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-2"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="subject">{content[language].subjectLabel}</Label>
-                  <Input
-                    id="subject"
-                    name="subject"
-                    type="text"
-                    value={formData.subject}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-2"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="message">{content[language].messageLabel}</Label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    required
-                    rows={5}
-                    className="mt-2"
-                  />
-                </div>
-                
-                <Button type="submit" variant="funko" className="w-full">
-                  {content[language].sendButton}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Contact Form */}
+            <Card className="bg-card/80 backdrop-blur-sm shadow-lg border border-border">
+              <CardHeader>
+                <CardTitle className="text-2xl">
+                  {content[language].contactFormTitle}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <Label htmlFor="name">{content[language].nameLabel}</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      type="text"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-2"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="email">{content[language].emailLabel}</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-2"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="subject">{content[language].subjectLabel}</Label>
+                    <Input
+                      id="subject"
+                      name="subject"
+                      type="text"
+                      value={formData.subject}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-2"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="message">{content[language].messageLabel}</Label>
+                    <Textarea
+                      id="message"
+                      name="message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      required
+                      rows={5}
+                      className="mt-2"
+                    />
+                  </div>
+                  
+                  <Button type="submit" variant="funko" className="w-full">
+                    {content[language].sendButton}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
 
-          {/* Contact Information */}
-          <Card className="bg-card/80 backdrop-blur-sm shadow-lg border border-border">
-            <CardHeader>
-              <CardTitle className="text-2xl">
-                {content[language].contactInfoTitle}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <Mail className="w-6 h-6 text-funko-orange mt-1" />
-                <div>
-                  <h3 className="font-semibold text-foreground">Email</h3>
-                  <p className="text-muted-foreground">contact@funkoflash.com</p>
-                  <p className="text-muted-foreground">bookings@funkoflash.com</p>
+            {/* Contact Information */}
+            <Card className="bg-card/80 backdrop-blur-sm shadow-lg border border-border">
+              <CardHeader>
+                <CardTitle className="text-2xl">
+                  {content[language].contactInfoTitle}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <Mail className="w-6 h-6 text-funko-orange mt-1" />
+                  <div>
+                    <h3 className="font-semibold text-foreground">Email</h3>
+                    <p className="text-muted-foreground">contact@funkoflash.com</p>
+                    <p className="text-muted-foreground">bookings@funkoflash.com</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <Phone className="w-6 h-6 text-funko-orange mt-1" />
-                <div>
-                  <h3 className="font-semibold text-foreground">Phone</h3>
-                  <p className="text-muted-foreground">+1 (555) 123-4567</p>
-                  <p className="text-muted-foreground text-sm">Business inquiries only</p>
+                
+                <div className="flex items-start space-x-4">
+                  <Phone className="w-6 h-6 text-funko-orange mt-1" />
+                  <div>
+                    <h3 className="font-semibold text-foreground">Phone</h3>
+                    <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                    <p className="text-muted-foreground text-sm">Business inquiries only</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <MapPin className="w-6 h-6 text-funko-orange mt-1" />
-                <div>
-                  <h3 className="font-semibold text-foreground">Studio Location</h3>
-                  <p className="text-muted-foreground">Los Angeles, California</p>
-                  <p className="text-muted-foreground text-sm">Remote services available worldwide</p>
+                
+                <div className="flex items-start space-x-4">
+                  <MapPin className="w-6 h-6 text-funko-orange mt-1" />
+                  <div>
+                    <h3 className="font-semibold text-foreground">Studio Location</h3>
+                    <p className="text-muted-foreground">Los Angeles, California</p>
+                    <p className="text-muted-foreground text-sm">Remote services available worldwide</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <Clock className="w-6 h-6 text-funko-orange mt-1" />
-                <div>
-                  <h3 className="font-semibold text-foreground">
-                    {content[language].officeHours}
+                
+                <div className="flex items-start space-x-4">
+                  <Clock className="w-6 h-6 text-funko-orange mt-1" />
+                  <div>
+                    <h3 className="font-semibold text-foreground">
+                      {content[language].officeHours}
+                    </h3>
+                    <p className="text-muted-foreground">{content[language].mondayFriday}</p>
+                    <p className="text-muted-foreground">{content[language].weekend}</p>
+                  </div>
+                </div>
+                
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h3 className="font-semibold text-foreground mb-2">
+                    {content[language].responseTime}
                   </h3>
-                  <p className="text-muted-foreground">{content[language].mondayFriday}</p>
-                  <p className="text-muted-foreground">{content[language].weekend}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {content[language].responseText}
+                  </p>
                 </div>
-              </div>
-              
-              <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="font-semibold text-foreground mb-2">
-                  {content[language].responseTime}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {content[language].responseText}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
 
-      <Footer language={language} />
+        <Footer language={language} />
+      </div>
     </div>
   );
 };

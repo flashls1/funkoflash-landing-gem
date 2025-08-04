@@ -86,91 +86,93 @@ const TalentDirectory = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-background"
-      style={{
-        backgroundImage: 'var(--site-background)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
       
       {/* Hero Section */}
       <UnifiedHeroSection language={language} />
       
-      <main className="container mx-auto px-4 py-8">
+      {/* Main Content with Background */}
+      <div 
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <main className="container mx-auto px-4 py-8">
 
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">
-            {content[language].title}
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {content[language].description}
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <Card key={i} className="overflow-hidden bg-card/80 backdrop-blur-sm border-border">
-                <Skeleton className="aspect-square w-full" />
-                <CardContent className="p-4">
-                  <Skeleton className="h-6 w-3/4 mb-2" />
-                  <Skeleton className="h-10 w-full" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {talents.map((talent) => (
-              <Card key={talent.id} className="overflow-hidden hover:shadow-xl transition-shadow bg-card/80 backdrop-blur-sm border-border">
-                <div className="aspect-square relative overflow-hidden">
-                  {talent.headshot_url ? (
-                    <img 
-                      src={getImageUrl(talent.headshot_url)}
-                      alt={`${talent.name} headshot`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <span className="text-muted-foreground text-lg font-medium">
-                        {talent.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    {talent.name}
-                  </h3>
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => window.location.href = `/talent/${talent.slug}`}
-                  >
-                    {content[language].viewProfile}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {!loading && talents.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">
-              {content[language].noTalent}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-foreground mb-4">
+              {content[language].title}
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              {content[language].description}
             </p>
           </div>
-        )}
-      </main>
 
-      <Footer language={language} />
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <Card key={i} className="overflow-hidden bg-card/80 backdrop-blur-sm border-border">
+                  <Skeleton className="aspect-square w-full" />
+                  <CardContent className="p-4">
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-10 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {talents.map((talent) => (
+                <Card key={talent.id} className="overflow-hidden hover:shadow-xl transition-shadow bg-card/80 backdrop-blur-sm border-border">
+                  <div className="aspect-square relative overflow-hidden">
+                    {talent.headshot_url ? (
+                      <img 
+                        src={getImageUrl(talent.headshot_url)}
+                        alt={`${talent.name} headshot`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <span className="text-muted-foreground text-lg font-medium">
+                          {talent.name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {talent.name}
+                    </h3>
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => window.location.href = `/talent/${talent.slug}`}
+                    >
+                      {content[language].viewProfile}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {!loading && talents.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">
+                {content[language].noTalent}
+              </p>
+            </div>
+          )}
+        </main>
+
+        <Footer language={language} />
+      </div>
     </div>
   );
 };

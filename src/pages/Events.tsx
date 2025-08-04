@@ -156,76 +156,80 @@ export default function Events() {
   }
 
   return (
-    <div 
-      className="min-h-screen bg-background"
-      style={{
-        backgroundImage: 'var(--site-background)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
       
       {/* Hero Section */}
       <UnifiedHeroSection language={language} />
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <Input
-              placeholder={content[language].searchPlaceholder}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm bg-card/80 backdrop-blur-sm border-border"
-            />
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="max-w-xs bg-card/80 backdrop-blur-sm border-border">
-                <SelectValue placeholder={content[language].allCategories} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{content[language].allCategories}</SelectItem>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category!}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {/* Main Content with Background */}
+      <div 
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <Input
+                placeholder={content[language].searchPlaceholder}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm bg-card/80 backdrop-blur-sm border-border"
+              />
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="max-w-xs bg-card/80 backdrop-blur-sm border-border">
+                  <SelectValue placeholder={content[language].allCategories} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{content[language].allCategories}</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category!}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          {/* Upcoming Events */}
+          {upcomingEvents.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-semibold mb-6 text-foreground">{content[language].upcomingTitle}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {upcomingEvents.map((event) => (
+                  <EventCard key={event.id} event={event} onClick={setSelectedEvent} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Past Events */}
+          {pastEvents.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-semibold mb-6 text-muted-foreground">{content[language].pastTitle}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {pastEvents.map((event) => (
+                  <EventCard key={event.id} event={event} onClick={setSelectedEvent} isPast />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {filteredEvents.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">{content[language].noEventsText}</p>
+            </div>
+          )}
         </div>
 
-        {/* Upcoming Events */}
-        {upcomingEvents.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-semibold mb-6 text-foreground">{content[language].upcomingTitle}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {upcomingEvents.map((event) => (
-                <EventCard key={event.id} event={event} onClick={setSelectedEvent} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Past Events */}
-        {pastEvents.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-semibold mb-6 text-muted-foreground">{content[language].pastTitle}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pastEvents.map((event) => (
-                <EventCard key={event.id} event={event} onClick={setSelectedEvent} isPast />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {filteredEvents.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">{content[language].noEventsText}</p>
-          </div>
-        )}
+        <Footer language={language} />
       </div>
 
       {/* Event Modal */}
@@ -306,8 +310,6 @@ export default function Events() {
           )}
         </DialogContent>
       </Dialog>
-
-      <Footer language={language} />
     </div>
   );
 }
