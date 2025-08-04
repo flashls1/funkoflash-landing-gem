@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { useAuth } from '@/hooks/useAuth';
+import { useColorTheme } from '@/hooks/useColorTheme';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,8 @@ import FileUpload from '@/components/FileUpload';
 import { ColorPicker } from '@/components/ColorPicker';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { LivePreview } from '@/components/LivePreview';
+import AdminThemeProvider from '@/components/AdminThemeProvider';
+import AdminHeader from '@/components/AdminHeader';
 import { 
   Save, 
   RefreshCw, 
@@ -36,6 +38,7 @@ import {
 
 export const SiteDesignModule = () => {
   const { user, profile } = useAuth();
+  const { currentTheme } = useColorTheme();
   const { 
     getCurrentPageSettings: getPageSettings, 
     updateCurrentPageSettings, 
@@ -57,19 +60,28 @@ export const SiteDesignModule = () => {
   // Access control - only admin and staff can access
   if (!user || (profile?.role !== 'admin' && profile?.role !== 'staff')) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <XCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-              <p className="text-muted-foreground">
-                You need admin or staff privileges to access the Site Design Module.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminThemeProvider>
+        <div className="flex items-center justify-center min-h-screen">
+          <Card 
+            className="max-w-md mx-auto border-2"
+            style={{
+              backgroundColor: currentTheme.cardBackground,
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <XCircle className="w-16 h-16 mx-auto mb-4" style={{ color: currentTheme.accent }} />
+                <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+                <p className="opacity-70">
+                  You need admin or staff privileges to access the Site Design Module.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </AdminThemeProvider>
     );
   }
 
@@ -198,40 +210,49 @@ export const SiteDesignModule = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <AdminThemeProvider>
         <Navigation language={language} setLanguage={setLanguage} />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4" />
-            <p>Loading design settings...</p>
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-white" />
+            <p className="text-white">Loading design settings...</p>
           </div>
         </div>
         <Footer language={language} />
-      </div>
+      </AdminThemeProvider>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <AdminThemeProvider>
       <Navigation language={language} setLanguage={setLanguage} />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Settings className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold">Site Design Manager</h1>
+        <AdminHeader
+          title="Site Design Manager"
+          description="Customize the visual appearance of your website pages. Changes are applied instantly with live preview."
+          language={language}
+        >
+          <div className="flex items-center gap-3">
+            <Settings className="w-5 h-5" style={{ color: currentTheme.accent }} />
+            <span className="text-sm font-medium">
+              {language === 'en' ? 'Design Controls' : 'Controles de Diseño'}
+            </span>
           </div>
-          <p className="text-muted-foreground">
-            Customize the visual appearance of your website pages. Changes are applied instantly with live preview.
-          </p>
-        </div>
+        </AdminHeader>
 
         {/* Page Selector */}
-        <Card className="mb-6">
+        <Card 
+          className="mb-6 border-2"
+          style={{
+            backgroundColor: currentTheme.cardBackground,
+            borderColor: currentTheme.border,
+            color: currentTheme.cardForeground
+          }}
+        >
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Monitor className="w-5 h-5" />
+              <Monitor className="w-5 h-5" style={{ color: currentTheme.accent }} />
               Select Page to Edit
             </CardTitle>
           </CardHeader>
@@ -245,6 +266,15 @@ export const SiteDesignModule = () => {
                     variant={currentPage === page.id ? "default" : "outline"}
                     className="flex flex-col gap-2 h-auto py-4"
                     onClick={() => setCurrentPage(page.id)}
+                    style={currentPage === page.id ? {
+                      backgroundColor: currentTheme.accent,
+                      borderColor: currentTheme.accent,
+                      color: 'white'
+                    } : {
+                      backgroundColor: 'transparent',
+                      borderColor: currentTheme.border,
+                      color: currentTheme.cardForeground
+                    }}
                   >
                     <Icon className="w-5 h-5" />
                     <span className="text-xs">{page.name}</span>
@@ -253,11 +283,21 @@ export const SiteDesignModule = () => {
               })}
             </div>
             <div className="mt-4 flex items-center gap-2">
-              <Badge variant="secondary">Currently editing: {pages.find(p => p.id === currentPage)?.name}</Badge>
+              <Badge 
+                variant="secondary"
+                style={{
+                  backgroundColor: currentTheme.accent + '20',
+                  color: currentTheme.accent,
+                  borderColor: currentTheme.accent
+                }}
+              >
+                Currently editing: {pages.find(p => p.id === currentPage)?.name}
+              </Badge>
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => window.open(pages.find(p => p.id === currentPage)?.route, '_blank')}
+                style={{ color: currentTheme.cardForeground }}
               >
                 <Eye className="w-4 h-4 mr-1" />
                 Preview Live
@@ -267,9 +307,16 @@ export const SiteDesignModule = () => {
         </Card>
 
         {/* Design Controls Panel */}
-        <Card className="max-w-4xl mx-auto">
+        <Card 
+          className="max-w-4xl mx-auto border-2"
+          style={{
+            backgroundColor: currentTheme.cardBackground,
+            borderColor: currentTheme.border,
+            color: currentTheme.cardForeground
+          }}
+        >
           <CardHeader>
-            <CardTitle>Design Controls</CardTitle>
+            <CardTitle style={{ color: currentTheme.accent }}>Design Controls</CardTitle>
             <StatusIndicator status={uploadStatus.status} message={uploadStatus.message} />
           </CardHeader>
           <CardContent>
@@ -419,37 +466,47 @@ export const SiteDesignModule = () => {
 
             <Separator className="my-6" />
 
-            {/* Save Actions */}
-            <div className="space-y-3">
-              <Button 
-                onClick={handleSaveSettings} 
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium disabled:bg-green-300 disabled:text-gray-600"
-                disabled={isSaving}
-                size="lg"
-              >
-                {isSaving ? (
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4 mr-2" />
-                )}
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => window.location.reload()}
-                disabled={isSaving}
-                className="w-full"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Reset & Reload
-              </Button>
-            </div>
+                {/* Save Actions */}
+                <div className="space-y-3">
+                  <Button 
+                    onClick={handleSaveSettings} 
+                    className="w-full font-medium disabled:opacity-50"
+                    disabled={isSaving}
+                    size="lg"
+                    style={{
+                      backgroundColor: currentTheme.accent,
+                      color: 'white',
+                      borderColor: currentTheme.accent
+                    }}
+                  >
+                    {isSaving ? (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => window.location.reload()}
+                    disabled={isSaving}
+                    className="w-full"
+                    style={{
+                      backgroundColor: 'transparent',
+                      borderColor: currentTheme.border,
+                      color: currentTheme.cardForeground
+                    }}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Reset & Reload
+                  </Button>
+                </div>
           </CardContent>
         </Card>
       </div>
       
       <Footer language={language} />
-    </div>
+    </AdminThemeProvider>
   );
 };
 

@@ -18,6 +18,9 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import AdminThemeProvider from '@/components/AdminThemeProvider';
+import AdminHeader from '@/components/AdminHeader';
+import { useColorTheme } from '@/hooks/useColorTheme';
 import heroEventsManager from '@/assets/hero-events-manager.jpg';
 
 interface Event {
@@ -52,6 +55,7 @@ interface TalentProfile {
 
 export default function EventsManager() {
   const { user, profile } = useAuth();
+  const { currentTheme } = useColorTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [language, setLanguage] = useState<'en' | 'es'>('en');

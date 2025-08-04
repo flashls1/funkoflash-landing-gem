@@ -12,8 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, Upload, X, Save, ArrowLeft } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X, Save, ArrowLeft, ShoppingBag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import AdminThemeProvider from '@/components/AdminThemeProvider';
+import AdminHeader from '@/components/AdminHeader';
+import { useColorTheme } from '@/hooks/useColorTheme';
 
 interface Product {
   id: string;
@@ -36,6 +39,7 @@ interface ProductFormData {
 
 const ShopManager = () => {
   const { user, profile } = useAuth();
+  const { currentTheme } = useColorTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [language, setLanguage] = useState<'en' | 'es'>('en');
@@ -286,37 +290,44 @@ const ShopManager = () => {
   }
 
   return (
-    <div 
-      className="min-h-screen"
-      style={{
-        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <AdminThemeProvider>
       <Navigation language={language} setLanguage={setLanguage} />
       
-      <main className="container mx-auto px-4 py-8 bg-background/80 backdrop-blur-sm rounded-lg">
-        {/* Back to Admin Dashboard Button */}
-        <div className="mb-6">
-          <Button
-            variant="outline"
+      <div className="container mx-auto px-4 py-8">
+        <AdminHeader
+          title="Shop Manager"
+          description="Manage products and inventory for your online store"
+          language={language}
+        >
+          <div className="flex items-center gap-3">
+            <ShoppingBag className="w-5 h-5" style={{ color: currentTheme.accent }} />
+            <span className="text-sm font-medium">
+              {language === 'en' ? 'Product Management' : 'Gestión de Productos'}
+            </span>
+          </div>
+        </AdminHeader>
+
+        <div className="flex justify-between items-center mb-8">
+          <Button 
             onClick={() => navigate('/dashboard/admin')}
-            className="mb-4 bg-background/80 backdrop-blur-sm"
+            variant="outline"
+            style={{
+              backgroundColor: 'transparent',
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Admin Dashboard
           </Button>
-        </div>
-
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Shop Manager</h1>
-            <p className="text-muted-foreground">Manage products and inventory</p>
-          </div>
-          <Button onClick={() => setShowForm(true)}>
+          <Button 
+            onClick={() => setShowForm(true)}
+            style={{
+              backgroundColor: currentTheme.accent,
+              color: 'white',
+              borderColor: currentTheme.accent
+            }}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Product
           </Button>
@@ -536,10 +547,10 @@ const ShopManager = () => {
             </TabsContent>
           )}
         </Tabs>
-      </main>
+      </div>
       
       <Footer language={language} />
-    </div>
+    </AdminThemeProvider>
   );
 };
 

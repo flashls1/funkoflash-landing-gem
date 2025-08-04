@@ -10,9 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, GripVertical, ArrowLeft, User } from "lucide-react";
+import { Plus, Edit, Trash2, GripVertical, ArrowLeft, User, Users } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import AdminThemeProvider from '@/components/AdminThemeProvider';
+import AdminHeader from '@/components/AdminHeader';
+import { useColorTheme } from '@/hooks/useColorTheme';
 
 interface TalentProfile {
   id: string;
@@ -32,6 +35,7 @@ interface TalentFormData {
 
 const TalentDirectoryCMS = () => {
   const { user, profile } = useAuth();
+  const { currentTheme } = useColorTheme();
   const navigate = useNavigate();
   const [talents, setTalents] = useState<TalentProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -207,72 +211,77 @@ const TalentDirectoryCMS = () => {
 
   if (loading) {
     return (
-      <div 
-        className="min-h-screen"
-      style={{
-        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-      >
+      <AdminThemeProvider>
         <Navigation language={language} setLanguage={setLanguage} />
-        <div className="pt-20 p-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/4"></div>
-            <div className="h-32 bg-muted rounded"></div>
-            <div className="h-64 bg-muted rounded"></div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="text-white">Loading talent directory...</div>
           </div>
         </div>
         <Footer language={language} />
-      </div>
+      </AdminThemeProvider>
     );
   }
 
   return (
-    <div 
-      className="min-h-screen"
-      style={{
-        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <AdminThemeProvider>
       <Navigation language={language} setLanguage={setLanguage} />
       
-      <main className="pt-20 p-8 bg-background/80 backdrop-blur-sm rounded-lg">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {/* Back to Admin Dashboard Button */}
-          <div className="mb-6">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/dashboard/admin')}
-              className="mb-4 bg-background/80 backdrop-blur-sm"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Admin Dashboard
-            </Button>
+      <div className="container mx-auto px-4 py-8">
+        <AdminHeader
+          title="Talent Directory Management"
+          description="Manage talent profiles and directory settings"
+          language={language}
+        >
+          <div className="flex items-center gap-3">
+            <Users className="w-5 h-5" style={{ color: currentTheme.accent }} />
+            <span className="text-sm font-medium">
+              {language === 'en' ? 'Talent Management' : 'Gestión de Talentos'}
+            </span>
           </div>
+        </AdminHeader>
 
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold">Talent Directory Management</h1>
-            <Button onClick={() => {
+        <div className="flex justify-between items-center mb-8">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/dashboard/admin')}
+            style={{
+              backgroundColor: 'transparent',
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Admin Dashboard
+          </Button>
+          <Button 
+            onClick={() => {
               resetForm();
               setShowForm(true);
-            }}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Talent
-            </Button>
-          </div>
+            }}
+            style={{
+              backgroundColor: currentTheme.accent,
+              color: 'white',
+              borderColor: currentTheme.accent
+            }}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Talent
+          </Button>
+        </div>
 
-          {/* Talent List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Talent Profiles</CardTitle>
-            </CardHeader>
+        {/* Talent List */}
+        <Card 
+          className="border-2"
+          style={{
+            backgroundColor: currentTheme.cardBackground,
+            borderColor: currentTheme.border,
+            color: currentTheme.cardForeground
+          }}
+        >
+          <CardHeader>
+            <CardTitle style={{ color: currentTheme.accent }}>Talent Profiles</CardTitle>
+          </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {talents.map((talent) => (
@@ -335,10 +344,11 @@ const TalentDirectoryCMS = () => {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <Footer language={language} />
 
       {/* Talent Form Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
@@ -414,9 +424,7 @@ const TalentDirectoryCMS = () => {
           </form>
         </DialogContent>
       </Dialog>
-
-      <Footer language={language} />
-    </div>
+    </AdminThemeProvider>
   );
 };
 
