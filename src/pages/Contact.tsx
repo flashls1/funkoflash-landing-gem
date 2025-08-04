@@ -7,9 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
-import DynamicHeroSection from "@/components/DynamicHeroSection";
+import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
-import heroContact from "@/assets/hero-contact.jpg";
 
 const Contact = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
@@ -91,13 +90,8 @@ const Contact = () => {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      {/* Dynamic Hero Section */}
-      <DynamicHeroSection
-        language={language}
-        fallbackTitle={content[language].heroTitle}
-        fallbackSubtitle={content[language].heroSubtitle}
-        fallbackImage="/src/assets/hero-banner-main.jpg"
-      />
+      {/* Hero Section */}
+      <UnifiedHeroSection language={language} />
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-16">

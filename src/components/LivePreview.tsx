@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import HeroSection from '@/components/HeroSection';
-import DynamicHeroSection from '@/components/DynamicHeroSection';
+import UnifiedHeroSection from '@/components/UnifiedHeroSection';
 import ContentTiles from '@/components/ContentTiles';
 import Footer from '@/components/Footer';
 import Navigation from '@/components/Navigation';
@@ -59,7 +58,7 @@ const PageComponentWrapper = ({ pageName, language }: { pageName: string; langua
   if (pageName === 'home') {
     return (
       <div className="min-h-screen">
-        <HeroSection language={language} />
+        <UnifiedHeroSection language={language} />
         <ContentTiles language={language} />
       </div>
     );
@@ -67,13 +66,7 @@ const PageComponentWrapper = ({ pageName, language }: { pageName: string; langua
 
   return (
     <div className="min-h-screen">
-      <DynamicHeroSection
-        language={language}
-        fallbackTitle={content.title}
-        fallbackSubtitle={content.subtitle}
-        fallbackImage="/src/assets/hero-banner-main.jpg"
-        className="relative h-[400px] flex items-center justify-center overflow-hidden"
-      />
+      <UnifiedHeroSection language={language} />
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold mb-4 text-foreground">

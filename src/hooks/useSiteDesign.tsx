@@ -11,11 +11,13 @@ export interface SiteDesignSettings {
   hero: {
     title: string;
     subtitle: string;
-    backgroundImage?: string;
+    backgroundMedia?: string;
+    mediaType?: 'image' | 'video';
     overlayOpacity?: number;
     textColor?: string;
     textSize?: string;
     fontWeight?: string;
+    height?: '240' | '480'; // Only for home page
   };
   colors: {
     primary: string;
@@ -175,13 +177,15 @@ export const useSiteDesign = () => {
     return settings[currentPage] || {
       background: { type: 'image', value: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')" },
       hero: { 
-        title: 'Page Title', 
-        subtitle: 'Page subtitle',
-        backgroundImage: '/src/assets/hero-banner-main.jpg',
+        title: '', 
+        subtitle: '',
+        backgroundMedia: '',
+        mediaType: 'image',
         overlayOpacity: 0.5,
         textColor: 'hsl(0, 0%, 100%)',
         textSize: 'large',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        height: currentPage === 'home' ? '240' : undefined
       },
       colors: {
         primary: 'hsl(280, 70%, 50%)',

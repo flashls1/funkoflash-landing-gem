@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
-import HeroSection from "@/components/HeroSection";
+import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import ContentTiles from "@/components/ContentTiles";
 import Footer from "@/components/Footer";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
@@ -24,7 +24,7 @@ const Index = () => {
       }}
     >
       <Navigation language={language} setLanguage={setLanguage} />
-      <HeroSection language={language} />
+      <UnifiedHeroSection language={language} />
       <ContentTiles language={language} />
       <Footer language={language} />
     </div>

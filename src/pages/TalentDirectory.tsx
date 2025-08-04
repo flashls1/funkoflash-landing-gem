@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import DynamicHeroSection from "@/components/DynamicHeroSection";
+import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
 import { useToast } from "@/hooks/use-toast";
 
@@ -113,14 +113,8 @@ const TalentDirectory = () => {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      {/* Dynamic Hero Section */}
-      <DynamicHeroSection
-        language={language}
-        fallbackTitle={content[language].heroTitle}
-        fallbackSubtitle={content[language].heroSubtitle}
-        fallbackImage="/src/assets/hero-banner-main.jpg"
-        className="relative h-[400px] flex items-center justify-center overflow-hidden"
-      />
+      {/* Hero Section */}
+      <UnifiedHeroSection language={language} />
       
       <main className="container mx-auto px-4 py-8">
         {/* Optional Banner Section for Custom Settings */}

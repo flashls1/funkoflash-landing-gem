@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import DynamicHeroSection from "@/components/DynamicHeroSection";
+import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
-import heroAbout from "@/assets/hero-about.jpg";
 
 const About = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
@@ -53,13 +52,8 @@ const About = () => {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      {/* Dynamic Hero Section */}
-      <DynamicHeroSection
-        language={language}
-        fallbackTitle={content[language].heroTitle}
-        fallbackSubtitle={content[language].heroSubtitle}
-        fallbackImage="/src/assets/hero-banner-main.jpg"
-      />
+      {/* Hero Section */}
+      <UnifiedHeroSection language={language} />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-16 space-y-16">

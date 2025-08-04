@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import UnifiedHeroSection from '@/components/UnifiedHeroSection';
+import { useSiteDesign } from '@/hooks/useSiteDesign';
 
 interface AccessRequestForm {
   name: string;
@@ -40,6 +42,11 @@ const Auth = () => {
   const { signIn, signUp, resetPassword, user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { setCurrentPage } = useSiteDesign();
+
+  useEffect(() => {
+    setCurrentPage('auth');
+  }, [setCurrentPage]);
 
   const content = {
     en: {
@@ -197,6 +204,9 @@ const Auth = () => {
       }}
     >
       <Navigation language={language} setLanguage={setLanguage} />
+      
+      {/* Hero Section */}
+      <UnifiedHeroSection language={language} />
       
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <Card className="w-full max-w-md relative overflow-hidden">

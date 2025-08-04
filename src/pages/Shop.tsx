@@ -6,9 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import DynamicHeroSection from "@/components/DynamicHeroSection";
+import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
-import heroShop from "@/assets/hero-shop.jpg";
 
 interface Product {
   id: string;
@@ -178,13 +177,8 @@ const Shop = () => {
     >
       <Navigation language={language} setLanguage={setLanguage} />
       
-      {/* Dynamic Hero Section */}
-      <DynamicHeroSection
-        language={language}
-        fallbackTitle={content[language].heroTitle}
-        fallbackSubtitle={content[language].heroSubtitle}
-        fallbackImage="/src/assets/hero-banner-main.jpg"
-      />
+      {/* Hero Section */}
+      <UnifiedHeroSection language={language} />
       
       <main className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">

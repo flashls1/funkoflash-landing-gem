@@ -88,6 +88,7 @@ const SiteDesignModule = () => {
     { id: 'shop', name: 'Shop', icon: ShoppingBag, route: '/shop' },
     { id: 'events', name: 'Events', icon: Calendar, route: '/events' },
     { id: 'talent-directory', name: 'Talent Directory', icon: Users, route: '/talent-directory' },
+    { id: 'auth', name: 'Login', icon: Shield, route: '/auth' },
   ];
 
   const fontOptions = [
@@ -127,11 +128,13 @@ const SiteDesignModule = () => {
     });
   };
 
-  const handleHeroImageUpload = async (url: string) => {
+  const handleHeroMediaUpload = async (url: string, fileName: string, fileType: string) => {
+    const mediaType = fileType.startsWith('video/') ? 'video' : 'image';
     updateCurrentPageSettings({
       hero: {
         ...currentSettings.hero,
-        backgroundImage: url
+        backgroundMedia: url,
+        mediaType: mediaType
       }
     });
   };
@@ -418,33 +421,56 @@ const SiteDesignModule = () => {
                             </AlertDescription>
                           </Alert>
                           <FileUpload
-                            onFileUploaded={(url) => handleHeroImageUpload(url)}
+                            onFileUploaded={handleHeroMediaUpload}
                             acceptedTypes={['image/*', 'video/*']}
                             maxSize={50 * 1024 * 1024} // 50MB
                             bucket="design-assets"
                            />
+                           {currentPage === 'home' && (
+                             <div className="mb-4">
+                               <Label className="text-sm font-medium">Hero Height</Label>
+                               <Select 
+                                 value={currentSettings.hero.height || '240'} 
+                                 onValueChange={(value: '240' | '480') => 
+                                   updateCurrentPageSettings({
+                                     hero: { ...currentSettings.hero, height: value }
+                                   })
+                                 }
+                               >
+                                 <SelectTrigger className="mt-2">
+                                   <SelectValue />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                   <SelectItem value="240">240px Height</SelectItem>
+                                   <SelectItem value="480">480px Height</SelectItem>
+                                 </SelectContent>
+                               </Select>
+                             </div>
+                           )}
+
                            <div className="mt-3 space-y-3">
-                             <div className="p-3 bg-muted rounded-lg">
-                               <p className="text-sm text-muted-foreground">
-                                 Current: {currentSettings.hero.backgroundImage || '/src/assets/hero-banner-main.jpg'}
-                               </p>
-                              </div>
-                              {(currentSettings.hero.backgroundImage || '/src/assets/hero-banner-main.jpg') && (
-                                <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border">
-                                  {currentSettings.hero.backgroundImage?.includes('.mp4') || 
-                                   currentSettings.hero.backgroundImage?.includes('.mov') || 
-                                   currentSettings.hero.backgroundImage?.includes('.webm') ? (
-                                    <video 
-                                      src={currentSettings.hero.backgroundImage} 
-                                      className="w-full h-full object-cover"
-                                      controls
-                                      muted
-                                    />
-                                  ) : (
-                                    <img 
-                                      src={currentSettings.hero.backgroundImage || '/src/assets/hero-banner-main.jpg'} 
-                                      alt="Hero background preview"
-                                      className="w-full h-full object-cover"
+                              <div className="p-3 bg-muted rounded-lg">
+                                <p className="text-sm text-muted-foreground">
+                                  Current: {currentSettings.hero.backgroundMedia || 'No media selected'}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Type: {currentSettings.hero.mediaType || 'image'}
+                                </p>
+                               </div>
+                               {currentSettings.hero.backgroundMedia && (
+                                 <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border">
+                                   {currentSettings.hero.mediaType === 'video' ? (
+                                     <video 
+                                       src={currentSettings.hero.backgroundMedia} 
+                                       className="w-full h-full object-cover"
+                                       controls
+                                       muted
+                                     />
+                                   ) : (
+                                     <img 
+                                       src={currentSettings.hero.backgroundMedia} 
+                                       alt="Hero background preview"
+                                       className="w-full h-full object-cover"
                                        onError={(e) => {
                                          const target = e.target as HTMLImageElement;
                                          target.style.display = 'none';
@@ -631,11 +657,11 @@ const SiteDesignModule = () => {
                   </p>
                 </div>
                 <div className="p-4 rounded-lg border bg-muted/50">
-                  <h3 className="font-medium mb-2">Hero Section</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Title: {currentSettings.hero.title} <br/>
-                    Image: {currentSettings.hero.backgroundImage?.substring(0, 50) || 'Default'}...
-                  </p>
+                   <h3 className="font-medium mb-2">Hero Section</h3>
+                   <p className="text-sm text-muted-foreground">
+                     Title: {currentSettings.hero.title} <br/>
+                     Media: {currentSettings.hero.backgroundMedia?.substring(0, 50) || 'No media'}...
+                   </p>
                 </div>
                 <div className="p-4 rounded-lg border bg-muted/50">
                   <h3 className="font-medium mb-2">Colors & Fonts</h3>
