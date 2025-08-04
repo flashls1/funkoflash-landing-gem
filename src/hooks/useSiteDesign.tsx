@@ -3,36 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export interface SiteDesignSettings {
-  background: {
-    type: 'color' | 'image' | 'gradient';
-    value: string;
-    opacity?: number;
-  };
   hero: {
-    title: string;
-    subtitle: string;
     backgroundMedia?: string;
     mediaType?: 'image' | 'video';
     overlayOpacity?: number;
-    textColor?: string;
-    textSize?: string;
-    fontWeight?: string;
     height?: '240' | '480'; // Only for home page
-  };
-  colors: {
-    primary: string;
-    secondary: string;
-    accent: string;
-    background?: string;
-    foreground?: string;
-  };
-  fonts: {
-    heading: string;
-    body: string;
-  };
-  layout?: {
-    containerWidth?: string;
-    spacing?: string;
+    position?: { x: number; y: number };
+    scale?: number;
   };
 }
 
@@ -126,51 +103,18 @@ export const useSiteDesign = () => {
     }
   };
 
-  // Apply settings to CSS variables
+  // Simplified CSS application for hero images only
   const applySettingsToCSS = (pageSettings: SiteDesignSettings) => {
-    const root = document.documentElement;
-
-    // Apply colors
-    if (pageSettings.colors.primary) {
-      root.style.setProperty('--primary', pageSettings.colors.primary.replace('hsl(', '').replace(')', ''));
-    }
-    if (pageSettings.colors.secondary) {
-      root.style.setProperty('--secondary', pageSettings.colors.secondary.replace('hsl(', '').replace(')', ''));
-    }
-    if (pageSettings.colors.accent) {
-      root.style.setProperty('--accent', pageSettings.colors.accent.replace('hsl(', '').replace(')', ''));
-    }
-
-    // Apply background
-    if (pageSettings.background.type === 'image' && pageSettings.background.value) {
-      root.style.setProperty('--site-background', `url('${pageSettings.background.value}')`);
-    } else if (pageSettings.background.type === 'color') {
-      root.style.setProperty('--site-background', pageSettings.background.value);
-    }
-
-    // Apply fonts by loading Google Fonts
-    if (pageSettings.fonts.heading !== 'Inter') {
-      loadGoogleFont(pageSettings.fonts.heading);
-      root.style.setProperty('--font-heading', `'${pageSettings.fonts.heading}', sans-serif`);
-    }
-    if (pageSettings.fonts.body !== 'Inter') {
-      loadGoogleFont(pageSettings.fonts.body);
-      root.style.setProperty('--font-body', `'${pageSettings.fonts.body}', sans-serif`);
-    }
+    // Force component re-render by updating a timestamp
+    window.dispatchEvent(new CustomEvent('heroImageUpdate', { 
+      detail: { 
+        page: currentPage, 
+        timestamp: Date.now(),
+        heroMedia: pageSettings.hero?.backgroundMedia
+      } 
+    }));
   };
 
-  // Load Google Font dynamically
-  const loadGoogleFont = (fontName: string) => {
-    if (fontName === 'Inter') return; // Already loaded
-
-    const existingLink = document.querySelector(`link[href*="${fontName.replace(' ', '+')}"]`);
-    if (existingLink) return; // Already loaded
-
-    const link = document.createElement('link');
-    link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(' ', '+')}:wght@400;500;600;700&display=swap`;
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-  };
 
   // Upload file to Supabase storage
   const uploadFile = async (file: File, bucket: string = 'design-assets'): Promise<string> => {
@@ -212,24 +156,14 @@ export const useSiteDesign = () => {
     });
     
     return pageSettings || {
-      background: { type: 'image', value: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')" },
       hero: { 
-        title: '', 
-        subtitle: '',
         backgroundMedia: '',
         mediaType: 'image',
         overlayOpacity: 0.5,
-        textColor: 'hsl(0, 0%, 100%)',
-        textSize: 'large',
-        fontWeight: 'bold',
-        height: currentPage === 'home' ? '240' : undefined
-      },
-      colors: {
-        primary: 'hsl(280, 70%, 50%)',
-        secondary: 'hsl(220, 70%, 50%)',
-        accent: 'hsl(50, 80%, 55%)'
-      },
-      fonts: { heading: 'Inter', body: 'Inter' }
+        height: currentPage === 'home' ? '240' : undefined,
+        position: { x: 50, y: 50 },
+        scale: 100
+      }
     };
   };
 
@@ -239,10 +173,7 @@ export const useSiteDesign = () => {
     const updatedSettings = {
       ...currentSettings,
       ...newSettings,
-      colors: { ...currentSettings.colors, ...newSettings.colors },
-      hero: { ...currentSettings.hero, ...newSettings.hero },
-      background: { ...currentSettings.background, ...newSettings.background },
-      fonts: { ...currentSettings.fonts, ...newSettings.fonts }
+      hero: { ...currentSettings.hero, ...newSettings.hero }
     };
 
     setSettings(prev => ({
@@ -250,13 +181,8 @@ export const useSiteDesign = () => {
       [currentPage]: updatedSettings
     }));
 
-    // Apply immediately with cache busting for media
+    // Apply immediately
     applySettingsToCSS(updatedSettings);
-    
-    // Force re-render of components by triggering a state update
-    setTimeout(() => {
-      setSettings(prev => ({ ...prev }));
-    }, 100);
   };
 
   useEffect(() => {

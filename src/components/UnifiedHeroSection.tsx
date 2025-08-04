@@ -14,15 +14,18 @@ export const UnifiedHeroSection = ({
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [currentMediaUrl, setCurrentMediaUrl] = useState<string>('');
   const [imageLoadError, setImageLoadError] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   // Get settings after loading is complete
   const settings = getCurrentPageSettings();
   
-  // Only show media when backgroundMedia is set - no default text
+  // Only show media when backgroundMedia is set
   const heroMedia = settings.hero?.backgroundMedia || '';
   const mediaType = settings.hero?.mediaType || 'image';
   const overlayOpacity = settings.hero?.overlayOpacity || 0.5;
   const heroHeight = settings.hero?.height || '240';
+  const position = settings.hero?.position || { x: 50, y: 50 };
+  const scale = settings.hero?.scale || 100;
 
   console.log('🎬 UnifiedHeroSection render:', {
     currentPage,
@@ -44,9 +47,19 @@ export const UnifiedHeroSection = ({
 
   const heightClass = className || `relative ${getHeightClass()} flex items-center justify-center overflow-hidden`;
 
+  // Listen for hero image updates
+  useEffect(() => {
+    const handleHeroUpdate = () => {
+      setForceUpdate(prev => prev + 1);
+    };
+
+    window.addEventListener('heroImageUpdate', handleHeroUpdate);
+    return () => window.removeEventListener('heroImageUpdate', handleHeroUpdate);
+  }, []);
+
   // Enhanced media loading with proper error handling and debugging
   useEffect(() => {
-    console.log('🔄 Media loading effect triggered:', { heroMedia, mediaType, loading });
+    console.log('🔄 Media loading effect triggered:', { heroMedia, mediaType, loading, forceUpdate });
     
     // Don't proceed if still loading settings
     if (loading) {
@@ -65,7 +78,7 @@ export const UnifiedHeroSection = ({
     console.log('🎯 Loading hero media:', heroMedia);
     setMediaLoaded(false);
     setImageLoadError(false);
-    setCurrentMediaUrl(heroMedia);
+    setCurrentMediaUrl(heroMedia + `?t=${Date.now()}`); // Cache busting
     
     if (mediaType === 'image') {
       const img = new Image();
@@ -79,13 +92,13 @@ export const UnifiedHeroSection = ({
         setImageLoadError(true);
         setMediaLoaded(true);
       };
-      img.src = heroMedia;
+      img.src = heroMedia + `?t=${Date.now()}`;
     } else if (mediaType === 'video') {
       console.log('🎥 Video media type, setting as loaded');
       setMediaLoaded(true);
       setImageLoadError(false);
     }
-  }, [heroMedia, mediaType, loading]);
+  }, [heroMedia, mediaType, loading, forceUpdate]);
 
   // Show loading state while fetching settings
   if (loading) {
@@ -149,9 +162,11 @@ export const UnifiedHeroSection = ({
             </video>
           ) : (
             <div 
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500"
+              className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-500"
               style={{ 
                 backgroundImage: `url(${currentMediaUrl})`,
+                backgroundPosition: `${position.x}% ${position.y}%`,
+                transform: `scale(${scale / 100})`,
                 opacity: 1
               }}
             />

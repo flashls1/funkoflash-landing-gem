@@ -1,18 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { useAuth } from '@/hooks/useAuth';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import FileUpload from '@/components/FileUpload';
-import { ColorPicker } from '@/components/ColorPicker';
+import { Slider } from '@/components/ui/slider';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import AdminThemeProvider from '@/components/AdminThemeProvider';
@@ -33,7 +29,10 @@ import {
   Calendar,
   Info,
   Mail,
-  LogIn
+  LogIn,
+  ArrowLeft,
+  Move,
+  Crop
 } from 'lucide-react';
 
 export const SiteDesignModule = () => {
@@ -55,6 +54,9 @@ export const SiteDesignModule = () => {
     status: 'idle' | 'uploading' | 'success' | 'error';
     message: string;
   }>({ status: 'idle', message: '' });
+  const [imagePosition, setImagePosition] = useState({ x: 50, y: 50 });
+  const [imageScale, setImageScale] = useState(100);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Access control - only admin and staff can access
@@ -95,10 +97,23 @@ export const SiteDesignModule = () => {
     { id: 'auth', name: 'Login Page', icon: LogIn, route: '/auth' }
   ];
 
-  const fontOptions = [
-    'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 
-    'Source Sans Pro', 'Nunito', 'Raleway', 'Ubuntu'
-  ];
+  // Validate image dimensions
+  const validateImageSize = (file: File): Promise<{ valid: boolean; dimensions: { width: number; height: number } }> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const { width, height } = img;
+        const isValid1920x240 = Math.abs(width - 1920) <= 192 && Math.abs(height - 240) <= 24;
+        const isValid1920x480 = Math.abs(width - 1920) <= 192 && Math.abs(height - 480) <= 48;
+        resolve({ 
+          valid: isValid1920x240 || isValid1920x480, 
+          dimensions: { width, height } 
+        });
+      };
+      img.onerror = () => resolve({ valid: false, dimensions: { width: 0, height: 0 } });
+      img.src = URL.createObjectURL(file);
+    });
+  };
 
   const currentSettings = getPageSettings();
 
@@ -139,9 +154,29 @@ export const SiteDesignModule = () => {
   };
 
   const handleHeroMediaUpload = async (file: File) => {
-    setUploadStatus({ status: 'uploading', message: 'Uploading media...' });
+    setUploadStatus({ status: 'uploading', message: 'Validating image...' });
     
     try {
+      // Validate image size for images only
+      if (file.type.startsWith('image/')) {
+        const validation = await validateImageSize(file);
+        
+        if (!validation.valid) {
+          const { width, height } = validation.dimensions;
+          const message = `Image size ${width}x${height}px is not supported. Please use 1920x240px or 1920x480px (±10% tolerance).`;
+          
+          setUploadStatus({ status: 'error', message });
+          toast({
+            title: "❌ Invalid Image Size",
+            description: message,
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
+      setUploadStatus({ status: 'uploading', message: 'Uploading media...' });
+      
       const mediaUrl = await uploadFile(file, 'design-assets');
       const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
       
@@ -149,7 +184,9 @@ export const SiteDesignModule = () => {
         hero: {
           ...currentSettings.hero,
           backgroundMedia: mediaUrl,
-          mediaType: mediaType
+          mediaType: mediaType,
+          position: { x: imagePosition.x, y: imagePosition.y },
+          scale: imageScale
         }
       });
       
@@ -158,13 +195,11 @@ export const SiteDesignModule = () => {
         message: `${mediaType === 'video' ? 'Video' : 'Image'} uploaded successfully!` 
       });
       
-      // Enhanced upload success toast
       toast({
         title: `🎉 ${mediaType === 'video' ? 'Video' : 'Image'} Uploaded!`,
-        description: `Your hero ${mediaType} has been uploaded successfully. Don't forget to save your changes!`,
+        description: `Your hero ${mediaType} has been uploaded and is ready to be saved.`,
       });
       
-      // Auto-clear upload status after 3 seconds
       setTimeout(() => {
         setUploadStatus({ status: 'idle', message: '' });
       }, 3000);
@@ -178,7 +213,7 @@ export const SiteDesignModule = () => {
       
       toast({
         title: "❌ Upload Failed",
-        description: error instanceof Error ? error.message : "There was an error uploading your file. Please check your connection and try again.",
+        description: error instanceof Error ? error.message : "There was an error uploading your file.",
         variant: "destructive"
       });
     }
@@ -229,15 +264,23 @@ export const SiteDesignModule = () => {
       
       <div className="container mx-auto px-4 py-8">
         <AdminHeader
-          title="Site Design Manager"
-          description="Customize the visual appearance of your website pages. Changes are applied instantly to the live site."
+          title="Hero Image Manager"
+          description="Upload and customize hero banner images for your website pages. Images must be 1920x240px or 1920x480px."
           language={language}
         >
-          <div className="flex items-center gap-3">
-            <Settings className="w-5 h-5" style={{ color: currentTheme.accent }} />
-            <span className="text-sm font-medium">
-              {language === 'en' ? 'Design Controls' : 'Controles de Diseño'}
-            </span>
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = profile?.role === 'admin' ? '/admin' : '/staff'}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Return to {profile?.role === 'admin' ? 'Admin' : 'Staff'} CMS
+            </Button>
+            <div className="flex items-center gap-2">
+              <Settings className="w-5 h-5" style={{ color: currentTheme.accent }} />
+              <span className="text-sm font-medium">Hero Images</span>
+            </div>
           </div>
         </AdminHeader>
 
@@ -306,7 +349,7 @@ export const SiteDesignModule = () => {
           </CardContent>
         </Card>
 
-        {/* Design Controls Panel */}
+        {/* Hero Image Controls Panel */}
         <Card 
           className="max-w-4xl mx-auto border-2"
           style={{
@@ -316,191 +359,186 @@ export const SiteDesignModule = () => {
           }}
         >
           <CardHeader>
-            <CardTitle style={{ color: currentTheme.accent }}>Design Controls</CardTitle>
+            <CardTitle style={{ color: currentTheme.accent }}>Hero Image Controls</CardTitle>
             <StatusIndicator status={uploadStatus.status} message={uploadStatus.message} />
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="hero" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="hero">Hero</TabsTrigger>
-                <TabsTrigger value="colors">Colors</TabsTrigger>
-                <TabsTrigger value="fonts">Fonts</TabsTrigger>
-              </TabsList>
+          <CardContent className="space-y-6">
+            {/* Hero Height for Home Page */}
+            {currentPage === 'home' && (
+              <div>
+                <Label className="text-sm font-medium">Hero Height</Label>
+                <Select
+                  value={currentSettings.hero?.height || '240'}
+                  onValueChange={(value) => updateCurrentPageSettings({
+                    hero: { ...currentSettings.hero, height: value as '240' | '480' }
+                  })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="240">Standard (240px)</SelectItem>
+                    <SelectItem value="480">Large (480px)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-              {/* Hero Section Tab */}
-              <TabsContent value="hero" className="space-y-4">
+            {/* Upload Section */}
+            <div>
+              <Label className="text-sm font-medium">Upload Hero Image</Label>
+              <div className="mt-2 space-y-3">
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-700">
-                    <strong>Note:</strong> Hero banners now only display background media (images/videos). 
-                    Text overlays have been removed to prevent content conflicts.
+                    <strong>Required Size:</strong> 1920x240px or 1920x480px (±10% tolerance allowed)
                   </p>
                 </div>
+                
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer"
+                >
+                  <Upload className="w-12 h-12 mx-auto mb-3 text-primary/60" />
+                  <p className="text-sm font-medium mb-1">Click to upload hero image</p>
+                  <p className="text-xs text-muted-foreground">
+                    JPG, PNG, WebP - 1920x240px or 1920x480px
+                  </p>
+                </div>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleHeroMediaUpload(file);
+                  }}
+                />
+              </div>
+            </div>
 
-                {currentPage === 'home' && (
-                  <div>
-                    <Label className="text-sm font-medium">Hero Height</Label>
-                    <Select
-                      value={currentSettings.hero?.height || '240'}
-                      onValueChange={(value) => updateCurrentPageSettings({
-                        hero: { ...currentSettings.hero, height: value as '240' | '480' }
-                      })}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="240">Small (240px)</SelectItem>
-                        <SelectItem value="480">Large (480px)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                <div>
-                  <Label className="text-sm font-medium">Background Media</Label>
-                  <div className="mt-2">
-                    <div onClick={() => {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = 'image/*,video/*';
-                      input.onchange = (e) => {
-                        const file = (e.target as HTMLInputElement).files?.[0];
-                        if (file) handleHeroMediaUpload(file);
-                      };
-                      input.click();
-                    }}>
-                      <div className="border-2 border-dashed border-green-300 rounded-lg p-6 text-center hover:border-green-500 hover:bg-green-50 transition-colors cursor-pointer">
-                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">
-                          Drop image or video here, or click to browse
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Supports images and videos (no size limit)
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  {currentSettings.hero?.backgroundMedia && (
-                    <div className="mt-2 p-2 bg-muted rounded text-xs">
-                      Current: {currentSettings.hero.mediaType === 'video' ? '🎥' : '🖼️'} 
+            {/* Current Image Preview & Controls */}
+            {currentSettings.hero?.backgroundMedia && (
+              <div className="space-y-4">
+                <Label className="text-sm font-medium">Current Hero Image</Label>
+                
+                {/* Image Preview */}
+                <div className="relative border rounded-lg overflow-hidden bg-muted">
+                  <div 
+                    className="w-full h-32 bg-cover bg-center relative"
+                    style={{
+                      backgroundImage: `url(${currentSettings.hero.backgroundMedia})`,
+                      backgroundPosition: `${imagePosition.x}% ${imagePosition.y}%`,
+                      transform: `scale(${imageScale / 100})`
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-black/20" />
+                    <div className="absolute bottom-2 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded">
                       {currentSettings.hero.backgroundMedia.split('/').pop()}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </TabsContent>
 
-              {/* Colors Tab */}
-              <TabsContent value="colors" className="space-y-4">
+                {/* Position Controls */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-medium">Horizontal Position: {imagePosition.x}%</Label>
+                    <Slider
+                      value={[imagePosition.x]}
+                      onValueChange={([value]) => {
+                        setImagePosition(prev => ({ ...prev, x: value }));
+                        updateCurrentPageSettings({
+                          hero: { ...currentSettings.hero, position: { ...imagePosition, x: value } }
+                        });
+                      }}
+                      max={100}
+                      step={1}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs font-medium">Vertical Position: {imagePosition.y}%</Label>
+                    <Slider
+                      value={[imagePosition.y]}
+                      onValueChange={([value]) => {
+                        setImagePosition(prev => ({ ...prev, y: value }));
+                        updateCurrentPageSettings({
+                          hero: { ...currentSettings.hero, position: { x: imagePosition.x, y: value } }
+                        });
+                      }}
+                      max={100}
+                      step={1}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                {/* Scale Control */}
                 <div>
-                  <Label className="text-sm font-medium">Primary Color</Label>
-                  <ColorPicker
-                    color={currentSettings.colors?.primary || 'hsl(280, 70%, 50%)'}
-                    onChange={(color) => updateCurrentPageSettings({
-                      colors: { ...currentSettings.colors, primary: color }
-                    })}
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Secondary Color</Label>
-                  <ColorPicker
-                    color={currentSettings.colors?.secondary || 'hsl(220, 70%, 50%)'}
-                    onChange={(color) => updateCurrentPageSettings({
-                      colors: { ...currentSettings.colors, secondary: color }
-                    })}
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Accent Color</Label>
-                  <ColorPicker
-                    color={currentSettings.colors?.accent || 'hsl(50, 80%, 55%)'}
-                    onChange={(color) => updateCurrentPageSettings({
-                      colors: { ...currentSettings.colors, accent: color }
-                    })}
-                  />
-                </div>
-              </TabsContent>
-
-              {/* Fonts Tab */}
-              <TabsContent value="fonts" className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium">Heading Font</Label>
-                  <Select
-                    value={currentSettings.fonts?.heading || 'Inter'}
-                    onValueChange={(value) => updateCurrentPageSettings({
-                      fonts: { ...currentSettings.fonts, heading: value }
-                    })}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fontOptions.map((font) => (
-                        <SelectItem key={font} value={font}>{font}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Body Font</Label>
-                  <Select
-                    value={currentSettings.fonts?.body || 'Inter'}
-                    onValueChange={(value) => updateCurrentPageSettings({
-                      fonts: { ...currentSettings.fonts, body: value }
-                    })}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fontOptions.map((font) => (
-                        <SelectItem key={font} value={font}>{font}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </TabsContent>
-            </Tabs>
-
-            <Separator className="my-6" />
-
-                {/* Save Actions */}
-                <div className="space-y-3">
-                  <Button 
-                    onClick={handleSaveSettings} 
-                    className="w-full font-medium disabled:opacity-50"
-                    disabled={isSaving}
-                    size="lg"
-                    style={{
-                      backgroundColor: currentTheme.accent,
-                      color: 'white',
-                      borderColor: currentTheme.accent
+                  <Label className="text-xs font-medium">Image Scale: {imageScale}%</Label>
+                  <Slider
+                    value={[imageScale]}
+                    onValueChange={([value]) => {
+                      setImageScale(value);
+                      updateCurrentPageSettings({
+                        hero: { ...currentSettings.hero, scale: value }
+                      });
                     }}
-                  >
-                    {isSaving ? (
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4 mr-2" />
-                    )}
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => window.location.reload()}
-                    disabled={isSaving}
-                    className="w-full"
-                    style={{
-                      backgroundColor: 'transparent',
-                      borderColor: currentTheme.border,
-                      color: currentTheme.cardForeground
-                    }}
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Reset & Reload
-                  </Button>
+                    min={50}
+                    max={200}
+                    step={5}
+                    className="mt-1"
+                  />
                 </div>
+              </div>
+            )}
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t">
+              <Button 
+                onClick={handleSaveSettings}
+                disabled={isSaving}
+                className="flex items-center gap-2"
+                style={{
+                  backgroundColor: currentTheme.accent,
+                  borderColor: currentTheme.accent,
+                  color: 'white'
+                }}
+              >
+                {isSaving ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                {isSaving ? 'Saving...' : 'Save Hero Image'}
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => window.open(pages.find(p => p.id === currentPage)?.route, '_blank')}
+                style={{
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Preview Live Page
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => window.location.reload()}
+                style={{
+                  borderColor: currentTheme.border,
+                  color: currentTheme.cardForeground
+                }}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Reset
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
