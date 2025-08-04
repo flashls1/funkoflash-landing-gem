@@ -346,7 +346,7 @@ export const SiteDesignModule = () => {
       
       <div className="container mx-auto px-4 py-8">
         <AdminHeader
-          title="Hero Image Manager"
+          title="Site Design Manager"
           description="Upload and customize hero banner images for your website pages. Images must be 1920x240px or 1920x480px."
           language={language}
         >
