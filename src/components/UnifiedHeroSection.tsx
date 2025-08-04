@@ -15,9 +15,7 @@ export const UnifiedHeroSection = ({
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [currentMediaUrl, setCurrentMediaUrl] = useState<string>('');
 
-  // Only show content after loading is complete
-  const heroTitle = loading ? '' : settings.hero?.title || '';
-  const heroSubtitle = loading ? '' : settings.hero?.subtitle || '';
+  // Only show media when backgroundMedia is set - no default text
   const heroMedia = settings.hero?.backgroundMedia || '';
   const mediaType = settings.hero?.mediaType || 'image';
   const overlayOpacity = settings.hero?.overlayOpacity || 0.5;
@@ -67,8 +65,8 @@ export const UnifiedHeroSection = ({
     }
   }, [heroMedia, currentMediaUrl, mediaType]);
 
-  // Don't render anything if still loading or no content to show
-  if (loading || (!heroTitle && !heroSubtitle && !heroMedia)) {
+  // Don't render anything if still loading or no media to show
+  if (loading || !heroMedia) {
     return null;
   }
 
@@ -112,25 +110,7 @@ export const UnifiedHeroSection = ({
         style={{ opacity: overlayOpacity }}
       />
       
-      {/* Content */}
-      {(heroTitle || heroSubtitle) && (
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              {heroTitle && (
-                <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight max-w-4xl mx-auto drop-shadow-lg">
-                  {heroTitle}
-                </h1>
-              )}
-              {heroSubtitle && (
-                <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
-                  {heroSubtitle}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* No default content - only show media */}
     </section>
   );
 };

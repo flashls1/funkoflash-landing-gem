@@ -159,12 +159,6 @@ export const LivePreview = ({ currentPage }: LivePreviewProps) => {
             "bg-background rounded-lg shadow-lg overflow-hidden transition-all duration-300",
             getViewportStyles()
           )}
-          style={{
-            backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed'
-          }}
         >
           {/* Navigation */}
           <Navigation language={language} setLanguage={setLanguage} />

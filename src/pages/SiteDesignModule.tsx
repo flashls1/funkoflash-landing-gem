@@ -247,28 +247,11 @@ export const SiteDesignModule = () => {
 
                   {/* Hero Section Tab */}
                   <TabsContent value="hero" className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium">Hero Title</Label>
-                      <Input
-                        value={currentSettings.hero?.title || ''}
-                        onChange={(e) => updateCurrentPageSettings({
-                          hero: { ...currentSettings.hero, title: e.target.value }
-                        })}
-                        placeholder="Enter hero title..."
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-sm font-medium">Hero Subtitle</Label>
-                      <Input
-                        value={currentSettings.hero?.subtitle || ''}
-                        onChange={(e) => updateCurrentPageSettings({
-                          hero: { ...currentSettings.hero, subtitle: e.target.value }
-                        })}
-                        placeholder="Enter hero subtitle..."
-                        className="mt-1"
-                      />
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        <strong>Note:</strong> Hero banners now only display background media (images/videos). 
+                        Text overlays have been removed to prevent content conflicts.
+                      </p>
                     </div>
 
                     {currentPage === 'home' && (
@@ -405,7 +388,7 @@ export const SiteDesignModule = () => {
                 <div className="space-y-3">
                   <Button 
                     onClick={handleSaveSettings} 
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     disabled={isSaving}
                     size="lg"
                   >
