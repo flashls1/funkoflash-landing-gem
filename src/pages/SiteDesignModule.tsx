@@ -97,8 +97,8 @@ export const SiteDesignModule = () => {
     { id: 'auth', name: 'Login Page', icon: LogIn, route: '/auth' }
   ];
 
-  // Validate image dimensions
-  const validateImageSize = (file: File): Promise<{ valid: boolean; dimensions: { width: number; height: number } }> => {
+  // Validate image dimensions for hero images
+  const validateHeroImageSize = (file: File): Promise<{ valid: boolean; dimensions: { width: number; height: number } }> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -107,6 +107,25 @@ export const SiteDesignModule = () => {
         const isValid1920x480 = Math.abs(width - 1920) <= 192 && Math.abs(height - 480) <= 48;
         resolve({ 
           valid: isValid1920x240 || isValid1920x480, 
+          dimensions: { width, height } 
+        });
+      };
+      img.onerror = () => resolve({ valid: false, dimensions: { width: 0, height: 0 } });
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // Validate background image dimensions (1920x1920 minimum with 10% tolerance)
+  const validateBackgroundImageSize = (file: File): Promise<{ valid: boolean; dimensions: { width: number; height: number } }> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const { width, height } = img;
+        const minSize = 1920;
+        const tolerance = minSize * 0.1; // 10% tolerance
+        const isValid = width >= (minSize - tolerance) && height >= (minSize - tolerance);
+        resolve({ 
+          valid: isValid, 
           dimensions: { width, height } 
         });
       };
@@ -159,7 +178,7 @@ export const SiteDesignModule = () => {
     try {
       // Validate image size for images only
       if (file.type.startsWith('image/')) {
-        const validation = await validateImageSize(file);
+        const validation = await validateHeroImageSize(file);
         
         if (!validation.valid) {
           const { width, height } = validation.dimensions;
@@ -214,6 +233,69 @@ export const SiteDesignModule = () => {
       toast({
         title: "❌ Upload Failed",
         description: error instanceof Error ? error.message : "There was an error uploading your file.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleBackgroundImageUpload = async (file: File) => {
+    setUploadStatus({ status: 'uploading', message: 'Validating background image...' });
+    
+    try {
+      // Validate image size
+      if (file.type.startsWith('image/')) {
+        const validation = await validateBackgroundImageSize(file);
+        
+        if (!validation.valid) {
+          const { width, height } = validation.dimensions;
+          const message = `Background image size ${width}x${height}px is too small. Please use minimum 1920x1920px (±10% tolerance).`;
+          
+          setUploadStatus({ status: 'error', message });
+          toast({
+            title: "❌ Invalid Background Image Size",
+            description: message,
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
+      setUploadStatus({ status: 'uploading', message: 'Uploading background image...' });
+      
+      const imageUrl = await uploadFile(file, 'design-assets');
+      
+      updateCurrentPageSettings({
+        siteBackground: {
+          backgroundImage: imageUrl,
+          position: { x: 50, y: 50 },
+          scale: 100
+        }
+      });
+      
+      setUploadStatus({ 
+        status: 'success', 
+        message: 'Background image uploaded successfully!' 
+      });
+      
+      toast({
+        title: "🎉 Background Image Uploaded!",
+        description: "Your site background image has been uploaded and is ready to be saved.",
+      });
+      
+      setTimeout(() => {
+        setUploadStatus({ status: 'idle', message: '' });
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Error uploading background image:', error);
+      setUploadStatus({ 
+        status: 'error', 
+        message: 'Upload failed. Please try again.' 
+      });
+      
+      toast({
+        title: "❌ Upload Failed",
+        description: error instanceof Error ? error.message : "There was an error uploading your background image.",
         variant: "destructive"
       });
     }
@@ -494,6 +576,57 @@ export const SiteDesignModule = () => {
                 </div>
               </div>
             )}
+
+            {/* Site Background Image Section */}
+            <div className="space-y-4 border-t pt-6">
+              <Label className="text-sm font-medium">Site Background Image</Label>
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm text-amber-700">
+                  <strong>Site-wide background:</strong> This background image will be displayed across all pages. Minimum size: 1920x1920px (±10% tolerance)
+                </p>
+              </div>
+              
+              <div 
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) handleBackgroundImageUpload(file);
+                  };
+                  input.click();
+                }}
+                className="border-2 border-dashed border-amber-300 rounded-lg p-6 text-center hover:border-amber-400 hover:bg-amber-50 transition-colors cursor-pointer"
+              >
+                <Upload className="w-10 h-10 mx-auto mb-2 text-amber-600" />
+                <p className="text-sm font-medium mb-1">Click to upload site background</p>
+                <p className="text-xs text-muted-foreground">
+                  JPG, PNG, WebP - Minimum 1920x1920px
+                </p>
+              </div>
+
+              {/* Current Background Preview */}
+              {currentSettings.siteBackground?.backgroundImage && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Current Background Image</Label>
+                  <div className="relative border rounded-lg overflow-hidden bg-muted">
+                    <div 
+                      className="w-full h-24 bg-cover bg-center relative"
+                      style={{
+                        backgroundImage: `url(${currentSettings.siteBackground.backgroundImage})`,
+                        backgroundPosition: `${currentSettings.siteBackground.position?.x || 50}% ${currentSettings.siteBackground.position?.y || 50}%`,
+                        transform: `scale(${(currentSettings.siteBackground.scale || 100) / 100})`
+                      }}
+                    >
+                      <div className="absolute bottom-1 left-1 text-white text-xs bg-black/50 px-1 py-0.5 rounded">
+                        Background: {currentSettings.siteBackground.backgroundImage.split('/').pop()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4 border-t">

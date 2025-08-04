@@ -11,13 +11,31 @@ export interface SiteDesignSettings {
     position?: { x: number; y: number };
     scale?: number;
   };
+  siteBackground?: {
+    backgroundImage?: string;
+    position?: { x: number; y: number };
+    scale?: number;
+  };
 }
+
+const getPageFromRoute = (): string => {
+  const path = window.location.pathname;
+  if (path === '/' || path === '/home') return 'home';
+  if (path === '/shop') return 'shop';
+  if (path === '/talent-directory') return 'talent-directory';
+  if (path === '/events') return 'events';
+  if (path === '/about') return 'about';
+  if (path === '/contact') return 'contact';
+  if (path === '/auth') return 'auth';
+  if (path.includes('/admin/site-design')) return 'home'; // Default for site design module
+  return 'home'; // Default fallback
+};
 
 export const useSiteDesign = () => {
   const [settings, setSettings] = useState<Record<string, SiteDesignSettings>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState(() => getPageFromRoute());
   const { toast } = useToast();
 
   // Load all page settings with enhanced debugging
@@ -184,6 +202,24 @@ export const useSiteDesign = () => {
     // Apply immediately
     applySettingsToCSS(updatedSettings);
   };
+
+  // Listen for route changes to update current page
+  useEffect(() => {
+    const handleRouteChange = () => {
+      const newPage = getPageFromRoute();
+      if (newPage !== currentPage) {
+        setCurrentPage(newPage);
+      }
+    };
+
+    // Listen for popstate events (browser back/forward)
+    window.addEventListener('popstate', handleRouteChange);
+    
+    // Check route on mount
+    handleRouteChange();
+    
+    return () => window.removeEventListener('popstate', handleRouteChange);
+  }, [currentPage]);
 
   useEffect(() => {
     loadSettings();
