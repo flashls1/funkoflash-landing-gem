@@ -174,7 +174,16 @@ export const SiteDesignModule = () => {
   const handleSaveSettings = async () => {
     setIsSaving(true);
     try {
-      await savePageSettings(selectedPage, currentSettings);
+      const settingsToSave = getCurrentSelectedPageSettings();
+      await savePageSettings(selectedPage, settingsToSave);
+      
+      // Clear local settings for this page after successful save
+      setLocalSettings(prev => {
+        const newSettings = { ...prev };
+        delete newSettings[selectedPage];
+        return newSettings;
+      });
+      
       setUploadStatus({ 
         status: 'success', 
         message: `Settings saved successfully for ${pages.find(p => p.id === selectedPage)?.name}!` 
