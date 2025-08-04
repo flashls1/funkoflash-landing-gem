@@ -266,199 +266,186 @@ export const SiteDesignModule = () => {
           </CardContent>
         </Card>
 
-        <div className="grid lg:grid-cols-5 gap-6">
-          {/* Design Controls Panel */}
-          <div className="lg:col-span-2">
-            <Card className="sticky top-4">
-              <CardHeader>
-                <CardTitle>Design Controls</CardTitle>
-                <StatusIndicator status={uploadStatus.status} message={uploadStatus.message} />
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="hero" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="hero">Hero</TabsTrigger>
-                    <TabsTrigger value="colors">Colors</TabsTrigger>
-                    <TabsTrigger value="fonts">Fonts</TabsTrigger>
-                  </TabsList>
+        {/* Design Controls Panel */}
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle>Design Controls</CardTitle>
+            <StatusIndicator status={uploadStatus.status} message={uploadStatus.message} />
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="hero" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="hero">Hero</TabsTrigger>
+                <TabsTrigger value="colors">Colors</TabsTrigger>
+                <TabsTrigger value="fonts">Fonts</TabsTrigger>
+              </TabsList>
 
-                  {/* Hero Section Tab */}
-                  <TabsContent value="hero" className="space-y-4">
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-700">
-                        <strong>Note:</strong> Hero banners now only display background media (images/videos). 
-                        Text overlays have been removed to prevent content conflicts.
-                      </p>
-                    </div>
-
-                    {currentPage === 'home' && (
-                      <div>
-                        <Label className="text-sm font-medium">Hero Height</Label>
-                        <Select
-                          value={currentSettings.hero?.height || '240'}
-                          onValueChange={(value) => updateCurrentPageSettings({
-                            hero: { ...currentSettings.hero, height: value as '240' | '480' }
-                          })}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="240">Small (240px)</SelectItem>
-                            <SelectItem value="480">Large (480px)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-
-                    <div>
-                      <Label className="text-sm font-medium">Background Media</Label>
-                      <div className="mt-2">
-                        <div onClick={() => {
-                          const input = document.createElement('input');
-                          input.type = 'file';
-                          input.accept = 'image/*,video/*';
-                          input.onchange = (e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0];
-                            if (file) handleHeroMediaUpload(file);
-                          };
-                          input.click();
-                        }}>
-                          <div className="border-2 border-dashed border-green-300 rounded-lg p-6 text-center hover:border-green-500 hover:bg-green-50 transition-colors cursor-pointer">
-                            <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                            <p className="text-sm text-muted-foreground">
-                              Drop image or video here, or click to browse
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Supports images and videos (no size limit)
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      {currentSettings.hero?.backgroundMedia && (
-                        <div className="mt-2 p-2 bg-muted rounded text-xs">
-                          Current: {currentSettings.hero.mediaType === 'video' ? '🎥' : '🖼️'} 
-                          {currentSettings.hero.backgroundMedia.split('/').pop()}
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                  {/* Colors Tab */}
-                  <TabsContent value="colors" className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium">Primary Color</Label>
-                      <ColorPicker
-                        color={currentSettings.colors?.primary || 'hsl(280, 70%, 50%)'}
-                        onChange={(color) => updateCurrentPageSettings({
-                          colors: { ...currentSettings.colors, primary: color }
-                        })}
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-sm font-medium">Secondary Color</Label>
-                      <ColorPicker
-                        color={currentSettings.colors?.secondary || 'hsl(220, 70%, 50%)'}
-                        onChange={(color) => updateCurrentPageSettings({
-                          colors: { ...currentSettings.colors, secondary: color }
-                        })}
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-sm font-medium">Accent Color</Label>
-                      <ColorPicker
-                        color={currentSettings.colors?.accent || 'hsl(50, 80%, 55%)'}
-                        onChange={(color) => updateCurrentPageSettings({
-                          colors: { ...currentSettings.colors, accent: color }
-                        })}
-                      />
-                    </div>
-                  </TabsContent>
-
-                  {/* Fonts Tab */}
-                  <TabsContent value="fonts" className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium">Heading Font</Label>
-                      <Select
-                        value={currentSettings.fonts?.heading || 'Inter'}
-                        onValueChange={(value) => updateCurrentPageSettings({
-                          fonts: { ...currentSettings.fonts, heading: value }
-                        })}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {fontOptions.map((font) => (
-                            <SelectItem key={font} value={font}>{font}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="text-sm font-medium">Body Font</Label>
-                      <Select
-                        value={currentSettings.fonts?.body || 'Inter'}
-                        onValueChange={(value) => updateCurrentPageSettings({
-                          fonts: { ...currentSettings.fonts, body: value }
-                        })}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {fontOptions.map((font) => (
-                            <SelectItem key={font} value={font}>{font}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-
-                <Separator className="my-6" />
-
-                {/* Save Actions */}
-                <div className="space-y-3">
-                  <Button 
-                    onClick={handleSaveSettings} 
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium disabled:bg-green-300 disabled:text-gray-600"
-                    disabled={isSaving}
-                    size="lg"
-                  >
-                    {isSaving ? (
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4 mr-2" />
-                    )}
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => window.location.reload()}
-                    disabled={isSaving}
-                    className="w-full"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Reset & Reload
-                  </Button>
+              {/* Hero Section Tab */}
+              <TabsContent value="hero" className="space-y-4">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    <strong>Note:</strong> Hero banners now only display background media (images/videos). 
+                    Text overlays have been removed to prevent content conflicts.
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Live Preview Panel - FULL INTEGRATION */}
-          <div className="lg:col-span-3">
-            <Card className="h-[800px]">
-              <CardContent className="p-0 h-full">
-                <LivePreview currentPage={currentPage} />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                {currentPage === 'home' && (
+                  <div>
+                    <Label className="text-sm font-medium">Hero Height</Label>
+                    <Select
+                      value={currentSettings.hero?.height || '240'}
+                      onValueChange={(value) => updateCurrentPageSettings({
+                        hero: { ...currentSettings.hero, height: value as '240' | '480' }
+                      })}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="240">Small (240px)</SelectItem>
+                        <SelectItem value="480">Large (480px)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div>
+                  <Label className="text-sm font-medium">Background Media</Label>
+                  <div className="mt-2">
+                    <div onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*,video/*';
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) handleHeroMediaUpload(file);
+                      };
+                      input.click();
+                    }}>
+                      <div className="border-2 border-dashed border-green-300 rounded-lg p-6 text-center hover:border-green-500 hover:bg-green-50 transition-colors cursor-pointer">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          Drop image or video here, or click to browse
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Supports images and videos (no size limit)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  {currentSettings.hero?.backgroundMedia && (
+                    <div className="mt-2 p-2 bg-muted rounded text-xs">
+                      Current: {currentSettings.hero.mediaType === 'video' ? '🎥' : '🖼️'} 
+                      {currentSettings.hero.backgroundMedia.split('/').pop()}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Colors Tab */}
+              <TabsContent value="colors" className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Primary Color</Label>
+                  <ColorPicker
+                    color={currentSettings.colors?.primary || 'hsl(280, 70%, 50%)'}
+                    onChange={(color) => updateCurrentPageSettings({
+                      colors: { ...currentSettings.colors, primary: color }
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Secondary Color</Label>
+                  <ColorPicker
+                    color={currentSettings.colors?.secondary || 'hsl(220, 70%, 50%)'}
+                    onChange={(color) => updateCurrentPageSettings({
+                      colors: { ...currentSettings.colors, secondary: color }
+                    })}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Accent Color</Label>
+                  <ColorPicker
+                    color={currentSettings.colors?.accent || 'hsl(50, 80%, 55%)'}
+                    onChange={(color) => updateCurrentPageSettings({
+                      colors: { ...currentSettings.colors, accent: color }
+                    })}
+                  />
+                </div>
+              </TabsContent>
+
+              {/* Fonts Tab */}
+              <TabsContent value="fonts" className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Heading Font</Label>
+                  <Select
+                    value={currentSettings.fonts?.heading || 'Inter'}
+                    onValueChange={(value) => updateCurrentPageSettings({
+                      fonts: { ...currentSettings.fonts, heading: value }
+                    })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fontOptions.map((font) => (
+                        <SelectItem key={font} value={font}>{font}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Body Font</Label>
+                  <Select
+                    value={currentSettings.fonts?.body || 'Inter'}
+                    onValueChange={(value) => updateCurrentPageSettings({
+                      fonts: { ...currentSettings.fonts, body: value }
+                    })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fontOptions.map((font) => (
+                        <SelectItem key={font} value={font}>{font}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <Separator className="my-6" />
+
+            {/* Save Actions */}
+            <div className="space-y-3">
+              <Button 
+                onClick={handleSaveSettings} 
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium disabled:bg-green-300 disabled:text-gray-600"
+                disabled={isSaving}
+                size="lg"
+              >
+                {isSaving ? (
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.reload()}
+                disabled={isSaving}
+                className="w-full"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Reset & Reload
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       <Footer language={language} />
