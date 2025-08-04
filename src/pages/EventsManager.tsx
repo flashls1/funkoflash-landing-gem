@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarDays, MapPin, Users, Edit, Trash2, Plus, Upload, X, Settings, ArrowLeft } from 'lucide-react';
+import { CalendarDays, MapPin, Users, Edit, Trash2, Plus, Upload, X, Settings, ArrowLeft, ExternalLink, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -38,6 +38,12 @@ interface Event {
   visibility_end?: string;
   created_at: string;
   updated_at: string;
+  event_talent_assignments?: {
+    talent_profiles: {
+      name: string;
+      slug: string;
+    } | null;
+  }[];
 }
 
 // Removed EventsPageSettings interface since hero images are now controlled by site-design module only
@@ -61,7 +67,6 @@ export default function EventsManager() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentEventId, setCurrentEventId] = useState<string | null>(null);
   const [selectedTalent, setSelectedTalent] = useState<string[]>([]);
-  const [assignedTalent, setAssignedTalent] = useState<any[]>([]);
   // Hero dialog state removed - controlled by site-design module only
 
   // Form state
@@ -90,7 +95,12 @@ export default function EventsManager() {
     try {
       const { data, error } = await supabase
         .from('events')
-        .select('*')
+        .select(`
+          *,
+          event_talent_assignments(
+            talent_profiles(name, slug)
+          )
+        `)
         .order('event_date', { ascending: false });
 
       if (error) throw error;
@@ -329,7 +339,6 @@ export default function EventsManager() {
       hero_image_url: "",
     });
     setSelectedTalent([]);
-    setAssignedTalent([]);
   };
 
   if (loading) {
@@ -614,54 +623,88 @@ export default function EventsManager() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <Card key={event.id} className="hover:shadow-lg transition-shadow h-96 flex flex-col">
-                <CardHeader className="flex-shrink-0">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="line-clamp-2">{event.title}</CardTitle>
-                      <CardDescription className="flex items-center mt-2">
-                        <CalendarDays className="mr-1 h-4 w-4" />
-                        {format(new Date(event.event_date), 'PPP p')}
-                      </CardDescription>
-                      {event.location && (
-                        <CardDescription className="flex items-center mt-1">
-                          <MapPin className="mr-1 h-4 w-4" />
-                          {event.location}
-                        </CardDescription>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant={event.active ? "default" : "secondary"}>
-                        {event.active ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                {/* Event Image Display */}
-                {event.hero_image_url && (
-                  <div className="aspect-video relative overflow-hidden">
+              <Card key={event.id} className="group cursor-pointer hover:shadow-xl transition-all duration-200 flex flex-col bg-card/80 backdrop-blur-sm">
+                {/* Event Image with Category Overlay */}
+                <div className="aspect-square relative overflow-hidden">
+                  {event.hero_image_url ? (
                     <img
                       src={event.hero_image_url}
                       alt={event.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <CalendarDays className="w-16 h-16 text-muted-foreground" />
+                    </div>
+                  )}
+                  {event.category && (
+                    <Badge className="absolute top-2 left-2" variant="secondary">
+                      {event.category}
+                    </Badge>
+                  )}
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    <Badge variant={event.active ? "default" : "secondary"} className="text-xs">
+                      {event.active ? "Active" : "Inactive"}
+                    </Badge>
+                    {event.external_url && (
+                      <Badge variant="outline" className="text-xs bg-background/80">
+                        <ExternalLink className="w-3 h-3" />
+                      </Badge>
+                    )}
                   </div>
-                )}
+                </div>
                 
-                <CardContent className="flex-grow">
+                <CardContent className="flex-grow p-4">
+                  <CardTitle className="line-clamp-2 mb-2">{event.title}</CardTitle>
+                  
+                  <div className="space-y-1 text-sm text-muted-foreground mb-3">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4" />
+                      {format(new Date(event.event_date), "MMM d, yyyy")}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      {format(new Date(event.event_date), "h:mm a")}
+                    </div>
+                    {event.location && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        <span className="truncate">{event.location}</span>
+                      </div>
+                    )}
+                  </div>
+
                   {event.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                       {event.description}
                     </p>
                   )}
                   
-                  {event.category && (
-                    <Badge variant="secondary" className="mr-2 mb-2">
-                      {event.category}
-                    </Badge>
+                  {/* Assigned Talent */}
+                  {event.event_talent_assignments && event.event_talent_assignments.length > 0 && (
+                    <div className="mb-3">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                        <Users className="w-3 h-3" />
+                        <span>Talent:</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {event.event_talent_assignments.slice(0, 2).map((assignment, index) => (
+                          assignment.talent_profiles && (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {assignment.talent_profiles.name}
+                            </Badge>
+                          )
+                        ))}
+                        {event.event_talent_assignments.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{event.event_talent_assignments.length - 2} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                   )}
                   
+                  {/* Tags */}
                   {event.tags && event.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {event.tags.slice(0, 3).map((tag, index) => (
@@ -678,7 +721,7 @@ export default function EventsManager() {
                   )}
                 </CardContent>
                 
-                <CardFooter className="flex justify-between flex-shrink-0">
+                <CardFooter className="flex justify-between p-4 pt-0">
                   <Button
                     variant="outline"
                     size="sm"
