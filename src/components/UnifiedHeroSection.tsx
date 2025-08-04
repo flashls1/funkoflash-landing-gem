@@ -31,59 +31,29 @@ export const UnifiedHeroSection = ({
 
   const heightClass = className || `relative ${getHeightClass()} flex items-center justify-center overflow-hidden`;
 
-  // Enhanced media loading with real-time updates and cache busting
+  // Simplified media loading - direct assignment without cache busting
   useEffect(() => {
-    const loadMedia = async () => {
-      if (!heroMedia) {
-        // Clear current media immediately when no media is set
-        if (currentMediaUrl) {
-          setCurrentMediaUrl('');
-        }
+    if (!heroMedia) {
+      setCurrentMediaUrl('');
+      setMediaLoaded(true);
+      return;
+    }
+
+    setMediaLoaded(false);
+    setCurrentMediaUrl(heroMedia);
+    
+    if (mediaType === 'image') {
+      const img = new Image();
+      img.onload = () => setMediaLoaded(true);
+      img.onerror = (error) => {
+        console.error('Failed to load hero image:', heroMedia, error);
         setMediaLoaded(true);
-        return;
-      }
-
-      // Check if we need to reload (different base URL or first load)
-      const currentBase = currentMediaUrl ? currentMediaUrl.split('?')[0] : '';
-      const newBase = heroMedia.split('?')[0];
-      
-      if (currentBase === newBase && mediaLoaded) {
-        return; // Same media already loaded
-      }
-
-      setMediaLoaded(false);
-      
-      try {
-        // Always use fresh cache-busting parameter for immediate updates
-        const timestamp = Date.now();
-        const mediaUrl = `${newBase}?cb=${timestamp}`;
-        
-        if (mediaType === 'image') {
-          const img = new Image();
-          img.onload = () => {
-            setCurrentMediaUrl(mediaUrl);
-            setMediaLoaded(true);
-          };
-          img.onerror = (error) => {
-            console.error('Failed to load hero image:', heroMedia, error);
-            setCurrentMediaUrl('');
-            setMediaLoaded(true);
-          };
-          img.src = mediaUrl;
-        } else if (mediaType === 'video') {
-          // For videos, set URL directly
-          setCurrentMediaUrl(mediaUrl);
-          setMediaLoaded(true);
-        }
-      } catch (error) {
-        console.error('Error loading hero media:', error);
-        setCurrentMediaUrl('');
-        setMediaLoaded(true);
-      }
-    };
-
-    loadMedia();
-  }, [heroMedia, mediaType]); // Removed currentMediaUrl and mediaLoaded to prevent loops
+      };
+      img.src = heroMedia;
+    } else {
+      setMediaLoaded(true);
+    }
+  }, [heroMedia, mediaType]);
 
   // Show a placeholder if still loading
   if (loading) {

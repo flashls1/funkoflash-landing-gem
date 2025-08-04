@@ -161,7 +161,7 @@ export const SiteDesignModule = () => {
       // Enhanced upload success toast
       toast({
         title: `🎉 ${mediaType === 'video' ? 'Video' : 'Image'} Uploaded!`,
-        description: `Your hero ${mediaType} has been uploaded successfully. Preview it in the live preview panel on the right. Don't forget to save your changes!`,
+        description: `Your hero ${mediaType} has been uploaded successfully. Don't forget to save your changes!`,
       });
       
       // Auto-clear upload status after 3 seconds
@@ -230,7 +230,7 @@ export const SiteDesignModule = () => {
       <div className="container mx-auto px-4 py-8">
         <AdminHeader
           title="Site Design Manager"
-          description="Customize the visual appearance of your website pages. Changes are applied instantly with live preview."
+          description="Customize the visual appearance of your website pages. Changes are applied instantly to the live site."
           language={language}
         >
           <div className="flex items-center gap-3">
