@@ -43,10 +43,11 @@ export const SiteDesignModule = () => {
     updateCurrentPageSettings, 
     savePageSettings, 
     uploadFile, 
-    currentPage, 
-    setCurrentPage, 
     loading 
   } = useSiteDesign();
+  
+  // Use local state for page selection instead of route-based state
+  const [selectedPage, setSelectedPage] = useState('home');
   
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [isSaving, setIsSaving] = useState(false);
@@ -134,21 +135,37 @@ export const SiteDesignModule = () => {
     });
   };
 
-  const currentSettings = getPageSettings();
+  // Get settings for the currently selected page (not route-based)
+  const { settings } = useSiteDesign(); // Access the raw settings
+  const getCurrentSelectedPageSettings = () => {
+    const pageSettings = settings[selectedPage];
+    return pageSettings || {
+      hero: { 
+        backgroundMedia: '',
+        mediaType: 'image',
+        overlayOpacity: 0.5,
+        height: selectedPage === 'home' ? '240' : undefined,
+        position: { x: 50, y: 50 },
+        scale: 100
+      }
+    };
+  };
+  
+  const currentSettings = getCurrentSelectedPageSettings();
 
   const handleSaveSettings = async () => {
     setIsSaving(true);
     try {
-      await savePageSettings(currentPage, currentSettings);
+      await savePageSettings(selectedPage, currentSettings);
       setUploadStatus({ 
         status: 'success', 
-        message: `Settings saved successfully for ${pages.find(p => p.id === currentPage)?.name}!` 
+        message: `Settings saved successfully for ${pages.find(p => p.id === selectedPage)?.name}!` 
       });
       
       // Enhanced success toast
       toast({
         title: "✅ Settings Saved!",
-        description: `All design changes for ${pages.find(p => p.id === currentPage)?.name} have been saved and are now live.`,
+        description: `All design changes for ${pages.find(p => p.id === selectedPage)?.name} have been saved and are now live.`,
       });
       
       // Auto-clear success status after 3 seconds
@@ -388,13 +405,13 @@ export const SiteDesignModule = () => {
                 return (
                   <Button
                     key={page.id}
-                    variant={currentPage === page.id ? "default" : "outline"}
+                    variant={selectedPage === page.id ? "default" : "outline"}
                     className="flex flex-col gap-2 h-auto py-4"
                     onClick={() => {
-                      console.log('🔧 Page button clicked:', page.id, 'Current page:', currentPage);
-                      setCurrentPage(page.id);
+                      console.log('🔧 Page button clicked:', page.id, 'Current selected:', selectedPage);
+                      setSelectedPage(page.id);
                     }}
-                    style={currentPage === page.id ? {
+                    style={selectedPage === page.id ? {
                       backgroundColor: currentTheme.accent,
                       borderColor: currentTheme.accent,
                       color: 'white'
@@ -419,12 +436,12 @@ export const SiteDesignModule = () => {
                   borderColor: currentTheme.accent
                 }}
               >
-                Currently editing: {pages.find(p => p.id === currentPage)?.name}
+                Currently editing: {pages.find(p => p.id === selectedPage)?.name}
               </Badge>
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => window.open(pages.find(p => p.id === currentPage)?.route, '_blank')}
+                onClick={() => window.open(pages.find(p => p.id === selectedPage)?.route, '_blank')}
                 style={{ color: currentTheme.cardForeground }}
               >
                 <Eye className="w-4 h-4 mr-1" />
@@ -449,7 +466,7 @@ export const SiteDesignModule = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Hero Height for Home Page */}
-            {currentPage === 'home' && (
+            {selectedPage === 'home' && (
               <div>
                 <Label className="text-sm font-medium">Hero Height</Label>
                 <Select
@@ -653,7 +670,7 @@ export const SiteDesignModule = () => {
               
               <Button 
                 variant="outline"
-                onClick={() => window.open(pages.find(p => p.id === currentPage)?.route, '_blank')}
+                onClick={() => window.open(pages.find(p => p.id === selectedPage)?.route, '_blank')}
                 style={{
                   borderColor: currentTheme.border,
                   color: currentTheme.cardForeground
