@@ -29,7 +29,7 @@ interface Event {
   description?: string;
   event_date: string;
   location?: string;
-  // removed hero_image_url since hero images are now controlled by site-design module only
+  hero_image_url?: string;
   external_url?: string;
   category?: string;
   tags?: string[];
@@ -76,7 +76,7 @@ export default function EventsManager() {
     category: "",
     tags: "",
     active: true,
-    // hero_image_url removed - controlled by site-design module only
+    hero_image_url: "",
   });
 
   useEffect(() => {
@@ -132,7 +132,6 @@ export default function EventsManager() {
       return null;
     }
 
-    // uploading state removed since hero images are handled by site-design
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `event-${Date.now()}.${fileExt}`;
@@ -157,8 +156,6 @@ export default function EventsManager() {
         variant: "destructive",
       });
       return null;
-    } finally {
-      // uploading state removed since hero images are handled by site-design
     }
   };
 
@@ -186,7 +183,7 @@ export default function EventsManager() {
         active: formData.active,
         visibility_start: formData.visibility_start || null,
         visibility_end: formData.visibility_end || null,
-        // hero_image_url removed - controlled by site-design module only
+        hero_image_url: formData.hero_image_url || null,
         created_by: user.id,
         updated_by: user.id,
       };
@@ -297,7 +294,7 @@ export default function EventsManager() {
       category: event.category || "",
       tags: event.tags?.join(", ") || "",
       active: event.active,
-      // hero_image_url removed - controlled by site-design module only
+      hero_image_url: event.hero_image_url || "",
     });
 
     // Fetch existing talent assignments
@@ -329,7 +326,7 @@ export default function EventsManager() {
       category: "",
       tags: "",
       active: true,
-      // hero_image_url removed - controlled by site-design module only
+      hero_image_url: "",
     });
     setSelectedTalent([]);
     setAssignedTalent([]);
@@ -545,7 +542,43 @@ export default function EventsManager() {
                   </div>
                 </div>
 
-                {/* Hero image upload removed - controlled by site-design module only */}
+                <div className="space-y-2">
+                  <Label htmlFor="hero_image">Event Image</Label>
+                  <div className="space-y-2">
+                    <Input
+                      id="hero_image"
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const imageUrl = await handleImageUpload(file);
+                          if (imageUrl) {
+                            setFormData({ ...formData, hero_image_url: imageUrl });
+                          }
+                        }
+                      }}
+                    />
+                    {formData.hero_image_url && (
+                      <div className="relative">
+                        <img
+                          src={formData.hero_image_url}
+                          alt="Event preview"
+                          className="w-full max-w-sm h-32 object-cover rounded-md"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={() => setFormData({ ...formData, hero_image_url: "" })}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
                 <div className="flex items-center space-x-2">
                   <Switch

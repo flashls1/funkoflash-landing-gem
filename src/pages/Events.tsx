@@ -18,7 +18,7 @@ interface Event {
   description: string | null;
   location: string | null;
   external_url: string | null;
-  // hero_image_url removed - controlled by site-design module only
+  hero_image_url?: string | null;
   event_date: string;
   tags: string[] | null;
   category: string | null;
@@ -240,7 +240,15 @@ export default function Events() {
           </DialogHeader>
           {selectedEvent && (
             <div className="space-y-4">
-              {/* Hero images removed - now controlled by site-design module only */}
+              {selectedEvent.hero_image_url && (
+                <div className="aspect-video relative overflow-hidden rounded-lg">
+                  <img
+                    src={selectedEvent.hero_image_url}
+                    alt={selectedEvent.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               
               <div className="flex flex-wrap gap-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -323,10 +331,17 @@ function EventCard({ event, onClick, isPast = false }: EventCardProps) {
       onClick={() => onClick(event)}
     >
       <div className="aspect-square relative overflow-hidden">
-        {/* Hero images removed - now controlled by site-design module only */}
-        <div className="w-full h-full bg-muted flex items-center justify-center">
-          <Calendar className="w-16 h-16 text-muted-foreground" />
-        </div>
+        {event.hero_image_url ? (
+          <img
+            src={event.hero_image_url}
+            alt={event.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center">
+            <Calendar className="w-16 h-16 text-muted-foreground" />
+          </div>
+        )}
         {event.category && (
           <Badge className="absolute top-2 left-2" variant="secondary">
             {event.category}
