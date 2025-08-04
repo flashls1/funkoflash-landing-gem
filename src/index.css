@@ -157,3 +157,27 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Animated Navigation Accent */
+.animated-nav {
+  position: relative;
+}
+
+.animated-nav::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -50%;
+  width: 200%;
+  height: 6px;
+  background: linear-gradient(45deg, #ff6600, #0045ff);
+  background-size: 300% 300%;
+  animation: moveGradient 8s linear infinite;
+  z-index: 1;
+}
+
+@keyframes moveGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
