@@ -121,16 +121,37 @@ export const useSiteDesign = () => {
     }
   };
 
-  // Simplified CSS application for hero images only
+  // Apply settings to CSS for both hero images and site background
   const applySettingsToCSS = (pageSettings: SiteDesignSettings) => {
+    // Apply site background globally if it exists
+    if (pageSettings.siteBackground?.backgroundImage) {
+      const root = document.documentElement;
+      root.style.setProperty('--site-background', `url('${pageSettings.siteBackground.backgroundImage}')`);
+      console.log('🎨 Applied global site background:', pageSettings.siteBackground.backgroundImage);
+    }
+
     // Force component re-render by updating a timestamp
     window.dispatchEvent(new CustomEvent('heroImageUpdate', { 
       detail: { 
         page: currentPage, 
         timestamp: Date.now(),
-        heroMedia: pageSettings.hero?.backgroundMedia
+        heroMedia: pageSettings.hero?.backgroundMedia,
+        siteBackground: pageSettings.siteBackground?.backgroundImage
       } 
     }));
+  };
+
+  // Apply site background from any page settings that have it
+  const applySiteBackgroundFromSettings = () => {
+    // Look for site background in any page settings
+    for (const [pageName, pageSettings] of Object.entries(settings)) {
+      if (pageSettings.siteBackground?.backgroundImage) {
+        const root = document.documentElement;
+        root.style.setProperty('--site-background', `url('${pageSettings.siteBackground.backgroundImage}')`);
+        console.log('🎨 Applied site background from', pageName, ':', pageSettings.siteBackground.backgroundImage);
+        break; // Use the first one found
+      }
+    }
   };
 
 
@@ -230,7 +251,16 @@ export const useSiteDesign = () => {
     if (settings[currentPage]) {
       applySettingsToCSS(settings[currentPage]);
     }
+    // Always apply site background from any available settings
+    applySiteBackgroundFromSettings();
   }, [currentPage, settings]);
+
+  // Apply site background on settings load
+  useEffect(() => {
+    if (Object.keys(settings).length > 0) {
+      applySiteBackgroundFromSettings();
+    }
+  }, [settings]);
 
   return {
     settings,

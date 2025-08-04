@@ -194,7 +194,16 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div 
+      className="min-h-screen flex flex-col bg-background"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Navigation language={language} setLanguage={setLanguage} />
       
       {/* Hero Section */}

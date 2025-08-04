@@ -86,7 +86,16 @@ const TalentDirectory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen bg-background"
+      style={{
+        backgroundImage: 'var(--site-background)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Navigation language={language} setLanguage={setLanguage} />
       
       {/* Hero Section */}
