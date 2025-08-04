@@ -74,9 +74,22 @@ export const UnifiedHeroSection = ({
     loadMedia();
   }, [heroMedia, currentMediaUrl, mediaType]);
 
-  // Don't render anything if still loading or no media to show
-  if (loading || !heroMedia) {
-    return null;
+  // Show a placeholder if still loading
+  if (loading) {
+    return (
+      <section className={heightClass}>
+        <div className="absolute inset-0 bg-muted animate-pulse" />
+      </section>
+    );
+  }
+
+  // If no media, show empty hero section (not null)
+  if (!heroMedia) {
+    return (
+      <section className={heightClass}>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20" />
+      </section>
+    );
   }
 
   return (

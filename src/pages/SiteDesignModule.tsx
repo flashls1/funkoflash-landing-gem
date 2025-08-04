@@ -437,10 +437,10 @@ export const SiteDesignModule = () => {
                     <div className="p-3 rounded-lg border bg-muted/50">
                       <h4 className="font-medium text-sm mb-1">Hero Content</h4>
                       <p className="text-xs text-muted-foreground">
-                        Title: {currentSettings.hero?.title || 'No title set'}<br/>
+                        Mode: Media-only (no text overlays)<br/>
                         Media: {currentSettings.hero?.backgroundMedia ? 
                           `${currentSettings.hero.mediaType === 'video' ? 'Video' : 'Image'} uploaded` : 
-                          'No media uploaded'
+                          'Using gradient fallback'
                         }
                       </p>
                     </div>
@@ -492,11 +492,8 @@ export const SiteDesignModule = () => {
                   <h4 className="font-medium text-sm mb-2 text-blue-900">System Status</h4>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-xs">
-                      {currentSettings.hero?.title ? 
-                        <CheckCircle className="w-3 h-3 text-green-500" /> : 
-                        <XCircle className="w-3 h-3 text-red-500" />
-                      }
-                      Hero title {currentSettings.hero?.title ? 'configured' : 'not set'}
+                      <CheckCircle className="w-3 h-3 text-green-500" />
+                      Hero section {currentSettings.hero?.backgroundMedia ? 'media-only mode' : 'gradient fallback mode'}
                     </div>
                     <div className="flex items-center gap-2 text-xs">
                       {currentSettings.hero?.backgroundMedia ? 
