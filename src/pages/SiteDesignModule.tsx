@@ -39,15 +39,15 @@ export const SiteDesignModule = () => {
   const { user, profile } = useAuth();
   const { currentTheme } = useColorTheme();
   const { 
-    getCurrentPageSettings: getPageSettings, 
-    updateCurrentPageSettings, 
     savePageSettings, 
     uploadFile, 
-    loading 
+    loading,
+    settings
   } = useSiteDesign();
   
   // Use local state for page selection instead of route-based state
   const [selectedPage, setSelectedPage] = useState('home');
+  const [localSettings, setLocalSettings] = useState<Record<string, any>>({});
   
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [isSaving, setIsSaving] = useState(false);
@@ -135,10 +135,13 @@ export const SiteDesignModule = () => {
     });
   };
 
-  // Get settings for the currently selected page (not route-based)
-  const { settings } = useSiteDesign(); // Access the raw settings
+  // Get settings for the currently selected page
   const getCurrentSelectedPageSettings = () => {
-    const pageSettings = settings[selectedPage];
+    // First check local settings, then fall back to saved settings
+    const localPageSettings = localSettings[selectedPage];
+    const savedPageSettings = settings[selectedPage];
+    const pageSettings = localPageSettings || savedPageSettings;
+    
     return pageSettings || {
       hero: { 
         backgroundMedia: '',
@@ -149,6 +152,21 @@ export const SiteDesignModule = () => {
         scale: 100
       }
     };
+  };
+
+  // Update settings for the selected page
+  const updateSelectedPageSettings = (newSettings: any) => {
+    const currentSettings = getCurrentSelectedPageSettings();
+    const updatedSettings = {
+      ...currentSettings,
+      ...newSettings,
+      hero: { ...currentSettings.hero, ...newSettings.hero }
+    };
+
+    setLocalSettings(prev => ({
+      ...prev,
+      [selectedPage]: updatedSettings
+    }));
   };
   
   const currentSettings = getCurrentSelectedPageSettings();
@@ -216,7 +234,7 @@ export const SiteDesignModule = () => {
       const mediaUrl = await uploadFile(file, 'design-assets');
       const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
       
-      updateCurrentPageSettings({
+      updateSelectedPageSettings({
         hero: {
           ...currentSettings.hero,
           backgroundMedia: mediaUrl,
@@ -281,7 +299,7 @@ export const SiteDesignModule = () => {
       
       const imageUrl = await uploadFile(file, 'design-assets');
       
-      updateCurrentPageSettings({
+      updateSelectedPageSettings({
         siteBackground: {
           backgroundImage: imageUrl,
           position: { x: 50, y: 50 },
@@ -471,7 +489,7 @@ export const SiteDesignModule = () => {
                 <Label className="text-sm font-medium">Hero Height</Label>
                 <Select
                   value={currentSettings.hero?.height || '240'}
-                  onValueChange={(value) => updateCurrentPageSettings({
+                  onValueChange={(value) => updateSelectedPageSettings({
                     hero: { ...currentSettings.hero, height: value as '240' | '480' }
                   })}
                 >
@@ -550,7 +568,7 @@ export const SiteDesignModule = () => {
                       value={[imagePosition.x]}
                       onValueChange={([value]) => {
                         setImagePosition(prev => ({ ...prev, x: value }));
-                        updateCurrentPageSettings({
+                        updateSelectedPageSettings({
                           hero: { ...currentSettings.hero, position: { ...imagePosition, x: value } }
                         });
                       }}
@@ -566,7 +584,7 @@ export const SiteDesignModule = () => {
                       value={[imagePosition.y]}
                       onValueChange={([value]) => {
                         setImagePosition(prev => ({ ...prev, y: value }));
-                        updateCurrentPageSettings({
+                        updateSelectedPageSettings({
                           hero: { ...currentSettings.hero, position: { x: imagePosition.x, y: value } }
                         });
                       }}
@@ -584,7 +602,7 @@ export const SiteDesignModule = () => {
                     value={[imageScale]}
                     onValueChange={([value]) => {
                       setImageScale(value);
-                      updateCurrentPageSettings({
+                      updateSelectedPageSettings({
                         hero: { ...currentSettings.hero, scale: value }
                       });
                     }}
