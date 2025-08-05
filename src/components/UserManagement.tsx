@@ -235,6 +235,8 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
   const createUser = async () => {
     try {
+      console.log('Creating user with data:', newUser);
+      
       // Create user using regular signup flow
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
@@ -248,14 +250,21 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
         }
       });
 
-      if (authError) throw authError;
+      console.log('Auth signup result:', { authData, authError });
+
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw authError;
+      }
 
       if (authData.user) {
+        console.log('User created, waiting for profile trigger...');
         // Wait a moment for the trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
+        console.log('Updating profile with role and details...');
         // Update the profile with the role and additional details
-        const { error: profileError } = await supabase
+        const { data: updateData, error: profileError } = await supabase
           .from('profiles')
           .update({
             first_name: newUser.firstName,
@@ -264,12 +273,16 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
             role: newUser.role,
             created_by: currentUser?.id
           })
-          .eq('user_id', authData.user.id);
+          .eq('user_id', authData.user.id)
+          .select();
+
+        console.log('Profile update result:', { updateData, profileError });
 
         if (profileError) {
           console.error('Profile update error:', profileError);
           // Try to insert instead if update failed (profile might not exist yet)
-          const { error: insertError } = await supabase
+          console.log('Trying to insert profile instead...');
+          const { data: insertData, error: insertError } = await supabase
             .from('profiles')
             .insert({
               user_id: authData.user.id,
@@ -279,13 +292,15 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
               phone: newUser.phone,
               role: newUser.role,
               created_by: currentUser?.id
-            });
+            })
+            .select();
           
+          console.log('Profile insert result:', { insertData, insertError });
           if (insertError) throw insertError;
         }
 
         // Log the activity
-        await supabase.from('user_activity_logs').insert({
+        const { error: logError } = await supabase.from('user_activity_logs').insert({
           user_id: authData.user.id,
           admin_user_id: currentUser?.id,
           action: 'user_created',
@@ -295,6 +310,11 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
             send_notification: newUser.sendNotification
           }
         });
+
+        if (logError) {
+          console.error('Activity log error:', logError);
+          // Don't fail the whole operation for logging errors
+        }
 
         toast({
           title: t.userCreated,
