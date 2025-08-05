@@ -251,8 +251,10 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       if (authError) throw authError;
 
       if (authData.user) {
-        // The profile will be created automatically via the handle_new_user trigger
-        // But we need to update it with the role and additional details
+        // Wait a moment for the trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Update the profile with the role and additional details
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -264,7 +266,23 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
           })
           .eq('user_id', authData.user.id);
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Profile update error:', profileError);
+          // Try to insert instead if update failed (profile might not exist yet)
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: authData.user.id,
+              email: newUser.email,
+              first_name: newUser.firstName,
+              last_name: newUser.lastName,
+              phone: newUser.phone,
+              role: newUser.role,
+              created_by: currentUser?.id
+            });
+          
+          if (insertError) throw insertError;
+        }
 
         // Log the activity
         await supabase.from('user_activity_logs').insert({
