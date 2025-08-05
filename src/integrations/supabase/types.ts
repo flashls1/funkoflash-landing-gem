@@ -554,6 +554,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_user_completely: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

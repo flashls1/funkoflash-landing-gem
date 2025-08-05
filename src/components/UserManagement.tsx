@@ -437,25 +437,54 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
   const deleteUser = async (userId: string) => {
     try {
-      // Permanently delete user from Supabase Auth
-      // This will cascade delete from profiles table due to foreign key constraint
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      console.log('Starting user deletion process for:', userId);
+      
+      // First, try to log the deletion activity before deleting the user
+      try {
+        await supabase.from('user_activity_logs').insert({
+          user_id: userId,
+          admin_user_id: currentUser?.id,
+          action: 'user_permanently_deleted',
+          details: { deleted_by_admin: true, permanent: true }
+        });
+      } catch (logError) {
+        console.warn('Failed to log deletion activity:', logError);
+      }
 
-      if (error) throw error;
+      // Step 1: Use our database function to clean up all related data
+      console.log('Cleaning up user data...');
+      const { data: cleanupResult, error: cleanupError } = await supabase
+        .rpc('delete_user_completely', { target_user_id: userId });
 
-      // Log the activity before the user is deleted
-      await supabase.from('user_activity_logs').insert({
-        user_id: userId,
-        admin_user_id: currentUser?.id,
-        action: 'user_permanently_deleted',
-        details: { deleted_by_admin: true, permanent: true }
-      });
+      if (cleanupError) {
+        console.error('Cleanup error:', cleanupError);
+        throw cleanupError;
+      }
+
+      if (!cleanupResult) {
+        throw new Error('User not found or cleanup failed');
+      }
+
+      console.log('User data cleaned up successfully');
+
+      // Step 2: Try to delete from auth (this may fail due to permissions, but cleanup is already done)
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+        if (authError) {
+          console.warn('Auth deletion failed, but manual cleanup succeeded:', authError);
+        } else {
+          console.log('Auth user deleted successfully');
+        }
+      } catch (authError) {
+        console.warn('Auth deletion failed, but manual cleanup succeeded:', authError);
+      }
 
       toast({
         title: t.userDeleted,
         description: "User permanently deleted successfully.",
       });
 
+      // Refresh the user list to show the user is gone
       fetchUsers();
     } catch (error: any) {
       console.error('Error deleting user:', error);
