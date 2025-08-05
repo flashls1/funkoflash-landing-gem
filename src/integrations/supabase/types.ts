@@ -554,6 +554,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_user_and_files_completely: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       delete_user_completely: {
         Args: { target_user_id: string }
         Returns: boolean

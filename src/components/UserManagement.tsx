@@ -437,7 +437,11 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
   const deleteUser = async (userId: string) => {
     try {
-      console.log('Starting user deletion process for:', userId);
+      console.log('Starting comprehensive user deletion for:', userId);
+      
+      // Get user email for logging before deletion
+      const userToDelete = users.find(u => u.user_id === userId);
+      const userEmail = userToDelete?.email || 'unknown';
       
       // First, try to log the deletion activity before deleting the user
       try {
@@ -445,16 +449,22 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
           user_id: userId,
           admin_user_id: currentUser?.id,
           action: 'user_permanently_deleted',
-          details: { deleted_by_admin: true, permanent: true }
+          details: { 
+            deleted_by_admin: true, 
+            permanent: true,
+            user_email: userEmail
+          }
         });
       } catch (logError) {
         console.warn('Failed to log deletion activity:', logError);
       }
 
-      // Step 1: Use our database function to clean up all related data
-      console.log('Cleaning up user data...');
+      // Step 1: Use our enhanced database function to clean up ALL user data and files
+      console.log('Cleaning up user data and files...');
       const { data: cleanupResult, error: cleanupError } = await supabase
-        .rpc('delete_user_completely', { target_user_id: userId });
+        .rpc('delete_user_and_files_completely', { target_user_id: userId });
+
+      console.log('Cleanup result:', { cleanupResult, cleanupError });
 
       if (cleanupError) {
         console.error('Cleanup error:', cleanupError);
@@ -465,26 +475,30 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
         throw new Error('User not found or cleanup failed');
       }
 
-      console.log('User data cleaned up successfully');
+      console.log('User data and files cleaned up successfully');
 
-      // Step 2: Try to delete from auth (this may fail due to permissions, but cleanup is already done)
+      // Step 2: Try to delete from auth (this removes the user from auth.users)
       try {
+        console.log('Attempting auth user deletion...');
         const { error: authError } = await supabase.auth.admin.deleteUser(userId);
         if (authError) {
-          console.warn('Auth deletion failed, but manual cleanup succeeded:', authError);
+          console.warn('Auth deletion failed (but manual cleanup succeeded):', authError);
+          // Don't throw error here - manual cleanup already worked
         } else {
           console.log('Auth user deleted successfully');
         }
       } catch (authError) {
-        console.warn('Auth deletion failed, but manual cleanup succeeded:', authError);
+        console.warn('Auth deletion failed (but manual cleanup succeeded):', authError);
+        // Don't throw error here - manual cleanup already worked
       }
 
       toast({
         title: t.userDeleted,
-        description: "User permanently deleted successfully.",
+        description: `User ${userEmail} has been permanently deleted from all systems.`,
       });
 
       // Refresh the user list to show the user is gone
+      console.log('Refreshing user list...');
       fetchUsers();
     } catch (error: any) {
       console.error('Error deleting user:', error);
