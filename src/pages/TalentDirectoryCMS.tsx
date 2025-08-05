@@ -91,7 +91,7 @@ const TalentDirectoryCMS = () => {
       .trim();
   };
 
-  const uploadImage = async (file: File, folder: string) => {
+  const uploadImage = async (file: File, folder: string, existingPath?: string) => {
     // More flexible image validation - no strict size requirements
     if (file.size > 10 * 1024 * 1024) { // 10MB limit
       throw new Error('File size too large. Please choose a file under 10MB.');
@@ -101,11 +101,30 @@ const TalentDirectoryCMS = () => {
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
+    console.log('Uploading image to:', filePath);
+
+    // If there's an existing image, try to delete it first
+    if (existingPath) {
+      console.log('Deleting existing image:', existingPath);
+      const { error: deleteError } = await supabase.storage
+        .from('talent-images')
+        .remove([existingPath]);
+      
+      if (deleteError) {
+        console.warn('Failed to delete existing image:', deleteError);
+      }
+    }
+
     const { error: uploadError } = await supabase.storage
       .from('talent-images')
       .upload(filePath, file);
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw uploadError;
+    }
+    
+    console.log('Image uploaded successfully to:', filePath);
     return filePath;
   };
 
@@ -116,7 +135,9 @@ const TalentDirectoryCMS = () => {
       let headshot_url = editingTalent?.headshot_url;
 
       if (headshotFile) {
-        headshot_url = await uploadImage(headshotFile, 'headshots');
+        console.log('Uploading new headshot for:', formData.name);
+        headshot_url = await uploadImage(headshotFile, 'headshots', editingTalent?.headshot_url || undefined);
+        console.log('New headshot URL:', headshot_url);
       }
 
       const slug = generateSlug(formData.name);
@@ -206,7 +227,9 @@ const TalentDirectoryCMS = () => {
   const getImageUrl = (url: string | null) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `${supabase.storage.from('talent-images').getPublicUrl(url).data.publicUrl}`;
+    const publicUrl = supabase.storage.from('talent-images').getPublicUrl(url).data.publicUrl;
+    // Add timestamp for cache busting
+    return `${publicUrl}?t=${Date.now()}`;
   };
 
   if (loading) {
