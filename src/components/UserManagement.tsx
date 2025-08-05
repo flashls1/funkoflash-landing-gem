@@ -235,21 +235,24 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
   const createUser = async () => {
     try {
-      // Create user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Create user using regular signup flow
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
-        email_confirm: true, // Skip email confirmation
-        user_metadata: {
-          first_name: newUser.firstName,
-          last_name: newUser.lastName,
+        options: {
+          data: {
+            first_name: newUser.firstName,
+            last_name: newUser.lastName,
+          },
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
       if (authError) throw authError;
 
       if (authData.user) {
-        // Update the profile with additional details
+        // The profile will be created automatically via the handle_new_user trigger
+        // But we need to update it with the role and additional details
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -370,22 +373,34 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
   const deleteUser = async (userId: string) => {
     try {
-      // Delete from auth (this will cascade to profiles due to FK constraint)
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      // For now, just deactivate the user instead of deleting from auth
+      // This is safer and doesn't require admin privileges
+      const { error } = await supabase
+        .from('profiles')
+        .update({ active: false })
+        .eq('user_id', userId);
 
       if (error) throw error;
 
+      // Log the activity
+      await supabase.from('user_activity_logs').insert({
+        user_id: userId,
+        admin_user_id: currentUser?.id,
+        action: 'user_deactivated',
+        details: { reason: 'admin_deletion' }
+      });
+
       toast({
         title: t.userDeleted,
-        description: "User deleted successfully.",
+        description: "User deactivated successfully.",
       });
 
       fetchUsers();
     } catch (error: any) {
-      console.error('Error deleting user:', error);
+      console.error('Error deactivating user:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to delete user",
+        description: error.message || "Failed to deactivate user",
         variant: "destructive",
       });
     }
