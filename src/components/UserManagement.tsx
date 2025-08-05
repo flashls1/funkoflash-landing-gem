@@ -248,7 +248,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
     try {
       console.log('Creating user with data:', newUser);
       
-      // Create user using regular signup flow but with admin override
+      // Create user using signup flow with admin_created flag for auto-confirmation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
@@ -256,7 +256,8 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
           data: {
             first_name: newUser.firstName,
             last_name: newUser.lastName,
-            email_confirm: true, // Auto-confirm email for admin-created accounts
+            admin_created: true, // This triggers auto-confirmation in the database trigger
+            role: newUser.role
           },
           emailRedirectTo: `${window.location.origin}/`
         }
@@ -270,32 +271,17 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       }
 
       if (authData.user) {
-        console.log('User created, confirming email and waiting for profile trigger...');
+        console.log('User created with auto-confirmation trigger...');
         
-        // Force confirm the user's email if not already confirmed
-        if (!authData.user.email_confirmed_at) {
-          const { error: confirmError } = await supabase.auth.admin.updateUserById(
-            authData.user.id,
-            { email_confirm: true }
-          );
-          
-          if (confirmError) {
-            console.warn('Could not auto-confirm email, but continuing:', confirmError);
-          }
-        }
+        // Wait a moment for the trigger to create and confirm the user
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
-        // Wait a moment for the trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        console.log('Updating profile with role and details...');
-        // Update the profile with the role and additional details
+        console.log('Updating profile with additional details...');
+        // Update the profile with additional details that weren't in the trigger
         const { data: updateData, error: profileError } = await supabase
           .from('profiles')
           .update({
-            first_name: newUser.firstName,
-            last_name: newUser.lastName,
             phone: newUser.phone,
-            role: newUser.role,
             created_by: currentUser?.id
           })
           .eq('user_id', authData.user.id)
@@ -305,23 +291,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
         if (profileError) {
           console.error('Profile update error:', profileError);
-          // Try to insert instead if update failed (profile might not exist yet)
-          console.log('Trying to insert profile instead...');
-          const { data: insertData, error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              user_id: authData.user.id,
-              email: newUser.email,
-              first_name: newUser.firstName,
-              last_name: newUser.lastName,
-              phone: newUser.phone,
-              role: newUser.role,
-              created_by: currentUser?.id
-            })
-            .select();
-          
-          console.log('Profile insert result:', { insertData, insertError });
-          if (insertError) throw insertError;
+          // This shouldn't happen since the trigger should create the profile
         }
 
         // Log the activity
