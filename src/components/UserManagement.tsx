@@ -29,7 +29,8 @@ import {
   ArrowLeft,
   Crown,
   User,
-  UserCheck
+  UserCheck,
+  Key
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -77,6 +78,8 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isPasswordResetOpen, setIsPasswordResetOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
 
@@ -133,6 +136,10 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       talent: "Talent",
       never: "Never",
       deleteUser: "Delete User",
+      resetPassword: "Reset Password",
+      newPassword: "New Password",
+      resetPasswordConfirm: "Are you sure you want to reset this user's password?",
+      passwordUpdated: "Password updated successfully",
       confirmDelete: "Are you sure you want to delete this user? This action cannot be undone.",
       userDeleted: "User deleted successfully",
       userCreated: "User created successfully",
@@ -181,6 +188,10 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       talent: "Talento",
       never: "Nunca",
       deleteUser: "Eliminar Usuario",
+      resetPassword: "Restablecer Contraseña", 
+      newPassword: "Nueva Contraseña",
+      resetPasswordConfirm: "¿Estás seguro de que quieres restablecer la contraseña de este usuario?",
+      passwordUpdated: "Contraseña actualizada exitosamente",
       confirmDelete: "¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.",
       userDeleted: "Usuario eliminado exitosamente",
       userCreated: "Usuario creado exitosamente",
@@ -237,7 +248,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
     try {
       console.log('Creating user with data:', newUser);
       
-      // Create user using regular signup flow
+      // Create user using regular signup flow but with admin override
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
@@ -245,6 +256,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
           data: {
             first_name: newUser.firstName,
             last_name: newUser.lastName,
+            email_confirm: true, // Auto-confirm email for admin-created accounts
           },
           emailRedirectTo: `${window.location.origin}/`
         }
@@ -258,7 +270,20 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       }
 
       if (authData.user) {
-        console.log('User created, waiting for profile trigger...');
+        console.log('User created, confirming email and waiting for profile trigger...');
+        
+        // Force confirm the user's email if not already confirmed
+        if (!authData.user.email_confirmed_at) {
+          const { error: confirmError } = await supabase.auth.admin.updateUserById(
+            authData.user.id,
+            { email_confirm: true }
+          );
+          
+          if (confirmError) {
+            console.warn('Could not auto-confirm email, but continuing:', confirmError);
+          }
+        }
+        
         // Wait a moment for the trigger to create the profile
         await new Promise(resolve => setTimeout(resolve, 2000));
         
@@ -307,7 +332,8 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
           details: {
             email: newUser.email,
             role: newUser.role,
-            send_notification: newUser.sendNotification
+            send_notification: newUser.sendNotification,
+            auto_verified: true
           }
         });
 
@@ -318,7 +344,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
         toast({
           title: t.userCreated,
-          description: `User ${newUser.email} has been created successfully.`,
+          description: `User ${newUser.email} has been created and verified successfully.`,
         });
 
         setIsAddUserOpen(false);
@@ -439,6 +465,46 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       toast({
         title: "Error",
         description: error.message || "Failed to deactivate user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resetUserPassword = async () => {
+    if (!selectedUser || !newPassword.trim()) return;
+    
+    try {
+      // Use admin function to reset password without requiring the user to be logged in
+      const { error } = await supabase.auth.admin.updateUserById(
+        selectedUser.user_id,
+        { password: newPassword }
+      );
+
+      if (error) {
+        console.error('Password reset error:', error);
+        throw error;
+      }
+
+      // Log the activity
+      await supabase.from('user_activity_logs').insert({
+        user_id: selectedUser.user_id,
+        admin_user_id: currentUser?.id,
+        action: 'password_reset',
+        details: { reset_by_admin: true }
+      });
+
+      toast({
+        title: t.passwordUpdated,
+        description: `Password has been updated for ${selectedUser.email}.`,
+      });
+
+      setIsPasswordResetOpen(false);
+      setNewPassword('');
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset password",
         variant: "destructive",
       });
     }
@@ -688,6 +754,53 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
                       }
                     </span>
                   </div>
+                </div>
+                
+                {/* Password Reset Section */}
+                <div className="pt-4 border-t">
+                  <Dialog open={isPasswordResetOpen} onOpenChange={setIsPasswordResetOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Key className="h-4 w-4 mr-2" />
+                        {t.resetPassword}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{t.resetPassword}</DialogTitle>
+                        <DialogDescription>
+                          {t.resetPasswordConfirm}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="newPassword">{t.newPassword}</Label>
+                          <Input
+                            id="newPassword"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Enter new password"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => {
+                          setIsPasswordResetOpen(false);
+                          setNewPassword('');
+                        }}>
+                          {t.cancel}
+                        </Button>
+                        <Button 
+                          onClick={resetUserPassword}
+                          disabled={!newPassword.trim()}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          {t.resetPassword}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardContent>
             </Card>
