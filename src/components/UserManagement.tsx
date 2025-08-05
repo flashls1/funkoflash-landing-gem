@@ -136,11 +136,11 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       talent: "Talent",
       never: "Never",
       deleteUser: "Delete User",
+      confirmDelete: "This delete cannot be undone. Do you wish to permanently delete this user?",
       resetPassword: "Reset Password",
       newPassword: "New Password",
       resetPasswordConfirm: "Are you sure you want to reset this user's password?",
       passwordUpdated: "Password updated successfully",
-      confirmDelete: "Are you sure you want to delete this user? This action cannot be undone.",
       userDeleted: "User deleted successfully",
       userCreated: "User created successfully",
       userUpdated: "User updated successfully",
@@ -188,11 +188,11 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       talent: "Talento",
       never: "Nunca",
       deleteUser: "Eliminar Usuario",
+      confirmDelete: "Esta eliminación no se puede deshacer. ¿Deseas eliminar permanentemente a este usuario?",
       resetPassword: "Restablecer Contraseña", 
       newPassword: "Nueva Contraseña",
       resetPasswordConfirm: "¿Estás seguro de que quieres restablecer la contraseña de este usuario?",
       passwordUpdated: "Contraseña actualizada exitosamente",
-      confirmDelete: "¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.",
       userDeleted: "Usuario eliminado exitosamente",
       userCreated: "Usuario creado exitosamente",
       userUpdated: "Usuario actualizado exitosamente",
@@ -437,34 +437,31 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
   const deleteUser = async (userId: string) => {
     try {
-      // For now, just deactivate the user instead of deleting from auth
-      // This is safer and doesn't require admin privileges
-      const { error } = await supabase
-        .from('profiles')
-        .update({ active: false })
-        .eq('user_id', userId);
+      // Permanently delete user from Supabase Auth
+      // This will cascade delete from profiles table due to foreign key constraint
+      const { error } = await supabase.auth.admin.deleteUser(userId);
 
       if (error) throw error;
 
-      // Log the activity
+      // Log the activity before the user is deleted
       await supabase.from('user_activity_logs').insert({
         user_id: userId,
         admin_user_id: currentUser?.id,
-        action: 'user_deactivated',
-        details: { reason: 'admin_deletion' }
+        action: 'user_permanently_deleted',
+        details: { deleted_by_admin: true, permanent: true }
       });
 
       toast({
         title: t.userDeleted,
-        description: "User deactivated successfully.",
+        description: "User permanently deleted successfully.",
       });
 
       fetchUsers();
     } catch (error: any) {
-      console.error('Error deactivating user:', error);
+      console.error('Error deleting user:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to deactivate user",
+        description: error.message || "Failed to delete user",
         variant: "destructive",
       });
     }
@@ -1094,14 +1091,14 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
                               {t.confirmDelete}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteUser(user.user_id)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              {t.delete}
-                            </AlertDialogAction>
+                           <AlertDialogFooter>
+                             <AlertDialogCancel>No</AlertDialogCancel>
+                             <AlertDialogAction
+                               onClick={() => deleteUser(user.user_id)}
+                               className="bg-red-600 hover:bg-red-700"
+                             >
+                               Yes
+                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
