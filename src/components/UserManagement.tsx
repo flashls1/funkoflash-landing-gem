@@ -314,7 +314,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
         toast({
           title: t.userCreated,
-          description: `User ${newUser.email} has been created and verified successfully.`,
+          description: `User ${newUser.email} has been created and auto-confirmed via database trigger.`,
         });
 
         setIsAddUserOpen(false);
