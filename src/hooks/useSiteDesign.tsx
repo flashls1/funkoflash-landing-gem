@@ -8,12 +8,12 @@ import heroContact from '@/assets/hero-contact.jpg';
 import heroEvents from '@/assets/hero-events.jpg';
 import heroShop from '@/assets/hero-shop.jpg';
 import heroTalent from '@/assets/hero-talent-directory.jpg';
-import heroHomeNew from '@/assets/hero-home-1920x240.jpg';
-import heroShopNew from '@/assets/hero-shop-1920x240.jpg';
-import heroTalentNew from '@/assets/hero-talent-directory-1920x240.jpg';
-import heroEventsNew from '@/assets/hero-events-1920x240.jpg';
-import heroAboutNew from '@/assets/hero-about-1920x240.jpg';
-import heroContactNew from '@/assets/hero-contact-1920x240.jpg';
+import heroHomeNew from '@/assets/hero-home-1920x240-v2.jpg';
+import heroShopNew from '@/assets/hero-shop-1920x240-v2.jpg';
+import heroTalentNew from '@/assets/hero-talent-directory-1920x240-v2.jpg';
+import heroEventsNew from '@/assets/hero-events-1920x240-v2.jpg';
+import heroAboutNew from '@/assets/hero-about-1920x240-v2.jpg';
+import heroContactNew from '@/assets/hero-contact-1920x240-v2.jpg';
 export interface SiteDesignSettings {
   hero: {
     backgroundMedia?: string;
@@ -281,13 +281,39 @@ export const useSiteDesign = () => {
       if (loading) return;
       if (typeof window === 'undefined') return;
       // Prevent repeated installs on the same client session
-      if (localStorage.getItem('heroes_seeded_1920x240_v1')) return;
+      if (localStorage.getItem('heroes_seeded_1920x240_v2')) return;
 
       // Require authenticated user to avoid anonymous writes
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       try {
+        // Ensure uploaded images are exactly 1920x240 by resizing client-side
+        const resizeTo1920x240 = (sourceBlob: Blob, filename: string): Promise<File> => {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = 1920;
+              canvas.height = 240;
+              const ctx = canvas.getContext('2d');
+              if (!ctx) return reject(new Error('Canvas not supported'));
+              const scale = Math.max(1920 / img.naturalWidth, 240 / img.naturalHeight);
+              const drawW = img.naturalWidth * scale;
+              const drawH = img.naturalHeight * scale;
+              const dx = (1920 - drawW) / 2;
+              const dy = (240 - drawH) / 2;
+              ctx.drawImage(img, dx, dy, drawW, drawH);
+              canvas.toBlob((b) => {
+                if (!b) return reject(new Error('Failed to create blob'));
+                resolve(new File([b], filename, { type: 'image/jpeg' }));
+              }, 'image/jpeg', 0.9);
+            };
+            img.onerror = () => reject(new Error('Failed to load source image for resize'));
+            img.src = URL.createObjectURL(sourceBlob);
+          });
+        };
+
         const assetMap: Record<string, { url: string; filename: string }> = {
           home: { url: heroHomeNew, filename: 'hero-home-1920x240.jpg' },
           shop: { url: heroShopNew, filename: 'hero-shop-1920x240.jpg' },
@@ -300,10 +326,31 @@ export const useSiteDesign = () => {
         for (const pageName of Object.keys(assetMap)) {
           const asset = assetMap[pageName];
           const res = await fetch(asset.url, { cache: 'no-store' });
-          const blob = await res.blob();
-          const file = new File([blob], asset.filename, { type: blob.type || 'image/jpeg' });
+          const srcBlob = await res.blob();
+          let file: File;
+          try {
+            file = await resizeTo1920x240(srcBlob, asset.filename);
+          } catch {
+            file = new File([srcBlob], asset.filename, { type: 'image/jpeg' });
+          }
 
           const publicUrl = await uploadFile(file, 'design-assets');
+
+          // Verify the uploaded image is accessible and correct dimensions
+          try {
+            await new Promise<void>((resolve, reject) => {
+              const img = new Image();
+              img.onload = () => {
+                const ok = (img.naturalWidth === 1920 && img.naturalHeight === 240);
+                if (!ok) return reject(new Error(`Unexpected dimensions ${img.naturalWidth}x${img.naturalHeight} for ${pageName}`));
+                resolve();
+              };
+              img.onerror = () => reject(new Error(`Failed to load uploaded image for ${pageName}`));
+              img.src = publicUrl + `?t=${Date.now()}`;
+            });
+          } catch (verifyErr) {
+            console.warn('⚠️ Verification issue for', pageName, verifyErr);
+          }
 
           await savePageSettings(pageName, {
             hero: {
@@ -318,7 +365,7 @@ export const useSiteDesign = () => {
         }
 
         // Mark as seeded and force UI to refresh
-        localStorage.setItem('heroes_seeded_1920x240_v1', '1');
+        localStorage.setItem('heroes_seeded_1920x240_v2', '1');
         window.dispatchEvent(new CustomEvent('heroImageUpdate', { detail: { page: currentPage, timestamp: Date.now() } }));
         console.log('✅ Hero images (1920x240) installed into CMS for all pages.');
       } catch (e) {
