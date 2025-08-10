@@ -1,5 +1,11 @@
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { useState, useEffect } from 'react';
+import heroHomeNew from '@/assets/hero-home-1920x240-v2.jpg';
+import heroShopNew from '@/assets/hero-shop-1920x240-v2.jpg';
+import heroTalentNew from '@/assets/hero-talent-directory-1920x240-v2.jpg';
+import heroEventsNew from '@/assets/hero-events-1920x240-v2.jpg';
+import heroAboutNew from '@/assets/hero-about-1920x240-v2.jpg';
+import heroContactNew from '@/assets/hero-contact-1920x240-v2.jpg';
 
 interface UnifiedHeroSectionProps {
   language: 'en' | 'es';
@@ -15,6 +21,7 @@ export const UnifiedHeroSection = ({
   const [currentMediaUrl, setCurrentMediaUrl] = useState<string>('');
   const [imageLoadError, setImageLoadError] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [usedFallback, setUsedFallback] = useState(false);
 
   // Get settings after loading is complete
   const settings = getCurrentPageSettings();
@@ -57,6 +64,17 @@ const heightClass = className || `relative ${getHeightClass()} flex items-center
     auth: 'Sign In'
   };
 
+  const defaultHeroByPage: Record<string, string> = {
+    home: heroHomeNew,
+    shop: heroShopNew,
+    'talent-directory': heroTalentNew,
+    events: heroEventsNew,
+    about: heroAboutNew,
+    contact: heroContactNew,
+    auth: heroHomeNew,
+  };
+  const fallbackUrl = defaultHeroByPage[currentPage] || '';
+
   // Listen for hero image updates
   useEffect(() => {
     const handleHeroUpdate = () => {
@@ -66,6 +84,11 @@ const heightClass = className || `relative ${getHeightClass()} flex items-center
     window.addEventListener('heroImageUpdate', handleHeroUpdate);
     return () => window.removeEventListener('heroImageUpdate', handleHeroUpdate);
   }, []);
+
+  useEffect(() => {
+    // Reset fallback when hero media changes
+    setUsedFallback(false);
+  }, [heroMedia]);
 
   // Enhanced media loading with proper error handling and debugging
   useEffect(() => {
@@ -99,8 +122,16 @@ const heightClass = className || `relative ${getHeightClass()} flex items-center
       };
       img.onerror = (error) => {
         console.error('❌ Failed to load hero image:', heroMedia, error);
-        setImageLoadError(true);
-        setMediaLoaded(true);
+        if (!usedFallback && fallbackUrl) {
+          console.log('🛟 Falling back to default hero image:', fallbackUrl);
+          setUsedFallback(true);
+          setCurrentMediaUrl(fallbackUrl + `?t=${Date.now()}`);
+          setImageLoadError(false);
+          setMediaLoaded(true);
+        } else {
+          setImageLoadError(true);
+          setMediaLoaded(true);
+        }
       };
       img.src = heroMedia + `?t=${Date.now()}`;
     } else if (mediaType === 'video') {

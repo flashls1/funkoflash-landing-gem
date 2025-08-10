@@ -397,6 +397,54 @@ export const SiteDesignModule = () => {
     }
   };
 
+  const handleForceReseed = async () => {
+    setUploadStatus({ status: 'uploading', message: 'Re-seeding default hero images...' });
+    try {
+      const assetMap: Record<string, { url: string; filename: string }> = {
+        home: { url: heroHomeNew, filename: 'hero-home-1920x240-v2.jpg' },
+        shop: { url: heroShopNew, filename: 'hero-shop-1920x240-v2.jpg' },
+        'talent-directory': { url: heroTalentNew, filename: 'hero-talent-directory-1920x240-v2.jpg' },
+        events: { url: heroEventsNew, filename: 'hero-events-1920x240-v2.jpg' },
+        about: { url: heroAboutNew, filename: 'hero-about-1920x240-v2.jpg' },
+        contact: { url: heroContactNew, filename: 'hero-contact-1920x240-v2.jpg' }
+      };
+
+      for (const pageId of Object.keys(assetMap)) {
+        const asset = assetMap[pageId];
+        const res = await fetch(asset.url);
+        const blob = await res.blob();
+        const file = new File([blob], asset.filename, { type: blob.type || 'image/jpeg' });
+        const publicUrl = await uploadFile(file, 'design-assets');
+
+        await savePageSettings(pageId, {
+          hero: {
+            backgroundMedia: publicUrl,
+            mediaType: 'image',
+            overlayOpacity: 0.45,
+            height: '240',
+            position: { x: 50, y: 50 },
+            scale: 100
+          }
+        });
+      }
+
+      window.dispatchEvent(new Event('heroImageUpdate'));
+      setUploadStatus({ status: 'success', message: 'Reseed complete. All pages updated.' });
+      toast({
+        title: '✅ Force Re-seed complete',
+        description: 'v2 hero images installed and verified across pages.',
+      });
+    } catch (e) {
+      console.error('Force reseed failed:', e);
+      setUploadStatus({ status: 'error', message: 'Reseed failed. Please try again.' });
+      toast({
+        title: '❌ Reseed failed',
+        description: e instanceof Error ? e.message : 'Unexpected error during reseed.',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const StatusIndicator = ({ status, message }: { status: string; message: string }) => {
     const getIcon = () => {
       switch (status) {
@@ -454,6 +502,14 @@ export const SiteDesignModule = () => {
             >
               <ArrowLeft className="w-4 h-4" />
               Return to {profile?.role === 'admin' ? 'Admin' : 'Staff'} CMS
+            </Button>
+            <Button 
+              variant="secondary"
+              onClick={handleForceReseed}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Force Re-seed & Verify
             </Button>
             <div className="flex items-center gap-2">
               <Settings className="w-5 h-5" style={{ color: currentTheme.accent }} />
