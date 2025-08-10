@@ -223,16 +223,34 @@ export const useSiteDesign = () => {
       'talent-directory': heroTalentNew || heroTalent,
       auth: heroHomeAlt
     };
-    return pageSettings || {
-      hero: { 
+
+    // Defaults honoring the requested spec (1920x240 images, white overlay)
+    const defaults: SiteDesignSettings = {
+      hero: {
         backgroundMedia: defaultHeroByPage[currentPage] || heroHomeAlt,
         mediaType: 'image',
         overlayOpacity: 0.45,
         height: currentPage === 'home' ? '240' : undefined,
         position: { x: 50, y: 50 },
-        scale: 100
-      }
+        scale: 100,
+      },
     };
+
+    if (!pageSettings) return defaults;
+
+    // Merge with defaults and prefer default image when saved value is missing/empty
+    const merged: SiteDesignSettings = {
+      ...defaults,
+      ...pageSettings,
+      hero: {
+        ...defaults.hero,
+        ...pageSettings.hero,
+      },
+    };
+    const finalBackground = (pageSettings.hero?.backgroundMedia || '').trim() || (defaults.hero.backgroundMedia as string);
+    merged.hero.backgroundMedia = finalBackground;
+
+    return merged;
   };
 
   // Update current page settings
