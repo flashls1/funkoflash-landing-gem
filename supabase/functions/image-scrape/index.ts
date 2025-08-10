@@ -9,18 +9,17 @@ interface RequestBody {
   names: string[];
 }
 
-async function fetchWikiImage(name: string, lang: string = "en"): Promise<string | null> {
+async function fetchWikiDirect(title: string, lang: string): Promise<string | null> {
   const endpoint = `https://${lang}.wikipedia.org/w/api.php`;
   const params = new URLSearchParams({
     action: "query",
-    titles: name,
+    titles: title,
     prop: "pageimages",
     piprop: "original",
     redirects: "1",
     format: "json",
     origin: "*",
   });
-
   const res = await fetch(`${endpoint}?${params.toString()}`);
   if (!res.ok) return null;
   const data = await res.json();
@@ -30,6 +29,94 @@ async function fetchWikiImage(name: string, lang: string = "en"): Promise<string
     const url: string | undefined = page?.original?.source;
     if (url) return url;
   }
+  return null;
+}
+
+async function fetchWikiSearch(query: string, lang: string): Promise<string | null> {
+  const endpoint = `https://${lang}.wikipedia.org/w/api.php`;
+  const params = new URLSearchParams({
+    action: "query",
+    generator: "search",
+    gsrsearch: query,
+    gsrlimit: "1",
+    prop: "pageimages",
+    piprop: "original",
+    format: "json",
+    origin: "*",
+  });
+  const res = await fetch(`${endpoint}?${params.toString()}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  const pages = data?.query?.pages || {};
+  for (const key of Object.keys(pages)) {
+    const page = pages[key];
+    const url: string | undefined = page?.original?.source;
+    if (url) return url;
+  }
+  return null;
+}
+
+function nameVariants(name: string): string[] {
+  const variants = new Set<string>([name]);
+  // Specific known aliases/clarifications for this roster
+  const lower = name.toLowerCase();
+  if (lower.includes("lalo garza")) {
+    variants.add("Eduardo Garza (voice actor)");
+    variants.add("Eduardo Garza");
+  }
+  if (lower.includes("laura torres")) {
+    variants.add("Laura Torres (actress)");
+    variants.add("Laura Torres (actriz de voz)");
+  }
+  if (lower.includes("geraldo") || lower.includes("gerardo reyero")) {
+    variants.add("Gerardo Reyero");
+  }
+  if (lower.includes("rene garcia") || lower.includes("rené garcía")) {
+    variants.add("René García (actor)");
+  }
+  if (lower.includes("mario castañeda") || lower.includes("mario castaneda")) {
+    variants.add("Mario Castañeda");
+  }
+  if (lower.includes("luis manuel ávila") || lower.includes("luis manuel avila")) {
+    variants.add("Luis Manuel Ávila");
+  }
+  if (lower.includes("carlos segundo")) {
+    variants.add("Carlos Segundo");
+  }
+  // Generic disambiguations
+  variants.add(`${name} (voice actor)`);
+  variants.add(`${name} (actor)`);
+  variants.add(`${name} (actriz de voz)`);
+  variants.add(`${name} (actor de voz)`);
+  return Array.from(variants);
+}
+
+async function findBestImageForName(name: string): Promise<string | null> {
+  const langs = ["en", "es"] as const;
+  const candidates = nameVariants(name);
+
+  // Try direct title fetches first
+  for (const lang of langs) {
+    for (const title of candidates) {
+      const url = await fetchWikiDirect(title, lang);
+      if (url) return url;
+    }
+  }
+
+  // Try search queries
+  for (const lang of langs) {
+    for (const title of candidates) {
+      const url = await fetchWikiSearch(title, lang);
+      if (url) return url;
+    }
+  }
+
+  // Last resort: raw search by name
+  for (const lang of langs) {
+    const url = await fetchWikiSearch(name, lang);
+    if (url) return url;
+  }
+
   return null;
 }
 
@@ -56,12 +143,8 @@ serve(async (req) => {
 
     const results = await Promise.allSettled(
       body.names.map(async (n) => {
-        // Try English then Spanish Wikipedia
-        const en = await fetchWikiImage(n, "en");
-        if (en) return { name: n, imageUrl: en };
-        const es = await fetchWikiImage(n, "es");
-        if (es) return { name: n, imageUrl: es };
-        return { name: n, imageUrl: null };
+        const imageUrl = await findBestImageForName(n);
+        return { name: n, imageUrl };
       })
     );
 

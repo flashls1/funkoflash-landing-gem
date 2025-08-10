@@ -472,25 +472,27 @@ export const SiteDesignModule = () => {
       if (!urls.length) throw new Error('No images found for the requested names.');
 
       setUploadStatus({ status: 'uploading', message: 'Composing collage...' });
-      const blob = await buildCollageFromUrls(urls, 1920, 1080);
+      const blob = await buildCollageFromUrls(urls, 1280, 720);
       const file = new File([blob], `voice-talent-collage-${Date.now()}.jpg`, { type: 'image/jpeg' });
 
       setUploadStatus({ status: 'uploading', message: 'Uploading collage...' });
       const url = await uploadFile(file, 'design-assets');
 
-      updateSelectedPageSettings({
+      const updated = {
         tiles: {
           ...(currentSettings.tiles || {}),
           voiceTalent: {
             ...(currentSettings.tiles?.voiceTalent || {}),
             imageUrl: url,
-            alt: currentSettings.tiles?.voiceTalent?.alt || 'Funko Flash Spanish dub lineup — Mario Castañeda, René García, Laura Torres, Lalo Garza, Luis Manuel Ávila, Gerardo Reyero, Carlos Segundo'
+            alt: currentSettings.tiles?.voiceTalent?.alt || 'Funko Flash Spanish dub lineup — Mario Castañeda, René García, Laura Torres, Lalo Garza (Eduardo Garza), Luis Manuel Ávila, Gerardo Reyero, Carlos Segundo'
           }
         }
-      });
+      };
+      updateSelectedPageSettings(updated);
+      await savePageSettings('home', { ...currentSettings, ...updated });
 
-      setUploadStatus({ status: 'success', message: 'Collage created. Click Save to publish changes.' });
-      toast({ title: '✅ Collage ready', description: 'Preview updated. Save to publish.' });
+      setUploadStatus({ status: 'success', message: 'Collage created & published to Home tile.' });
+      toast({ title: '✅ Collage published', description: 'Home tile updated with a seamless collage.' });
     } catch (e) {
       console.error(e);
       setUploadStatus({ status: 'error', message: e instanceof Error ? e.message : 'Failed to build collage' });
@@ -506,22 +508,27 @@ export const SiteDesignModule = () => {
     canvas.height = height;
     const ctx = canvas.getContext('2d')!;
 
-    // Background
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, width, height);
+    // Prepare pool (ensure enough images, include duplicates if needed)
+    const target = Math.max(7, urls.length);
+    const pool: string[] = [];
+    let i = 0;
+    while (pool.length < target) {
+      pool.push(urls[i % urls.length]);
+      i++;
+    }
 
-    const selected = urls.slice(0, 7);
-    const padding = 12;
+    // Decide row layout (no gaps)
+    let rows: number[] = [];
+    if (pool.length >= 8) rows = [4, 4];
+    else if (pool.length === 7) rows = [4, 3];
+    else if (pool.length === 6) rows = [3, 3];
+    else if (pool.length === 5) rows = [3, 2];
+    else if (pool.length === 4) rows = [2, 2];
+    else if (pool.length === 3) rows = [2, 1];
+    else if (pool.length === 2) rows = [1, 1];
+    else rows = [1];
 
-    const topCount = Math.min(4, selected.length);
-    const bottomCount = Math.max(0, selected.length - topCount);
-
-    const topHeight = Math.floor((height - padding * 3) / 2);
-    const bottomHeight = bottomCount ? Math.floor((height - padding * 3) / 2) : height - padding * 2;
-
-    const slotWTop = Math.floor((width - padding * (topCount + 1)) / topCount);
-    const slotWBot = bottomCount ? Math.floor((width - padding * (bottomCount + 1)) / bottomCount) : 0;
-
+    // Load images
     const load = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -529,43 +536,48 @@ export const SiteDesignModule = () => {
       img.onerror = reject;
       img.src = src;
     });
-
-    const imgs = await Promise.all(selected.map(load));
+    const imgs = await Promise.all(pool.map(load));
 
     const drawCover = (img: HTMLImageElement, x: number, y: number, w: number, h: number) => {
       const ir = img.width / img.height;
       const r = w / h;
       let dw, dh, dx, dy;
-      if (ir > r) {
-        dh = h; dw = dh * ir; dx = x - (dw - w) / 2; dy = y;
-      } else {
-        dw = w; dh = dw / ir; dx = x; dy = y - (dh - h) / 2;
-      }
+      if (ir > r) { dh = h; dw = dh * ir; dx = x - (dw - w) / 2; dy = y; }
+      else { dw = w; dh = dw / ir; dx = x; dy = y - (dh - h) / 2; }
       ctx.drawImage(img, dx, dy, dw, dh);
     };
 
-    // Top row
-    let x = padding, y = padding;
-    for (let i = 0; i < topCount; i++) {
-      drawCover(imgs[i], x, y, slotWTop, topHeight);
-      x += slotWTop + padding;
+    // Compute row heights to fully cover canvas
+    const rowCount = rows.length;
+    const baseRowH = Math.floor(height / rowCount);
+    const extraH = height - baseRowH * rowCount;
+
+    let idx = 0;
+    let y = 0;
+    for (let r = 0; r < rowCount; r++) {
+      const cols = rows[r];
+      const rowH = r === rowCount - 1 ? baseRowH + extraH : baseRowH;
+      const baseColW = Math.floor(width / cols);
+      const extraW = width - baseColW * cols;
+
+      let x = 0;
+      for (let c = 0; c < cols; c++) {
+        const colW = c === cols - 1 ? baseColW + extraW : baseColW;
+        drawCover(imgs[idx], x, y, colW, rowH);
+        x += colW;
+        idx++;
+      }
+      y += rowH;
     }
 
-    // Bottom row
-    x = padding; y = padding * 2 + topHeight;
-    for (let i = 0; i < bottomCount; i++) {
-      drawCover(imgs[topCount + i], x, y, slotWBot, bottomHeight);
-      x += slotWBot + padding;
-    }
-
-    // Subtle gradient overlay for legibility
+    // Soft vignette to increase legibility
     const grad = ctx.createLinearGradient(0, 0, 0, height);
-    grad.addColorStop(0, 'rgba(0,0,0,0.15)');
-    grad.addColorStop(1, 'rgba(0,0,0,0.35)');
+    grad.addColorStop(0, 'rgba(0,0,0,0.10)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.25)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
-    return new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.9));
+    return new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.82));
   }
 
   const StatusIndicator = ({ status, message }: { status: string; message: string }) => {
@@ -1041,7 +1053,7 @@ export const SiteDesignModule = () => {
               {/* Build Collage from Web */}
               <div className="space-y-2 border-t pt-4">
                 <Label className="text-sm font-medium">Build Collage from Web</Label>
-                <p className="text-xs text-muted-foreground">Automatically fetch portraits and generate a 1920x1080 collage of the Spanish dub lineup.</p>
+                <p className="text-xs text-muted-foreground">Automatically fetch portraits and generate a seamless 1280x720 collage of the Spanish dub lineup.</p>
                 <div className="flex gap-3">
                   <Button 
                     onClick={handleBuildTalentCollage}
