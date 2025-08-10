@@ -45,7 +45,17 @@ export const UnifiedHeroSection = ({
     return 'h-[240px]';
   };
 
-  const heightClass = className || `relative ${getHeightClass()} flex items-center justify-center overflow-hidden`;
+const heightClass = className || `relative ${getHeightClass()} flex items-center justify-center overflow-hidden`;
+
+  const pageTitles: Record<string, string> = {
+    home: 'Home',
+    shop: 'Shop',
+    'talent-directory': 'Talent Directory',
+    events: 'Events',
+    about: 'About',
+    contact: 'Contact',
+    auth: 'Sign In'
+  };
 
   // Listen for hero image updates
   useEffect(() => {
@@ -194,9 +204,17 @@ export const UnifiedHeroSection = ({
       
       {/* Overlay */}
       <div 
-        className="absolute inset-0 bg-black transition-opacity duration-500"
+        className="absolute inset-0 bg-black transition-opacity duration-500 z-10"
         style={{ opacity: overlayOpacity }}
       />
+      <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+        <span
+          className="uppercase font-black tracking-wide text-white drop-shadow-md"
+          style={{ fontFamily: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif', fontSize: 'clamp(28px,4vw,56px)' }}
+        >
+          {pageTitles[currentPage] || ''}
+        </span>
+      </div>
     </section>
   );
 };
