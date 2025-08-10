@@ -1,5 +1,6 @@
-import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react";
+import { Instagram, Mail, Phone, MapPin } from "lucide-react";
 import funkoFlashLogo from "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png";
+import tiktokLogo from "@/assets/tiktok.svg";
 
 interface FooterProps {
   language: 'en' | 'es';
@@ -13,9 +14,9 @@ const Footer = ({ language }: FooterProps) => {
       services: "Services",
       serviceLinks: ["Voice Talent Booking", "Signed Collectibles", "Custom Recordings", "Event Management", "Talent Representation"],
       contact: "Contact Us",
-      address: "123 Entertainment Blvd, Los Angeles, CA 90028",
-      phone: "+1 (555) 123-4567",
-      email: "info@funkoflash.com",
+      address: "8205 Camp Bowie Road West, Fort Worth, Texas 76116",
+      phone: "+1 760 792-3214",
+      email: "flash@funkoflash.com",
       newsletter: "Subscribe to our newsletter for exclusive updates and offers",
       subscribe: "Subscribe",
       copyright: "© 2024 Funko Flash. All rights reserved.",
@@ -27,9 +28,9 @@ const Footer = ({ language }: FooterProps) => {
       services: "Servicios",
       serviceLinks: ["Contratación de Talento de Voz", "Coleccionables Firmados", "Grabaciones Personalizadas", "Gestión de Eventos", "Representación de Talento"],
       contact: "Contáctanos",
-      address: "123 Entertainment Blvd, Los Angeles, CA 90028",
-      phone: "+1 (555) 123-4567",
-      email: "info@funkoflash.com",
+      address: "8205 Camp Bowie Road West, Fort Worth, Texas 76116",
+      phone: "+1 760 792-3214",
+      email: "flash@funkoflash.com",
       newsletter: "Suscríbete a nuestro boletín para actualizaciones exclusivas y ofertas",
       subscribe: "Suscribirse",
       copyright: "© 2024 Funko Flash. Todos los derechos reservados.",
@@ -58,17 +59,11 @@ const Footer = ({ language }: FooterProps) => {
             <div className="space-y-2">
               <h4 className="font-semibold">{currentContent.followUs}</h4>
               <div className="flex space-x-4">
-                <a href="#" className="text-background/60 hover:text-funko-orange transition-colors">
-                  <Facebook className="w-5 h-5" />
-                </a>
-                <a href="#" className="text-background/60 hover:text-funko-orange transition-colors">
-                  <Twitter className="w-5 h-5" />
-                </a>
-                <a href="#" className="text-background/60 hover:text-funko-orange transition-colors">
+                <a href="https://instagram.com/therealfunkoflash" className="text-background/60 hover:text-funko-orange transition-colors" aria-label="Instagram @therealfunkoflash">
                   <Instagram className="w-5 h-5" />
                 </a>
-                <a href="#" className="text-background/60 hover:text-funko-orange transition-colors">
-                  <Youtube className="w-5 h-5" />
+                <a href="https://www.tiktok.com/@therealfunkoflash" className="text-background/60 hover:text-funko-orange transition-colors" aria-label="TikTok @therealfunkoflash">
+                  <img src={tiktokLogo} alt="TikTok" className="w-5 h-5" />
                 </a>
               </div>
             </div>
@@ -126,22 +121,6 @@ const Footer = ({ language }: FooterProps) => {
           </div>
         </div>
 
-        {/* Newsletter Signup */}
-        <div className="border-t border-background/20 py-8">
-          <div className="max-w-md mx-auto text-center space-y-4">
-            <h4 className="font-semibold text-funko-orange">{currentContent.newsletter}</h4>
-            <div className="flex space-x-2">
-              <input 
-                type="email" 
-                placeholder="Email"
-                className="flex-1 px-4 py-2 bg-background/10 border border-background/20 rounded-md text-background placeholder-background/60 focus:outline-none focus:ring-2 focus:ring-funko-orange"
-              />
-              <button className="px-6 py-2 bg-funko-orange text-white rounded-md hover:bg-funko-orange-dark transition-colors">
-                {currentContent.subscribe}
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Copyright */}
         <div className="border-t border-background/20 py-6 text-center">

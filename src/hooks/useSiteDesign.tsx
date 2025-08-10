@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
+import heroHome from '@/assets/hero-banner-main.jpg';
+import heroHomeAlt from '@/assets/hero-banner.jpg';
+import heroAbout from '@/assets/hero-about.jpg';
+import heroContact from '@/assets/hero-contact.jpg';
+import heroEvents from '@/assets/hero-events.jpg';
+import heroShop from '@/assets/hero-shop.jpg';
+import heroTalent from '@/assets/hero-talent-directory.jpg';
 export interface SiteDesignSettings {
   hero: {
     backgroundMedia?: string;
@@ -202,11 +208,21 @@ export const useSiteDesign = () => {
       loading: loading
     });
     
+    const defaultHeroByPage: Record<string, string> = {
+      home: heroHome || heroHomeAlt,
+      about: heroAbout,
+      contact: heroContact,
+      events: heroEvents,
+      shop: heroShop,
+      'talent-directory': heroTalent,
+      auth: heroHomeAlt
+    };
+    
     return pageSettings || {
       hero: { 
-        backgroundMedia: '',
+        backgroundMedia: defaultHeroByPage[currentPage] || heroHomeAlt,
         mediaType: 'image',
-        overlayOpacity: 0.5,
+        overlayOpacity: 0.45,
         height: currentPage === 'home' ? '240' : undefined,
         position: { x: 50, y: 50 },
         scale: 100

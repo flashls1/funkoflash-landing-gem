@@ -3,6 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import voiceTalentImage from "@/assets/tile-voice-talent.jpg";
 import signedFunkosImage from "@/assets/tile-signed-funkos.jpg";
 import eventsImage from "@/assets/tile-events.jpg";
+import customRecordingsImage from "@/assets/tile-custom-recordings.jpg";
+import talentManagementImage from "@/assets/tile-talent-management.jpg";
+import communityHubImage from "@/assets/tile-community-hub.jpg";
 import { ArrowRight, Image as ImageIcon } from "lucide-react";
 
 interface ContentTilesProps {
@@ -35,21 +38,21 @@ const ContentTiles = ({ language }: ContentTilesProps) => {
           link: "/events"
         },
         {
-          image: null,
+          image: customRecordingsImage,
           title: "Custom Recordings",
           description: "Get personalized messages, birthday greetings, or commercial recordings from top voice talent.",
           buttonText: "Request Quote",
           link: "/custom"
         },
         {
-          image: null,
+          image: talentManagementImage,
           title: "Talent Management",
           description: "Professional representation for voice actors. We handle bookings, negotiations, and career development.",
           buttonText: "Learn More",
           link: "/management"
         },
         {
-          image: null,
+          image: communityHubImage,
           title: "Community Hub",
           description: "Join our community of voice acting enthusiasts. Share experiences, get tips, and connect with fellow fans.",
           buttonText: "Join Community",
@@ -81,21 +84,21 @@ const ContentTiles = ({ language }: ContentTilesProps) => {
           link: "/events"
         },
         {
-          image: null,
+          image: customRecordingsImage,
           title: "Grabaciones Personalizadas",
           description: "Obtén mensajes personalizados, felicitaciones de cumpleaños o grabaciones comerciales de los mejores talentos de voz.",
           buttonText: "Solicitar Cotización",
           link: "/custom"
         },
         {
-          image: null,
+          image: talentManagementImage,
           title: "Representación de Talento",
           description: "Representación profesional para actores de voz. Manejamos contrataciones, negociaciones y desarrollo de carrera.",
           buttonText: "Saber Más",
           link: "/management"
         },
         {
-          image: null,
+          image: communityHubImage,
           title: "Centro Comunitario",
           description: "Únete a nuestra comunidad de entusiastas del doblaje. Comparte experiencias, obtén consejos y conecta con otros fanáticos.",
           buttonText: "Unirse a la Comunidad",
