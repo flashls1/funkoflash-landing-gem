@@ -28,6 +28,13 @@ export interface SiteDesignSettings {
     position?: { x: number; y: number };
     scale?: number;
   };
+  // Optional per-page content tiles configuration (used on home page)
+  tiles?: {
+    voiceTalent?: {
+      imageUrl?: string;
+      alt?: string;
+    };
+  };
 }
 
 const getPageFromRoute = (): string => {

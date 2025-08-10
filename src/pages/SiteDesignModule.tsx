@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
@@ -829,6 +830,117 @@ export const SiteDesignModule = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Home Tiles Management */}
+        {selectedPage === 'home' && (
+          <Card 
+            className="max-w-4xl mx-auto mt-6 border-2"
+            style={{
+              backgroundColor: currentTheme.cardBackground,
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
+            <CardHeader>
+              <CardTitle style={{ color: currentTheme.accent }}>Home Tile: Voice Talent Directory</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Upload Tile Image</Label>
+                <p className="text-xs text-muted-foreground">Recommended: 16:9 image (e.g., 1280x720). Use licensed real photos only.</p>
+                <div 
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = async (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      try {
+                        setUploadStatus({ status: 'uploading', message: 'Uploading tile image...' });
+                        const url = await uploadFile(file, 'design-assets');
+                        updateSelectedPageSettings({
+                          tiles: {
+                            ...(currentSettings.tiles || {}),
+                            voiceTalent: {
+                              ...(currentSettings.tiles?.voiceTalent || {}),
+                              imageUrl: url,
+                            }
+                          }
+                        });
+                        setUploadStatus({ status: 'success', message: 'Tile image uploaded. Remember to Save.' });
+                        toast({ title: '✅ Tile Image Uploaded', description: 'Click Save to publish changes.' });
+                      } catch (err) {
+                        console.error(err);
+                        setUploadStatus({ status: 'error', message: 'Upload failed' });
+                        toast({ title: '❌ Upload failed', description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
+                      }
+                    };
+                    input.click();
+                  }}
+                  className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-primary/5 hover:border-primary/40 transition-colors cursor-pointer"
+                >
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-primary/60" />
+                  <p className="text-sm font-medium">Click to upload tile image</p>
+                </div>
+              </div>
+
+              {/* Current Tile Preview */}
+              {currentSettings.tiles?.voiceTalent?.imageUrl && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Current Tile Preview</Label>
+                  <div
+                    className="w-full h-40 bg-cover bg-center rounded-lg border"
+                    style={{ 
+                      backgroundImage: `url(${currentSettings.tiles.voiceTalent.imageUrl})`,
+                      borderColor: currentTheme.border
+                    }}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Alt Text (SEO)</Label>
+                <Input
+                  placeholder="e.g., Funko Flash Spanish dub lineup — Mario Castañeda, René García, Laura Torres, Lalo Garza, Luis Manuel Ávila, Gerardo Reyero, Carlos Segundo"
+                  value={currentSettings.tiles?.voiceTalent?.alt || ''}
+                  onChange={(e) => updateSelectedPageSettings({
+                    tiles: {
+                      ...(currentSettings.tiles || {}),
+                      voiceTalent: {
+                        ...(currentSettings.tiles?.voiceTalent || {}),
+                        alt: e.target.value
+                      }
+                    }
+                  })}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  onClick={handleSaveSettings}
+                  disabled={isSaving}
+                  className="flex items-center gap-2"
+                  style={{
+                    backgroundColor: currentTheme.accent,
+                    borderColor: currentTheme.accent,
+                    color: 'white'
+                  }}
+                >
+                  {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {isSaving ? 'Saving...' : 'Save Tile Settings'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => window.open('/', '_blank')}
+                  style={{ borderColor: currentTheme.border, color: currentTheme.cardForeground }}
+                >
+                  <Eye className="w-4 h-4 mr-2" />Preview Home
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
       
       <Footer language={language} />

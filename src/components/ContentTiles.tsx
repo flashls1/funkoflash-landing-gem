@@ -7,12 +7,17 @@ import customRecordingsImage from "@/assets/tile-custom-recordings.jpg";
 import talentManagementImage from "@/assets/tile-talent-management.jpg";
 import communityHubImage from "@/assets/tile-community-hub.jpg";
 import { ArrowRight, Image as ImageIcon } from "lucide-react";
+import { useSiteDesign } from '@/hooks/useSiteDesign';
 
 interface ContentTilesProps {
   language: 'en' | 'es';
 }
 
 const ContentTiles = ({ language }: ContentTilesProps) => {
+  const { getCurrentPageSettings } = useSiteDesign();
+  const homeSettings = getCurrentPageSettings();
+  const vtImageCms = homeSettings.tiles?.voiceTalent?.imageUrl;
+  const vtAltCms = homeSettings.tiles?.voiceTalent?.alt;
   const content = {
     en: {
       tiles: [
@@ -119,8 +124,9 @@ const ContentTiles = ({ language }: ContentTilesProps) => {
               <div className="aspect-video relative overflow-hidden bg-muted">
                 {tile.image ? (
                   <img 
-                    src={tile.image} 
-                    alt={tile.title}
+                    src={index === 0 && vtImageCms ? vtImageCms : tile.image}
+                    alt={index === 0 && vtAltCms ? vtAltCms : tile.title}
+                    loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                   />
                 ) : (
