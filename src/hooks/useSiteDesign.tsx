@@ -8,6 +8,12 @@ import heroContact from '@/assets/hero-contact.jpg';
 import heroEvents from '@/assets/hero-events.jpg';
 import heroShop from '@/assets/hero-shop.jpg';
 import heroTalent from '@/assets/hero-talent-directory.jpg';
+import heroHomeNew from '@/assets/hero-home-1920x512.jpg';
+import heroShopNew from '@/assets/hero-shop-1920x512.jpg';
+import heroTalentNew from '@/assets/hero-talent-directory-1920x512.jpg';
+import heroEventsNew from '@/assets/hero-events-1920x512.jpg';
+import heroAboutNew from '@/assets/hero-about-1920x512.jpg';
+import heroContactNew from '@/assets/hero-contact-1920x512.jpg';
 export interface SiteDesignSettings {
   hero: {
     backgroundMedia?: string;
@@ -209,15 +215,14 @@ export const useSiteDesign = () => {
     });
     
     const defaultHeroByPage: Record<string, string> = {
-      home: heroHome || heroHomeAlt,
-      about: heroAbout,
-      contact: heroContact,
-      events: heroEvents,
-      shop: heroShop,
-      'talent-directory': heroTalent,
+      home: heroHomeNew || heroHome || heroHomeAlt,
+      about: heroAboutNew || heroAbout,
+      contact: heroContactNew || heroContact,
+      events: heroEventsNew || heroEvents,
+      shop: heroShopNew || heroShop,
+      'talent-directory': heroTalentNew || heroTalent,
       auth: heroHomeAlt
     };
-    
     return pageSettings || {
       hero: { 
         backgroundMedia: defaultHeroByPage[currentPage] || heroHomeAlt,
