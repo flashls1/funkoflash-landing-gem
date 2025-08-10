@@ -43,7 +43,8 @@ import heroTalentNew from '@/assets/hero-talent-directory-1920x240-real.jpg';
 import heroEventsNew from '@/assets/hero-events-1920x240-real.jpg';
 import heroAboutNew from '@/assets/hero-about-1920x240-real.jpg';
 import heroContactNew from '@/assets/hero-contact-1920x240-real.jpg';
-
+import { supabase } from '@/integrations/supabase/client';
+ 
 export const SiteDesignModule = () => {
   const { user, profile } = useAuth();
   const { currentTheme } = useColorTheme();
@@ -62,6 +63,7 @@ export const SiteDesignModule = () => {
   const [imagePosition, setImagePosition] = useState({ x: 50, y: 50 });
   const [imageScale, setImageScale] = useState(100);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isBuildingCollage, setIsBuildingCollage] = useState(false);
   const { toast } = useToast();
 
   // Access control - only admin and staff can access
@@ -445,6 +447,126 @@ export const SiteDesignModule = () => {
       });
     }
   };
+
+  // Build collage for Voice Talent tile by fetching portraits and composing a 1920x1080 image
+  const handleBuildTalentCollage = async () => {
+    try {
+      setIsBuildingCollage(true);
+      setUploadStatus({ status: 'uploading', message: 'Fetching portraits...' });
+
+      const actorNames = [
+        'Mario Castañeda',
+        'René García',
+        'Laura Torres',
+        'Lalo Garza',
+        'Luis Manuel Ávila',
+        'Gerardo Reyero',
+        'Carlos Segundo'
+      ];
+
+      const { data, error } = await supabase.functions.invoke('image-scrape', {
+        body: { names: actorNames }
+      });
+      if (error) throw error;
+      const urls: string[] = (data?.images || []).map((i: any) => i.imageUrl).filter(Boolean);
+      if (!urls.length) throw new Error('No images found for the requested names.');
+
+      setUploadStatus({ status: 'uploading', message: 'Composing collage...' });
+      const blob = await buildCollageFromUrls(urls, 1920, 1080);
+      const file = new File([blob], `voice-talent-collage-${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+      setUploadStatus({ status: 'uploading', message: 'Uploading collage...' });
+      const url = await uploadFile(file, 'design-assets');
+
+      updateSelectedPageSettings({
+        tiles: {
+          ...(currentSettings.tiles || {}),
+          voiceTalent: {
+            ...(currentSettings.tiles?.voiceTalent || {}),
+            imageUrl: url,
+            alt: currentSettings.tiles?.voiceTalent?.alt || 'Funko Flash Spanish dub lineup — Mario Castañeda, René García, Laura Torres, Lalo Garza, Luis Manuel Ávila, Gerardo Reyero, Carlos Segundo'
+          }
+        }
+      });
+
+      setUploadStatus({ status: 'success', message: 'Collage created. Click Save to publish changes.' });
+      toast({ title: '✅ Collage ready', description: 'Preview updated. Save to publish.' });
+    } catch (e) {
+      console.error(e);
+      setUploadStatus({ status: 'error', message: e instanceof Error ? e.message : 'Failed to build collage' });
+      toast({ title: '❌ Collage failed', description: e instanceof Error ? e.message : 'Unexpected error', variant: 'destructive' });
+    } finally {
+      setIsBuildingCollage(false);
+    }
+  };
+
+  async function buildCollageFromUrls(urls: string[], width: number, height: number): Promise<Blob> {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d')!;
+
+    // Background
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, width, height);
+
+    const selected = urls.slice(0, 7);
+    const padding = 12;
+
+    const topCount = Math.min(4, selected.length);
+    const bottomCount = Math.max(0, selected.length - topCount);
+
+    const topHeight = Math.floor((height - padding * 3) / 2);
+    const bottomHeight = bottomCount ? Math.floor((height - padding * 3) / 2) : height - padding * 2;
+
+    const slotWTop = Math.floor((width - padding * (topCount + 1)) / topCount);
+    const slotWBot = bottomCount ? Math.floor((width - padding * (bottomCount + 1)) / bottomCount) : 0;
+
+    const load = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+
+    const imgs = await Promise.all(selected.map(load));
+
+    const drawCover = (img: HTMLImageElement, x: number, y: number, w: number, h: number) => {
+      const ir = img.width / img.height;
+      const r = w / h;
+      let dw, dh, dx, dy;
+      if (ir > r) {
+        dh = h; dw = dh * ir; dx = x - (dw - w) / 2; dy = y;
+      } else {
+        dw = w; dh = dw / ir; dx = x; dy = y - (dh - h) / 2;
+      }
+      ctx.drawImage(img, dx, dy, dw, dh);
+    };
+
+    // Top row
+    let x = padding, y = padding;
+    for (let i = 0; i < topCount; i++) {
+      drawCover(imgs[i], x, y, slotWTop, topHeight);
+      x += slotWTop + padding;
+    }
+
+    // Bottom row
+    x = padding; y = padding * 2 + topHeight;
+    for (let i = 0; i < bottomCount; i++) {
+      drawCover(imgs[topCount + i], x, y, slotWBot, bottomHeight);
+      x += slotWBot + padding;
+    }
+
+    // Subtle gradient overlay for legibility
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, 'rgba(0,0,0,0.15)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.35)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    return new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.9));
+  }
 
   const StatusIndicator = ({ status, message }: { status: string; message: string }) => {
     const getIcon = () => {
@@ -914,6 +1036,23 @@ export const SiteDesignModule = () => {
                     }
                   })}
                 />
+              </div>
+
+              {/* Build Collage from Web */}
+              <div className="space-y-2 border-t pt-4">
+                <Label className="text-sm font-medium">Build Collage from Web</Label>
+                <p className="text-xs text-muted-foreground">Automatically fetch portraits and generate a 1920x1080 collage of the Spanish dub lineup.</p>
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={handleBuildTalentCollage}
+                    disabled={isBuildingCollage}
+                    className="flex items-center gap-2"
+                    style={{ backgroundColor: currentTheme.accent, borderColor: currentTheme.accent, color: 'white' }}
+                  >
+                    {isBuildingCollage ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    {isBuildingCollage ? 'Building...' : 'Fetch & Build Collage'}
+                  </Button>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-2">
