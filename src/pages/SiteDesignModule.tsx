@@ -35,6 +35,14 @@ import {
   Crop
 } from 'lucide-react';
 
+// Pre-approved 1920x240 hero assets
+import heroHomeNew from '@/assets/hero-home-1920x240.jpg';
+import heroShopNew from '@/assets/hero-shop-1920x240.jpg';
+import heroTalentNew from '@/assets/hero-talent-directory-1920x240.jpg';
+import heroEventsNew from '@/assets/hero-events-1920x240.jpg';
+import heroAboutNew from '@/assets/hero-about-1920x240.jpg';
+import heroContactNew from '@/assets/hero-contact-1920x240.jpg';
+
 export const SiteDesignModule = () => {
   const { user, profile } = useAuth();
   const { currentTheme } = useColorTheme();
@@ -93,25 +101,55 @@ export const SiteDesignModule = () => {
     { id: 'auth', name: 'Login Page', icon: LogIn, route: '/auth' }
   ];
 
-  // Auto-seed default 1920x240 hero images into CMS for missing pages
+  // Auto-install 1920x240 hero images into CMS (overwrite to enforce specs)
   useEffect(() => {
     if (loading) return;
-    const seed = async () => {
-      const missing = pages.filter(p => !settings[p.id]?.hero?.backgroundMedia);
-      if (missing.length === 0) return;
-      for (const p of missing) {
-        setCurrentPage(p.id as any);
-        const defaults = getCurrentPageSettings();
-        await savePageSettings(p.id, defaults);
+    const install = async () => {
+      try {
+        const assetMap: Record<string, { url: string; filename: string }> = {
+          home: { url: heroHomeNew, filename: 'hero-home-1920x240.jpg' },
+          shop: { url: heroShopNew, filename: 'hero-shop-1920x240.jpg' },
+          'talent-directory': { url: heroTalentNew, filename: 'hero-talent-directory-1920x240.jpg' },
+          events: { url: heroEventsNew, filename: 'hero-events-1920x240.jpg' },
+          about: { url: heroAboutNew, filename: 'hero-about-1920x240.jpg' },
+          contact: { url: heroContactNew, filename: 'hero-contact-1920x240.jpg' }
+        };
+
+        for (const pageId of Object.keys(assetMap)) {
+          const asset = assetMap[pageId];
+          const res = await fetch(asset.url);
+          const blob = await res.blob();
+          const file = new File([blob], asset.filename, { type: blob.type || 'image/jpeg' });
+          const publicUrl = await uploadFile(file, 'design-assets');
+
+          await savePageSettings(pageId, {
+            hero: {
+              backgroundMedia: publicUrl,
+              mediaType: 'image',
+              overlayOpacity: 0.45,
+              height: '240',
+              position: { x: 50, y: 50 },
+              scale: 100
+            }
+          });
+        }
+
+        toast({
+          title: 'Hero banners updated',
+          description: 'All pages now use 1920x240 topic-specific images with white Impact overlay.',
+        });
+      } catch (e) {
+        console.error('Auto-install heroes failed:', e);
+        toast({
+          title: 'Update failed',
+          description: 'Could not install hero images. Ensure you are logged in and storage is accessible.',
+          variant: 'destructive'
+        });
       }
-      toast({
-        title: "Default heroes installed",
-        description: "Topic-specific 1920x240 hero images have been seeded.",
-      });
     };
-    seed();
+    install();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, settings]);
+  }, [loading]);
 
   // Validate image dimensions for hero images
   const validateHeroImageSize = (file: File): Promise<{ valid: boolean; dimensions: { width: number; height: number } }> => {
@@ -119,10 +157,9 @@ export const SiteDesignModule = () => {
       const img = new Image();
       img.onload = () => {
         const { width, height } = img;
-        const isValid1920x240 = Math.abs(width - 1920) <= 192 && Math.abs(height - 240) <= 24;
-        const isValid1920x480 = Math.abs(width - 1920) <= 192 && Math.abs(height - 480) <= 48;
+        const isValid1920x240 = width === 1920 && height === 240;
         resolve({ 
-          valid: isValid1920x240 || isValid1920x480, 
+          valid: isValid1920x240, 
           dimensions: { width, height } 
         });
       };
@@ -241,7 +278,7 @@ export const SiteDesignModule = () => {
         
         if (!validation.valid) {
           const { width, height } = validation.dimensions;
-          const message = `Image size ${width}x${height}px is not supported. Please use 1920x240px or 1920x480px (±10% tolerance).`;
+          const message = `Image size ${width}x${height}px is not supported. Please use exactly 1920x240px.`;
           
           setUploadStatus({ status: 'error', message });
           toast({
@@ -406,7 +443,7 @@ export const SiteDesignModule = () => {
       <div className="container mx-auto px-4 py-8">
         <AdminHeader
           title="Site Design Manager"
-          description="Upload and customize hero banner images for your website pages. Images must be 1920x240px or 1920x480px."
+          description="Upload and customize hero banner images for your website pages. Images must be exactly 1920x240px."
           language={language}
         >
           <div className="flex items-center gap-4">
@@ -534,7 +571,7 @@ export const SiteDesignModule = () => {
               <div className="mt-2 space-y-3">
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-700">
-                    <strong>Required Size:</strong> 1920x240px or 1920x480px (±10% tolerance allowed)
+                    <strong>Required Size:</strong> exactly 1920x240px
                   </p>
                 </div>
                 
@@ -545,7 +582,7 @@ export const SiteDesignModule = () => {
                   <Upload className="w-12 h-12 mx-auto mb-3 text-primary/60" />
                   <p className="text-sm font-medium mb-1">Click to upload hero image</p>
                   <p className="text-xs text-muted-foreground">
-                    JPG, PNG, WebP - 1920x240px or 1920x480px
+                    JPG, PNG, WebP - exactly 1920x240px
                   </p>
                 </div>
                 
