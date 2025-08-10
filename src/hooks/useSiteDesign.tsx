@@ -275,6 +275,61 @@ export const useSiteDesign = () => {
     loadSettings();
   }, []);
 
+  // Admin-only auto-install of 1920x240 hero images into CMS with overwrite and cache-bust
+  useEffect(() => {
+    const run = async () => {
+      if (loading) return;
+      if (typeof window === 'undefined') return;
+      // Prevent repeated installs on the same client session
+      if (localStorage.getItem('heroes_seeded_1920x240_v1')) return;
+
+      // Require authenticated user to avoid anonymous writes
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      try {
+        const assetMap: Record<string, { url: string; filename: string }> = {
+          home: { url: heroHomeNew, filename: 'hero-home-1920x240.jpg' },
+          shop: { url: heroShopNew, filename: 'hero-shop-1920x240.jpg' },
+          'talent-directory': { url: heroTalentNew, filename: 'hero-talent-directory-1920x240.jpg' },
+          events: { url: heroEventsNew, filename: 'hero-events-1920x240.jpg' },
+          about: { url: heroAboutNew, filename: 'hero-about-1920x240.jpg' },
+          contact: { url: heroContactNew, filename: 'hero-contact-1920x240.jpg' }
+        };
+
+        for (const pageName of Object.keys(assetMap)) {
+          const asset = assetMap[pageName];
+          const res = await fetch(asset.url, { cache: 'no-store' });
+          const blob = await res.blob();
+          const file = new File([blob], asset.filename, { type: blob.type || 'image/jpeg' });
+
+          const publicUrl = await uploadFile(file, 'design-assets');
+
+          await savePageSettings(pageName, {
+            hero: {
+              backgroundMedia: publicUrl,
+              mediaType: 'image',
+              overlayOpacity: 0.45,
+              height: '240',
+              position: { x: 50, y: 50 },
+              scale: 100
+            }
+          });
+        }
+
+        // Mark as seeded and force UI to refresh
+        localStorage.setItem('heroes_seeded_1920x240_v1', '1');
+        window.dispatchEvent(new CustomEvent('heroImageUpdate', { detail: { page: currentPage, timestamp: Date.now() } }));
+        console.log('✅ Hero images (1920x240) installed into CMS for all pages.');
+      } catch (e) {
+        console.error('❌ Failed to auto-install hero images:', e);
+      }
+    };
+
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
+
   // Apply current page settings when page changes
   useEffect(() => {
     if (settings[currentPage]) {
