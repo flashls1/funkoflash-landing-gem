@@ -36,12 +36,12 @@ import {
 } from 'lucide-react';
 
 // Pre-approved 1920x240 hero assets
-import heroHomeNew from '@/assets/hero-home-1920x240-v2.jpg';
-import heroShopNew from '@/assets/hero-shop-1920x240-v2.jpg';
-import heroTalentNew from '@/assets/hero-talent-directory-1920x240-v2.jpg';
-import heroEventsNew from '@/assets/hero-events-1920x240-v2.jpg';
-import heroAboutNew from '@/assets/hero-about-1920x240-v2.jpg';
-import heroContactNew from '@/assets/hero-contact-1920x240-v2.jpg';
+import heroHomeNew from '@/assets/hero-home-1920x240-real.jpg';
+import heroShopNew from '@/assets/hero-shop-1920x240-real.jpg';
+import heroTalentNew from '@/assets/hero-talent-directory-1920x240-real.jpg';
+import heroEventsNew from '@/assets/hero-events-1920x240-real.jpg';
+import heroAboutNew from '@/assets/hero-about-1920x240-real.jpg';
+import heroContactNew from '@/assets/hero-contact-1920x240-real.jpg';
 
 export const SiteDesignModule = () => {
   const { user, profile } = useAuth();

@@ -8,12 +8,12 @@ import heroContact from '@/assets/hero-contact.jpg';
 import heroEvents from '@/assets/hero-events.jpg';
 import heroShop from '@/assets/hero-shop.jpg';
 import heroTalent from '@/assets/hero-talent-directory.jpg';
-import heroHomeNew from '@/assets/hero-home-1920x240-v2.jpg';
-import heroShopNew from '@/assets/hero-shop-1920x240-v2.jpg';
-import heroTalentNew from '@/assets/hero-talent-directory-1920x240-v2.jpg';
-import heroEventsNew from '@/assets/hero-events-1920x240-v2.jpg';
-import heroAboutNew from '@/assets/hero-about-1920x240-v2.jpg';
-import heroContactNew from '@/assets/hero-contact-1920x240-v2.jpg';
+import heroHomeNew from '@/assets/hero-home-1920x240-real.jpg';
+import heroShopNew from '@/assets/hero-shop-1920x240-real.jpg';
+import heroTalentNew from '@/assets/hero-talent-directory-1920x240-real.jpg';
+import heroEventsNew from '@/assets/hero-events-1920x240-real.jpg';
+import heroAboutNew from '@/assets/hero-about-1920x240-real.jpg';
+import heroContactNew from '@/assets/hero-contact-1920x240-real.jpg';
 export interface SiteDesignSettings {
   hero: {
     backgroundMedia?: string;
@@ -299,7 +299,7 @@ export const useSiteDesign = () => {
       if (loading) return;
       if (typeof window === 'undefined') return;
       // Prevent repeated installs on the same client session
-      if (localStorage.getItem('heroes_seeded_1920x240_v2')) return;
+      if (localStorage.getItem('heroes_seeded_1920x240_v3')) return;
 
       // Require authenticated user to avoid anonymous writes
       const { data: { user } } = await supabase.auth.getUser();
@@ -383,7 +383,7 @@ export const useSiteDesign = () => {
         }
 
         // Mark as seeded and force UI to refresh
-        localStorage.setItem('heroes_seeded_1920x240_v2', '1');
+        localStorage.setItem('heroes_seeded_1920x240_v3', '1');
         window.dispatchEvent(new CustomEvent('heroImageUpdate', { detail: { page: currentPage, timestamp: Date.now() } }));
         console.log('✅ Hero images (1920x240) installed into CMS for all pages.');
       } catch (e) {
