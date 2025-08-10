@@ -38,12 +38,7 @@ import {
 export const SiteDesignModule = () => {
   const { user, profile } = useAuth();
   const { currentTheme } = useColorTheme();
-  const { 
-    savePageSettings, 
-    uploadFile, 
-    loading,
-    settings
-  } = useSiteDesign();
+  const { savePageSettings, uploadFile, loading, settings, getCurrentPageSettings, setCurrentPage } = useSiteDesign();
   
   // Use local state for page selection instead of route-based state
   const [selectedPage, setSelectedPage] = useState('home');
@@ -97,6 +92,26 @@ export const SiteDesignModule = () => {
     { id: 'contact', name: 'Contact', icon: Mail, route: '/contact' },
     { id: 'auth', name: 'Login Page', icon: LogIn, route: '/auth' }
   ];
+
+  // Auto-seed default 1920x240 hero images into CMS for missing pages
+  useEffect(() => {
+    if (loading) return;
+    const seed = async () => {
+      const missing = pages.filter(p => !settings[p.id]?.hero?.backgroundMedia);
+      if (missing.length === 0) return;
+      for (const p of missing) {
+        setCurrentPage(p.id as any);
+        const defaults = getCurrentPageSettings();
+        await savePageSettings(p.id, defaults);
+      }
+      toast({
+        title: "Default heroes installed",
+        description: "Topic-specific 1920x240 hero images have been seeded.",
+      });
+    };
+    seed();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, settings]);
 
   // Validate image dimensions for hero images
   const validateHeroImageSize = (file: File): Promise<{ valid: boolean; dimensions: { width: number; height: number } }> => {
