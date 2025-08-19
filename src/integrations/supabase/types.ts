@@ -551,27 +551,7 @@ export type Database = {
       }
     }
     Views: {
-      user_directory: {
-        Row: {
-          active: boolean | null
-          display_name: string | null
-          role: Database["public"]["Enums"]["app_role"] | null
-          user_id: string | null
-        }
-        Insert: {
-          active?: boolean | null
-          display_name?: never
-          role?: Database["public"]["Enums"]["app_role"] | null
-          user_id?: string | null
-        }
-        Update: {
-          active?: boolean | null
-          display_name?: never
-          role?: Database["public"]["Enums"]["app_role"] | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       delete_user_and_files_completely: {

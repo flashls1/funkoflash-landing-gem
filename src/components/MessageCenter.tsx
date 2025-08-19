@@ -27,9 +27,7 @@ interface Message {
 
 interface Profile {
   user_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
+  display_name: string;
   role: 'admin' | 'staff' | 'talent';
 }
 
@@ -147,8 +145,7 @@ const MessageCenter = ({ language }: MessageCenterProps) => {
   const fetchProfiles = async () => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('user_id, first_name, last_name, email, role');
+        .rpc('get_users_for_messaging');
 
       if (error) throw error;
       setProfiles(data || []);
@@ -220,6 +217,9 @@ const MessageCenter = ({ language }: MessageCenterProps) => {
   );
 
   const getDisplayName = (profile: any) => {
+    if (profile?.display_name) {
+      return profile.display_name;
+    }
     return `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Unknown User';
   };
 
