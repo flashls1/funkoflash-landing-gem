@@ -217,7 +217,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
       }
 
       if (jsonData.length > 0) {
-        const headers = jsonData[0] as string[];
+        const headers = (jsonData[0] as any[]).map(h => String(h || '').trim()); // Ensure all headers are strings
         const rows = jsonData.slice(1).map((row: any, index) => ({
           ...Object.fromEntries(headers.map((header, i) => [header, row[i] || ''])),
           _rowIndex: index + 2,
@@ -231,6 +231,9 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         // Smart auto-detection with multiple pattern matching
         const autoMapping: Record<string, string> = {};
         headers.forEach(header => {
+          // Ensure header is a string and has content
+          if (!header || typeof header !== 'string' || header.trim() === '') return;
+          
           const normalized = header.toLowerCase().replace(/[^a-z0-9]/g, '');
           const headerWords = header.toLowerCase().split(/[^a-z0-9]+/);
           
