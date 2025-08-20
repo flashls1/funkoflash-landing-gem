@@ -14,6 +14,7 @@ import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Lock, Unlock, ChevronDown } from 'lucide-react';
+import { hasFeature } from '@/lib/features';
 import UserManagement from '@/components/UserManagement';
 import AccessRequestManager from '@/components/AccessRequestManager';
 import { DndProvider } from 'react-dnd';
@@ -55,7 +56,7 @@ const AdminDashboard = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
-  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   const [activeTab, setActiveTab] = useState('overview');
   const { user, profile, loading } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
@@ -151,7 +152,10 @@ const AdminDashboard = () => {
       manageContent: "Manage Content",
       siteDesign: "Site Design Module",
       siteDesignDesc: "Customize backgrounds, heroes, colors, fonts, and layouts",
-      manageSiteDesign: "Open Design Module"
+      manageSiteDesign: "Open Design Module",
+      calendarManagement: "Calendar Management",
+      calendarManagementDesc: "Manage schedules and events",
+      manageCalendar: "Manage Calendar"
     },
     es: {
       dashboard: "Panel de Administrador",
@@ -185,7 +189,10 @@ const AdminDashboard = () => {
       manageContent: "Gestionar Contenido",
       siteDesign: "Módulo de Diseño del Sitio",
       siteDesignDesc: "Personalizar fondos, héroes, colores, fuentes y diseños",
-      manageSiteDesign: "Abrir Módulo de Diseño"
+      manageSiteDesign: "Abrir Módulo de Diseño",
+      calendarManagement: "Gestión de Calendario",
+      calendarManagementDesc: "Gestiona horarios y eventos",
+      manageCalendar: "Gestionar Calendario"
     }
   };
 
@@ -208,8 +215,8 @@ const AdminDashboard = () => {
     return null;
   }
 
-  // Module definitions with colors
-  const moduleCards = [
+  // Module definitions with colors - filter based on feature flags
+  const allModuleCards = [
     { id: 'user-management', icon: Users, color: 'text-blue-500', title: t.userManagement, desc: t.userManagementDesc, action: t.manageUsers, onClick: () => setActiveTab('users') },
     { id: 'access-requests', icon: FileText, color: 'text-purple-500', title: t.accessRequests, desc: t.accessRequestsDesc, action: t.reviewRequests, onClick: () => setActiveTab('access-requests') },
     { id: 'event-management', icon: Calendar, color: 'text-green-500', title: t.eventManagement, desc: t.eventManagementDesc, action: t.manageEvents, onClick: () => navigate('/admin/events-manager') },
@@ -221,6 +228,15 @@ const AdminDashboard = () => {
     { id: 'shop-manager', icon: ShoppingBag, color: 'text-emerald-500', title: language === 'en' ? 'Shop Manager' : 'Gestor de Tienda', desc: language === 'en' ? 'Manage products, images, and shop inventory' : 'Gestionar productos, imágenes e inventario de la tienda', action: language === 'en' ? 'Manage Shop' : 'Gestionar Tienda', onClick: () => navigate('/admin/shop-manager') },
     { id: 'events-manager', icon: Calendar, color: 'text-red-500', title: language === 'en' ? 'Events Manager' : 'Gestor de Eventos', desc: language === 'en' ? 'Create, manage, and publish events with talent assignments' : 'Crear, gestionar y publicar eventos con asignaciones de talento', action: language === 'en' ? 'Manage Events' : 'Gestionar Eventos', onClick: () => navigate('/admin/events-manager') }
   ];
+
+  // Add calendar management if feature is enabled
+  if (hasFeature('calendar')) {
+    allModuleCards.push(
+      { id: 'calendar-management', icon: Calendar, color: 'text-teal-500', title: t.calendarManagement, desc: t.calendarManagementDesc, action: t.manageCalendar, onClick: () => navigate('/calendar') }
+    );
+  }
+
+  const moduleCards = allModuleCards;
 
   return (
     <DndProvider backend={HTML5Backend}>

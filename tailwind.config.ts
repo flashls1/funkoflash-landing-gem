@@ -72,7 +72,13 @@ export default {
 					DEFAULT: 'hsl(var(--funko-blue))',
 					light: 'hsl(var(--funko-blue-light))',
 					dark: 'hsl(var(--funko-blue-dark))'
-				}
+				},
+				// Status Colors
+				'status-available': 'hsl(var(--status-available))',
+				'status-hold': 'hsl(var(--status-hold))',
+				'status-tentative': 'hsl(var(--status-tentative))',
+				'status-booked': 'hsl(var(--status-booked))',
+				'status-cancelled': 'hsl(var(--status-cancelled))'
 			},
 			backgroundImage: {
 				'gradient-hero': 'var(--gradient-hero)',

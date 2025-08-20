@@ -5,7 +5,9 @@ import { useNavigate } from "react-router-dom";
 import funkoFlashLogo from "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png";
 import flagUs from "@/assets/flag-us.png";
 import flagMx from "@/assets/flag-mx.png";
-import { Globe, Menu, X } from "lucide-react";
+import { Globe, Menu, X, Calendar } from "lucide-react";
+import { hasFeature } from "@/lib/features";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface NavigationProps {
   language: 'en' | 'es';
@@ -22,6 +24,7 @@ interface NavigationProps {
 const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
+  const { hasPermission } = usePermissions();
   const navigate = useNavigate();
 
   // Apply custom styles with fallbacks
@@ -32,12 +35,36 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
     fontFamily: customStyles?.fontFamily || 'inherit'
   };
 
-  const navigationItems = {
-    en: ['HOME', 'SHOP', 'TALENT DIRECTORY', 'EVENTS', 'ABOUT', 'CONTACT'],
-    es: ['INICIO', 'TIENDA', 'DIRECTORIO DE TALENTO', 'EVENTOS', 'ACERCA DE', 'CONTACTO']
+  // Build navigation items dynamically based on feature flags and permissions
+  const buildNavigationItems = () => {
+    const baseItems = {
+      en: ['HOME', 'SHOP', 'TALENT DIRECTORY', 'EVENTS', 'ABOUT', 'CONTACT'],
+      es: ['INICIO', 'TIENDA', 'DIRECTORIO DE TALENTO', 'EVENTOS', 'ACERCA DE', 'CONTACTO']
+    };
+    
+    const baseLinks = ['/', '/shop', '/talent-directory', '/events', '/about', '/contact'];
+    
+    // Add calendar if feature is enabled and user has permission
+    if (hasFeature('calendar') && user && hasPermission('calendar:view')) {
+      const calendarText = {
+        en: 'CALENDAR',
+        es: 'CALENDARIO'
+      };
+      
+      // Insert calendar after events (before about)
+      const items = [...baseItems[language]];
+      const links = [...baseLinks];
+      
+      items.splice(4, 0, calendarText[language]);
+      links.splice(4, 0, '/calendar');
+      
+      return { items, links };
+    }
+    
+    return { items: baseItems[language], links: baseLinks };
   };
 
-  const navigationLinks = ['/', '/shop', '/talent-directory', '/events', '/about', '/contact'];
+  const { items: navigationItems, links: navigationLinks } = buildNavigationItems();
 
   const loginText = {
     en: 'LOG IN',
@@ -66,7 +93,7 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              {navigationItems[language].map((item, index) => (
+              {navigationItems.map((item, index) => (
                 <a
                   key={index}
                   href={navigationLinks[index]}
@@ -165,7 +192,7 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
           style={{ backgroundColor: navStyles.backgroundColor }}
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {navigationItems[language].map((item, index) => (
+            {navigationItems.map((item, index) => (
               <a
                 key={index}
                 href={navigationLinks[index]}

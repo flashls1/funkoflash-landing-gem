@@ -90,6 +90,13 @@ All colors MUST be HSL.
       hsl(220, 90%, 45%)
     );
 
+    /* Status Colors (Calendar Module) */
+    --status-available: 120 60% 50%;     /* #10B981 equivalent */
+    --status-hold: 25 100% 60%;          /* #F97316 equivalent */
+    --status-tentative: 40 90% 50%;      /* #FACC15 equivalent */
+    --status-booked: 220 90% 45%;        /* #2563EB equivalent */
+    --status-cancelled: 0 84% 60%;       /* #EF4444 equivalent */
+
     /* Enhanced Shadows */
     --shadow-colorful: 0 8px 32px hsl(var(--funko-orange) / 0.15);
     --shadow-glow: 0 0 40px hsl(var(--funko-orange) / 0.3);
