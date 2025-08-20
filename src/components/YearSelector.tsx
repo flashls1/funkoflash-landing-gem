@@ -9,7 +9,7 @@ interface YearSelectorProps {
   language: 'en' | 'es';
 }
 
-const AVAILABLE_YEARS = [2025, 2026, 2027];
+const AVAILABLE_YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i);
 
 export const YearSelector = ({ selectedYear, onYearChange, language }: YearSelectorProps) => {
   const content = {

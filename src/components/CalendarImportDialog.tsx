@@ -13,6 +13,7 @@ import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { format, parse } from 'date-fns';
 
 interface ImportDialogProps {
   open: boolean;
@@ -109,6 +110,91 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
   };
 
   const t = content[language];
+
+  // Function to process Google Sheets calendar format
+  const processGoogleSheetsCalendar = (data: any[][]): any[] => {
+    const events: any[] = [];
+    let currentMonth = '';
+    let currentYear = '';
+    
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      if (!row || row.length === 0) continue;
+      
+      const firstCell = String(row[0] || '').trim();
+      
+      // Check if this is a month/year header row
+      if (firstCell.includes('2025') || firstCell.includes('2026') || firstCell.includes('2027') || firstCell.includes('2028')) {
+        const parts = firstCell.split(' ');
+        currentMonth = parts[0];
+        currentYear = parts[1] || currentYear;
+        continue;
+      }
+      
+      // Skip header rows with Friday/Saturday/Sunday
+      if (firstCell.toLowerCase().includes('friday') || 
+          firstCell.toLowerCase().includes('saturday') || 
+          firstCell.toLowerCase().includes('sunday')) {
+        continue;
+      }
+      
+      // Process event rows
+      if (firstCell && currentMonth && currentYear) {
+        const friday = String(row[1] || '').trim();
+        const saturday = String(row[2] || '').trim();
+        const sunday = String(row[3] || '').trim();
+        const eventName = String(row[4] || '').trim();
+        const location = String(row[5] || '').trim();
+        
+        if (friday || saturday || sunday) {
+          // Determine status and income from first cell
+          let status = 'available';
+          let income = '';
+          
+          if (firstCell.toLowerCase().includes('booked')) {
+            status = 'booked';
+            const incomeMatch = firstCell.match(/\$[\d,]+/);
+            if (incomeMatch) {
+              income = incomeMatch[0];
+            }
+          }
+          
+          // Create event with weekend dates
+          const startDate = friday ? `${currentYear}-${getMonthNumber(currentMonth)}-${friday.padStart(2, '0')}` : '';
+          const endDate = sunday ? `${currentYear}-${getMonthNumber(currentMonth)}-${sunday.padStart(2, '0')}` : startDate;
+          
+          if (startDate) {
+            events.push({
+              Month: `${currentMonth} ${currentYear}`,
+              Friday: friday,
+              Saturday: saturday,
+              Sunday: sunday,
+              Event: eventName || 'Available Weekend',
+              Location: location,
+              Status: status,
+              Income: income,
+              start_date: startDate,
+              end_date: endDate || startDate,
+              _isGoogleSheetsFormat: true,
+              _rowIndex: i + 1,
+              _validationErrors: []
+            });
+          }
+        }
+      }
+    }
+    
+    return events;
+  };
+
+  const getMonthNumber = (monthName: string): string => {
+    const months: { [key: string]: string } = {
+      'january': '01', 'february': '02', 'march': '03', 'april': '04',
+      'may': '05', 'june': '06', 'july': '07', 'august': '08',
+      'september': '09', 'october': '10', 'november': '11', 'december': '12'
+    };
+    return months[monthName.toLowerCase()] || '01';
+  };
 
   const requiredFields = ['event_title', 'start_date']; // Only these are truly required
   const optionalFields = ['end_date', 'talent_name', 'status', 'start_time', 'end_time', 'timezone', 'all_day', 'venue_name', 
@@ -214,6 +300,26 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
         
         console.log(`Excel parsed: ${jsonData.length} total rows`);
+      }
+
+      // Special handling for Google Sheets calendar format
+      const processedEvents = processGoogleSheetsCalendar(jsonData);
+      if (processedEvents.length > 0) {
+        setHeaders(['Month', 'Friday', 'Saturday', 'Sunday', 'Event', 'Location', 'Status', 'Income']);
+        setData(processedEvents);
+        setStep('mapping');
+        
+        // Auto-map for Google Sheets format
+        setMapping({
+          event_title: 'Event',
+          start_date: 'start_date',
+          end_date: 'end_date',
+          venue_name: 'Event',
+          location_city: 'Location',
+          status: 'Status',
+          notes_internal: 'Income'
+        });
+        return;
       }
 
       if (jsonData.length > 0) {

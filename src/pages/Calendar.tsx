@@ -75,8 +75,7 @@ const Calendar = () => {
   });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedYear, setSelectedYear] = useState(() => {
-    const currentYear = new Date().getFullYear();
-    return [2025, 2026, 2027].includes(currentYear) ? currentYear : 2025;
+    return new Date().getFullYear();
   });
   const [talentSearch, setTalentSearch] = useState('');
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
