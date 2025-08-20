@@ -21,8 +21,16 @@ export const AdminThemeProvider: React.FC<AdminThemeProviderProps> = ({
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed',
-        backgroundColor: currentTheme.background
-      }}
+        backgroundColor: currentTheme.background,
+        color: currentTheme.foreground,
+        // Apply CSS custom properties for dynamic theming
+        '--background': currentTheme.background,
+        '--foreground': currentTheme.foreground,
+        '--card': currentTheme.cardBackground,
+        '--card-foreground': currentTheme.cardForeground,
+        '--accent': currentTheme.accent,
+        '--border': currentTheme.border
+      } as React.CSSProperties}
     >
       {children}
     </div>
