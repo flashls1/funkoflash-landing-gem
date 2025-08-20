@@ -130,6 +130,9 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         missingTitle: 'Missing event title',
         missingDay: 'No day in Fri/Sat/Sun',
         yearMismatch: 'Row month/year doesn\'t match the selected year'
+      },
+      warnings: {
+        autofilledTitle: 'Autofilled title: Available'
       }
     },
     es: {
@@ -186,6 +189,9 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         missingTitle: 'Falta el título del evento',
         missingDay: 'No hay día en Vie/Sáb/Dom',
         yearMismatch: 'El mes/año de la fila no coincide con el año seleccionado'
+      },
+      warnings: {
+        autofilledTitle: 'Título autocompletado: Disponible'
       }
     }
   };
@@ -255,7 +261,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         const fridayCell = String(row[1] || '').trim();
         const saturdayCell = String(row[2] || '').trim(); 
         const sundayCell = String(row[3] || '').trim();
-        const eventTitle = String(row[4] || '').trim();
+        const eventTitleRaw = String(row[4] || '').trim();
         const locationCell = String(row[5] || '').trim();
         
         // Extract numeric dates
@@ -263,9 +269,24 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         const saturdayDate = saturdayCell.replace(/\D/g, '');
         const sundayDate = sundayCell.replace(/\D/g, '');
         
-        console.log(`Processing row ${rowIndex + 1}: Status="${statusCell}" | Fri="${fridayCell}" | Sat="${saturdayCell}" | Sun="${sundayCell}" | Title="${eventTitle}" | Location="${locationCell}"`);
+        // Check if we have any day values
+        const hasFri = !!fridayDate;
+        const hasSat = !!saturdayDate;
+        const hasSun = !!sundayDate;
         
-        // If title is present, create event
+        console.log(`Processing row ${rowIndex + 1}: Status="${statusCell}" | Fri="${fridayCell}" | Sat="${saturdayCell}" | Sun="${sundayCell}" | Title="${eventTitleRaw}" | Location="${locationCell}"`);
+        
+        // Determine event title and status
+        let eventTitle = eventTitleRaw;
+        let isAutofilled = false;
+        
+        // Auto-generate title for Available events when Column E is blank but there are day values
+        if (!eventTitleRaw && (hasFri || hasSat || hasSun)) {
+          eventTitle = language === 'es' ? 'Disponible' : 'Available';
+          isAutofilled = true;
+        }
+        
+        // If title is present or autofilled, create event
         if (eventTitle) {
           // Determine Friday inclusion based on cell background color
           let includeFriday = false;
@@ -303,7 +324,10 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
             let status = 'available';
             let notesInternal = '';
             
-            if (statusCell) {
+            // If title was autofilled, force status to available
+            if (isAutofilled) {
+              status = 'available';
+            } else if (statusCell) {
               const statusLower = statusCell.toLowerCase();
               if (statusLower.includes('booked') || statusLower.startsWith('booked:')) {
                 status = 'booked';
@@ -369,36 +393,14 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
               source_row_id: `row-${rowIndex + 1}`,
               _isWeekendMatrix: true,
               _rowIndex: rowIndex + 1,
-              _validationErrors: []
+              _validationErrors: isAutofilled ? [`warning:${language === 'es' ? 'Título autocompletado: Disponible' : 'Autofilled title: Available'}`] : []
             });
             
             console.log(`Created event: ${eventTitle} from ${startDate} to ${endDate} (${status})`);
           }
-        } else {
-          // Title is empty - create Available blocks for individual days
-          const availableDays: string[] = [];
-          if (fridayDate) availableDays.push(`${currentYear}-${getMonthNumber(currentMonth)}-${fridayDate.padStart(2, '0')}`);
-          if (saturdayDate) availableDays.push(`${currentYear}-${getMonthNumber(currentMonth)}-${saturdayDate.padStart(2, '0')}`);
-          if (sundayDate) availableDays.push(`${currentYear}-${getMonthNumber(currentMonth)}-${sundayDate.padStart(2, '0')}`);
-          
-          availableDays.forEach(date => {
-            events.push({
-              event_title: 'Available',
-              start_date: date,
-              end_date: date,
-              status: 'available',
-              venue_name: '',
-              location_city: '',
-              notes_public: 'Available for booking',
-              all_day: true,
-              timezone: 'America/Los_Angeles',
-              source_file: 'weekend-matrix-import',
-              source_row_id: `row-${rowIndex + 1}`,
-              _isWeekendMatrix: true,
-              _rowIndex: rowIndex + 1,
-              _validationErrors: []
-            });
-          });
+        } else if (!hasFri && !hasSat && !hasSun) {
+          // No title and no days - skip row silently (header/blank)
+          console.log(`Skipping empty row ${rowIndex + 1}`);
         }
       }
     }
@@ -799,13 +801,13 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
 
   const handleDryRun = async () => {
     setLoading(true);
-    const validatedData = validateAndNormalizeData(data);
-    
-    const summary = {
-      toBeCreated: validatedData.filter(row => row._validationErrors.length === 0).length,
-      toBeSkipped: validatedData.filter(row => row._validationErrors.length > 0).length,
-      validationErrors: validatedData.filter(row => row._validationErrors.length > 0).length
-    };
+        const validatedData = validateAndNormalizeData(data);
+        
+        const summary = {
+          toBeCreated: validatedData.filter(row => row._validationErrors.filter((err: string) => !err.startsWith('warning:')).length === 0).length,
+          toBeSkipped: validatedData.filter(row => row._validationErrors.filter((err: string) => !err.startsWith('warning:')).length > 0).length,
+          validationErrors: validatedData.filter(row => row._validationErrors.filter((err: string) => !err.startsWith('warning:')).length > 0).length
+        };
 
     setDryRunResults({ summary, data: validatedData.slice(0, 50) });
     setStep('preview');
@@ -821,7 +823,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
       if (importFormat === 'weekend-matrix') {
         // Weekend Matrix commit via edge function
         const validatedData = validateAndNormalizeData(data);
-        const validRows = validatedData.filter(row => row._validationErrors.length === 0);
+        const validRows = validatedData.filter(row => row._validationErrors.filter((err: string) => !err.startsWith('warning:')).length === 0);
         
         // Transform data to match WeekendMatrixEvent interface
         const events: WeekendMatrixEvent[] = validRows.map(row => ({
@@ -868,7 +870,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
       } else {
         // Standard CSV/Excel import (existing logic)
         const validatedData = validateAndNormalizeData(data);
-        const validRows = validatedData.filter(row => row._validationErrors.length === 0);
+        const validRows = validatedData.filter(row => row._validationErrors.filter((err: string) => !err.startsWith('warning:')).length === 0);
 
         // First get talent profiles for mapping names to IDs
         const { data: talents } = await supabase
@@ -1200,8 +1202,8 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
                             <TableCell>{row.end_date || '-'}</TableCell>
                             <TableCell>
                               {row._validationErrors.length > 0 && (
-                                <span className="text-sm text-red-600">
-                                  {row._validationErrors.join(', ')}
+                                <span className={`text-sm ${row._validationErrors.some((err: string) => err.startsWith('warning:')) ? 'text-amber-600' : 'text-red-600'}`}>
+                                  {row._validationErrors.map((err: string) => err.startsWith('warning:') ? err.replace('warning:', '') : err).join(', ')}
                                 </span>
                               )}
                             </TableCell>
