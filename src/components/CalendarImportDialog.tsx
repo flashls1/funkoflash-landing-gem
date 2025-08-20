@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,6 +45,29 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Load talents on component mount
+  useEffect(() => {
+    const loadTalents = async () => {
+      const { data } = await supabase
+        .from('talent_profiles')
+        .select('id, name')
+        .eq('active', true)
+        .order('name');
+      
+      if (data) {
+        setTalents(data);
+        // If no talent selected and there are talents, select the first one
+        if (!importTalent && data.length > 0) {
+          setImportTalent(data[0].id);
+        }
+      }
+    };
+    
+    if (open) {
+      loadTalents();
+    }
+  }, [open, importTalent]);
 
   const content = {
     en: {
@@ -138,7 +161,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         continue;
       }
       
-      // Process event rows
+      // Process event rows - look for numbered dates
       if (firstCell && currentMonth && currentYear) {
         const friday = String(row[1] || '').trim();
         const saturday = String(row[2] || '').trim();
@@ -146,7 +169,12 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         const eventName = String(row[4] || '').trim();
         const location = String(row[5] || '').trim();
         
-        if (friday || saturday || sunday) {
+        // Extract just the numeric date parts
+        const fridayNum = friday.replace(/\D/g, '');
+        const saturdayNum = saturday.replace(/\D/g, '');
+        const sundayNum = sunday.replace(/\D/g, '');
+        
+        if (fridayNum || saturdayNum || sundayNum) {
           // Determine status and income from first cell
           let status = 'available';
           let income = '';
@@ -159,22 +187,36 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
             }
           }
           
-          // Create event with weekend dates
-          const startDate = friday ? `${currentYear}-${getMonthNumber(currentMonth)}-${friday.padStart(2, '0')}` : '';
-          const endDate = sunday ? `${currentYear}-${getMonthNumber(currentMonth)}-${sunday.padStart(2, '0')}` : startDate;
+          // Create proper date format - use Saturday as start if Friday is empty (colored Saturday means event starts Saturday)
+          let startDateStr = '';
+          let endDateStr = '';
           
-          if (startDate) {
+          if (fridayNum && saturdayNum) {
+            // Friday has date, event starts Friday
+            startDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${fridayNum.padStart(2, '0')}`;
+            endDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${(sundayNum || saturdayNum).padStart(2, '0')}`;
+          } else if (saturdayNum) {
+            // Only Saturday has date (colored), event starts Saturday  
+            startDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${saturdayNum.padStart(2, '0')}`;
+            endDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${(sundayNum || saturdayNum).padStart(2, '0')}`;
+          } else if (sundayNum) {
+            // Only Sunday has date
+            startDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayNum.padStart(2, '0')}`;
+            endDateStr = startDateStr;
+          }
+          
+          if (startDateStr) {
             events.push({
               Month: `${currentMonth} ${currentYear}`,
               Friday: friday,
-              Saturday: saturday,
+              Saturday: saturday, 
               Sunday: sunday,
               Event: eventName || 'Available Weekend',
               Location: location,
               Status: status,
               Income: income,
-              start_date: startDate,
-              end_date: endDate || startDate,
+              start_date: startDateStr,
+              end_date: endDateStr || startDateStr,
               _isGoogleSheetsFormat: true,
               _rowIndex: i + 1,
               _validationErrors: []
@@ -507,7 +549,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
       const talentMap = new Map(talents?.map(t => [t.name.toLowerCase(), t.id]) || []);
 
       const rowsToInsert = validRows.map(row => ({
-        talent_id: talentMap.get(row.talent_name?.toLowerCase()) || null,
+        talent_id: importTalent || talentMap.get(row.talent_name?.toLowerCase()) || null,
         event_title: row.event_title,
         start_date: row.start_date,
         end_date: row.end_date,
@@ -596,6 +638,26 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
           </TabsList>
 
           <TabsContent value="upload" className="space-y-4">
+            {/* Talent Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="talent-select">{t.talent}</Label>
+              <Select value={importTalent} onValueChange={setImportTalent}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t.selectTalent} />
+                </SelectTrigger>
+                <SelectContent>
+                  {talents.map(talent => (
+                    <SelectItem key={talent.id} value={talent.id}>
+                      {talent.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!importTalent && (
+                <p className="text-sm text-destructive">Please select a talent before importing calendar data.</p>
+              )}
+            </div>
+
             <div 
               className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
               onClick={() => fileInputRef.current?.click()}
@@ -609,6 +671,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
                 accept=".csv,.xlsx,.xls"
                 onChange={handleFileUpload}
                 className="hidden"
+                disabled={!importTalent}
               />
             </div>
             {file && (
