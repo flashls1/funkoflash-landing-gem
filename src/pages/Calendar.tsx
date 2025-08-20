@@ -60,7 +60,7 @@ const Calendar = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [view, setView] = useState<'month' | 'week'>('month');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [talents, setTalents] = useState<{ id: string; name: string }[]>([]);
+  const [talents, setTalents] = useState<{ id: string; name: string; user_id?: string }[]>([]);
   const [selectedTalent, setSelectedTalent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -70,11 +70,11 @@ const Calendar = () => {
   const [filters, setFilters] = useState<CalendarFilters>({
     status: ['booked', 'hold', 'available', 'tentative', 'cancelled', 'not_available'],
     talent: [],
-    dateRange: 'next30',
+    dateRange: 'year', // Default to yearly view to see all events
     hideNotAvailable: false
   });
   const [selectedYear, setSelectedYear] = useState(() => {
-    return new Date().getFullYear();
+    return 2028; // Set to 2028 since that's where the imported events are
   });
   const [talentSearch, setTalentSearch] = useState('');
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
@@ -196,17 +196,7 @@ const Calendar = () => {
       let startDate: Date;
       let endDate: Date;
 
-      // Calculate date range based on selected year and current view
-      if (filters.dateRange === 'year') {
-        startDate = startOfYear(new Date(selectedYear, 0, 1));
-        endDate = endOfYear(new Date(selectedYear, 11, 31));
-      } else {
-        // Use the current year for month/week views
-        startDate = startOfYear(new Date(selectedYear, 0, 1));
-        endDate = endOfYear(new Date(selectedYear, 11, 31));
-      }
-
-      // Apply date range filter
+      // Primary date filtering logic - prioritize date range filter
       if (filters.dateRange === 'next7') {
         startDate = new Date();
         endDate = addDays(new Date(), 7);
@@ -216,6 +206,10 @@ const Calendar = () => {
       } else if (filters.dateRange === 'next90') {
         startDate = new Date();
         endDate = addDays(new Date(), 90);
+      } else {
+        // For 'year' or any other filter, use the selected year
+        startDate = startOfYear(new Date(selectedYear, 0, 1));
+        endDate = endOfYear(new Date(selectedYear, 11, 31));
       }
 
       let query = supabase
@@ -269,6 +263,12 @@ const Calendar = () => {
       const { data, error } = await query.order('start_date');
 
       if (error) throw error;
+      
+      console.log(`Calendar query executed: Found ${data?.length || 0} events for year ${selectedYear}, date range: ${format(startDate, 'yyyy-MM-dd')} to ${format(endDate, 'yyyy-MM-dd')}`);
+      if (data && data.length > 0) {
+        console.log('Sample events:', data.slice(0, 3).map(e => ({ title: e.event_title, date: e.start_date, talent: e.talent_profiles?.name })));
+      }
+      
       setEvents((data as CalendarEvent[]) || []);
     } catch (error) {
       console.error('Error loading events:', error);
@@ -318,7 +318,7 @@ const Calendar = () => {
     try {
       const { data, error } = await supabase
         .from('talent_profiles')
-        .select('id, name')
+        .select('id, name, user_id')
         .eq('active', true)
         .order('name');
 
@@ -326,9 +326,18 @@ const Calendar = () => {
       const talentData = data || [];
       setTalents(talentData);
       
-      // Auto-select first talent if none selected and user has edit permissions
-      if (!selectedTalent && talentData.length > 0 && hasPermission('calendar:edit')) {
-        setSelectedTalent(talentData[0].id);
+      // Auto-select first talent if none selected and user has appropriate permissions
+      if (!selectedTalent && talentData.length > 0) {
+        if (hasPermission('calendar:edit')) {
+          // Admin/Staff: auto-select first talent
+          setSelectedTalent(talentData[0].id);
+        } else if (hasPermission('calendar:edit_own')) {
+          // Find user's own talent
+          const userTalent = talentData.find(t => t.user_id === user?.id);
+          if (userTalent) {
+            setSelectedTalent(userTalent.id);
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading talents:', error);
@@ -758,7 +767,7 @@ const Calendar = () => {
               <FullCalendar
                 plugins={[dayGridPlugin, timeGridPlugin]}
                 initialView={view === 'month' ? 'dayGridMonth' : 'timeGridWeek'}
-                initialDate={new Date()}
+                initialDate={new Date(selectedYear, 0, 1)} // Start at beginning of selected year
                 headerToolbar={{
                   left: 'prev,next today',
                   center: 'title',
