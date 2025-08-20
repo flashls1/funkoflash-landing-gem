@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid, Plus, Trash2 } from 'lucide-react';
+import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid, Plus, Trash2, CheckCircle, PauseCircle, Clock3, CircleDashed, XCircle, MinusCircle, ToggleLeft, ToggleRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -21,6 +21,10 @@ import { CalendarImportDialog } from '@/components/CalendarImportDialog';
 import { CalendarEventForm } from '@/components/CalendarEventForm';
 import { TalentSwitcher } from '@/components/TalentSwitcher';
 import { YearSelector } from '@/components/YearSelector';
+import { CalendarEventTooltip } from '@/components/CalendarEventTooltip';
+import { CalendarSkeleton } from '@/components/CalendarSkeleton';
+import { CalendarKeyboardHelp } from '@/components/CalendarKeyboardHelp';
+import { CalendarFilterChips } from '@/components/CalendarFilterChips';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +33,56 @@ import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, star
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
+
+// Add custom CSS for calendar styling
+const calendarStyles = `
+  .fc-day-today-custom {
+    position: relative;
+  }
+  
+  .fc-today-pill {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 12px;
+    font-weight: 600;
+    z-index: 1;
+  }
+  
+  .fc-day-weekend {
+    background-color: hsl(var(--muted) / 0.3) !important;
+  }
+  
+  .fc-daygrid-day {
+    border: 1px solid hsl(var(--border)) !important;
+  }
+  
+  .fc-event-today {
+    box-shadow: 0 0 0 2px hsl(var(--primary)) !important;
+  }
+  
+  .calendar-container .fc-event {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .calendar-container .fc-event:hover {
+    transform: scale(1.02);
+    z-index: 10;
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.type = 'text/css';
+  styleSheet.innerText = calendarStyles;
+  document.head.appendChild(styleSheet);
+}
 
 interface CalendarEvent {
   id: string;
@@ -78,6 +132,10 @@ const Calendar = () => {
   });
   const [talentSearch, setTalentSearch] = useState('');
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
+  const [density, setDensity] = useState<'comfortable' | 'compact'>(() => {
+    return (localStorage.getItem('calendar-density') as 'comfortable' | 'compact') || 'comfortable';
+  });
+  const [showTransition, setShowTransition] = useState(false);
 
   const { user, profile, loading: authLoading } = useAuth();
   const { hasPermission, loading: permissionsLoading } = usePermissions();
@@ -115,7 +173,13 @@ const Calendar = () => {
       addEvent: 'Add Event',
       blockDay: 'Block this day as Not Available',
       blockWeekend: 'Block this weekend as Not Available',
-      blockRange: 'Block date range...'
+      blockRange: 'Block date range...',
+      calendarUi: {
+        density: { comfortable: 'Comfortable', compact: 'Compact' },
+        quickRanges: { next7: 'Next 7 days', next30: 'Next 30 days', next90: 'Next 90 days' },
+        help: 'Keyboard shortcuts',
+        today: 'Today'
+      }
     },
     es: {
       title: 'Calendario',
@@ -147,7 +211,13 @@ const Calendar = () => {
       addEvent: 'Agregar Evento',
       blockDay: 'Bloquear este día como No disponible',
       blockWeekend: 'Bloquear este fin de semana como No disponible',
-      blockRange: 'Bloquear rango de fechas...'
+      blockRange: 'Bloquear rango de fechas...',
+      calendarUi: {
+        density: { comfortable: 'Cómodo', compact: 'Compacto' },
+        quickRanges: { next7: 'Próximos 7 días', next30: 'Próximos 30 días', next90: 'Próximos 90 días' },
+        help: 'Atajos de teclado',
+        today: 'Hoy'
+      }
     }
   };
 
@@ -186,6 +256,7 @@ const Calendar = () => {
     }
 
     setLoading(true);
+    setShowTransition(true);
     try {
       // For edit_own users, we need at least one talent to be loaded
       if (hasPermission('calendar:edit_own') && !hasPermission('calendar:edit') && talents.length === 0) {
@@ -279,6 +350,7 @@ const Calendar = () => {
       });
     } finally {
       setLoading(false);
+      setTimeout(() => setShowTransition(false), 300);
     }
   }, [
     user?.id,
@@ -358,16 +430,48 @@ const Calendar = () => {
   };
 
   const formatEventsForFullCalendar = (events: CalendarEvent[]) => {
-    return events.map(event => ({
-      id: event.id,
-      title: event.event_title,
-      start: event.all_day ? event.start_date : `${event.start_date}T${event.start_time || '00:00'}`,
-      end: event.all_day ? event.end_date : `${event.end_date}T${event.end_time || '23:59'}`,
-      allDay: event.all_day,
-      backgroundColor: getStatusColor(event.status),
-      borderColor: getStatusColor(event.status),
-      extendedProps: event
-    }));
+    return events.map(event => {
+      const getStatusIcon = (status: string) => {
+        switch (status) {
+          case 'booked': return '✓';
+          case 'hold': return '⏸';
+          case 'tentative': return '⏰';
+          case 'available': return '○';
+          case 'cancelled': return '✕';
+          case 'not_available': return '−';
+          default: return '';
+        }
+      };
+
+      const getLocation = () => {
+        const parts = [event.location_city, event.location_state].filter(Boolean);
+        return parts.length > 0 ? `, ${parts.join(', ')}` : '';
+      };
+
+      const truncateTitle = (title: string, maxLength: number = 25) => {
+        if (title.length <= maxLength) return title;
+        return title.substring(0, maxLength) + '...';
+      };
+
+      const displayTitle = `${getStatusIcon(event.status)} ${truncateTitle(event.event_title)}${getLocation()}`;
+
+      return {
+        id: event.id,
+        title: displayTitle,
+        start: event.all_day ? event.start_date : `${event.start_date}T${event.start_time || '00:00'}`,
+        end: event.all_day ? event.end_date : `${event.end_date}T${event.end_time || '23:59'}`,
+        allDay: event.all_day,
+        backgroundColor: getStatusColor(event.status),
+        borderColor: getStatusColor(event.status),
+        textColor: event.status === 'tentative' ? '#000000' : '#ffffff',
+        classNames: [
+          'transition-all duration-200 hover:scale-105',
+          event.status === 'cancelled' ? 'line-through opacity-70' : '',
+          event.status === 'not_available' ? 'opacity-60' : ''
+        ].filter(Boolean),
+        extendedProps: event
+      };
+    });
   };
 
   const handleEventClick = (clickInfo: any) => {
@@ -499,6 +603,68 @@ const Calendar = () => {
     URL.revokeObjectURL(url);
   };
 
+  // Helper functions for filter management
+  const handleClearAllFilters = () => {
+    setFilters({
+      status: ['booked', 'hold', 'available', 'tentative', 'cancelled', 'not_available'],
+      talent: [],
+      dateRange: 'year',
+      hideNotAvailable: false
+    });
+  };
+
+  const handleRemoveStatusFilter = (status: string) => {
+    setFilters(prev => ({ 
+      ...prev, 
+      status: prev.status.filter(s => s !== status) 
+    }));
+  };
+
+  const handleRemoveTalentFilter = (talentId: string) => {
+    setFilters(prev => ({ 
+      ...prev, 
+      talent: prev.talent.filter(t => t !== talentId) 
+    }));
+  };
+
+  const handleRemoveDateRangeFilter = () => {
+    setFilters(prev => ({ ...prev, dateRange: 'year' }));
+  };
+
+  const toggleDensity = () => {
+    const newDensity = density === 'comfortable' ? 'compact' : 'comfortable';
+    setDensity(newDensity);
+    localStorage.setItem('calendar-density', newDensity);
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return; // Don't interfere with form inputs
+      }
+
+      switch (event.key) {
+        case 'ArrowLeft':
+          event.preventDefault();
+          // FullCalendar will handle navigation
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          // FullCalendar will handle navigation
+          break;
+        case 'Escape':
+          event.preventDefault();
+          if (eventFormOpen) setEventFormOpen(false);
+          if (importDialogOpen) setImportDialogOpen(false);
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [eventFormOpen, importDialogOpen]);
+
   const filteredTalents = talents.filter(talent => 
     talent.name.toLowerCase().includes(talentSearch.toLowerCase())
   );
@@ -559,7 +725,22 @@ const Calendar = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              {/* Density Toggle */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleDensity}
+                className="flex items-center gap-2"
+                title={t.calendarUi.density[density]}
+              >
+                {density === 'comfortable' ? <ToggleLeft className="h-4 w-4" /> : <ToggleRight className="h-4 w-4" />}
+                <span className="hidden sm:inline">{t.calendarUi.density[density]}</span>
+              </Button>
+
+              {/* Keyboard Help */}
+              <CalendarKeyboardHelp language={language} />
+
               {!FEATURES.googleSync && <ComingSoon locale={safeLocale(language)} />}
               
               {(hasPermission('calendar:edit') || hasPermission('calendar:edit_own')) && (
@@ -636,9 +817,47 @@ const Calendar = () => {
               </Tabs>
             </div>
 
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-4">
+              {/* Quick Date Range Buttons */}
+              <div className="flex gap-1">
+                <Button
+                  variant={filters.dateRange === 'next7' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFilters(prev => ({ ...prev, dateRange: 'next7' }))}
+                >
+                  {t.calendarUi.quickRanges.next7}
+                </Button>
+                <Button
+                  variant={filters.dateRange === 'next30' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFilters(prev => ({ ...prev, dateRange: 'next30' }))}
+                >
+                  {t.calendarUi.quickRanges.next30}
+                </Button>
+                <Button
+                  variant={filters.dateRange === 'next90' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFilters(prev => ({ ...prev, dateRange: 'next90' }))}
+                >
+                  {t.calendarUi.quickRanges.next90}
+                </Button>
+              </div>
+              
               <CalendarLegend language={language} />
             </div>
+          </div>
+
+          {/* Filter Chips */}
+          <div className="mb-4">
+            <CalendarFilterChips
+              filters={filters}
+              talents={talents}
+              language={language}
+              onClearAll={handleClearAllFilters}
+              onRemoveStatusFilter={handleRemoveStatusFilter}
+              onRemoveTalentFilter={handleRemoveTalentFilter}
+              onRemoveDateRangeFilter={handleRemoveDateRangeFilter}
+            />
           </div>
 
           {/* Filters */}
@@ -751,53 +970,106 @@ const Calendar = () => {
         </div>
 
         {/* Calendar View */}
-        <Card>
-          <CardContent className="p-6">
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p>{t.loadingEvents}</p>
-              </div>
-            ) : events.length === 0 ? (
-              <div className="text-center py-8">
-                <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p>{t.noEvents}</p>
-              </div>
-            ) : (
-              <FullCalendar
-                plugins={[dayGridPlugin, timeGridPlugin]}
-                initialView={view === 'month' ? 'dayGridMonth' : 'timeGridWeek'}
-                initialDate={new Date(selectedYear, 0, 1)} // Start at beginning of selected year
-                headerToolbar={{
-                  left: 'prev,next today',
-                  center: 'title',
-                  right: view === 'month' ? 'dayGridMonth' : 'timeGridWeek'
-                }}
-                events={formatEventsForFullCalendar(events)}
-                eventClick={handleEventClick}
-                selectable={true}
-                select={handleDateSelect}
-                height="auto"
-                eventDisplay="block"
-                dayMaxEvents={3}
-                weekends={true}
-                editable={false}
-                selectMirror={false}
-                dayHeaders={true}
-                allDaySlot={true}
-                slotDuration="01:00:00"
-                slotLabelInterval="01:00:00"
-                locale={language}
-                datesSet={(dateInfo) => {
-                   const newYear = dateInfo.start.getFullYear();
-                   if (newYear !== selectedYear) {
-                     setSelectedYear(newYear);
-                   }
-                 }}
-              />
-            )}
-          </CardContent>
-        </Card>
+        <div className={`transition-opacity duration-300 ${showTransition ? 'opacity-50' : 'opacity-100'}`}>
+          {loading ? (
+            <CalendarSkeleton view={view} />
+          ) : events.length === 0 ? (
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center py-8">
+                  <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p>{t.noEvents}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className={density === 'compact' ? 'text-sm' : ''}>
+              <CardContent className={`p-6 ${density === 'compact' ? 'p-4' : ''}`}>
+                <div className="calendar-container">
+                  <FullCalendar
+                    plugins={[dayGridPlugin, timeGridPlugin]}
+                    initialView={view === 'month' ? 'dayGridMonth' : 'timeGridWeek'}
+                    initialDate={new Date(selectedYear, 0, 1)}
+                    headerToolbar={{
+                      left: 'prev,next today',
+                      center: 'title',
+                      right: view === 'month' ? 'dayGridMonth' : 'timeGridWeek'
+                    }}
+                    events={formatEventsForFullCalendar(events)}
+                    eventClick={handleEventClick}
+                    selectable={true}
+                    select={handleDateSelect}
+                    height="auto"
+                    eventDisplay="block"
+                    dayMaxEvents={density === 'compact' ? 2 : 3}
+                    weekends={true}
+                    editable={false}
+                    selectMirror={false}
+                    dayHeaders={true}
+                    allDaySlot={true}
+                    slotDuration="01:00:00"
+                    slotLabelInterval="01:00:00"
+                    locale={language}
+                    eventDidMount={(info) => {
+                      const event = info.event.extendedProps as CalendarEvent;
+                      
+                      // Add tooltip wrapper
+                      const tooltipWrapper = document.createElement('div');
+                      info.el.parentNode?.insertBefore(tooltipWrapper, info.el);
+                      tooltipWrapper.appendChild(info.el);
+                      
+                      // Add custom styling for today
+                      const today = new Date().toISOString().split('T')[0];
+                      if (event.start_date === today) {
+                        info.el.classList.add('fc-event-today');
+                      }
+                    }}
+                    dayCellDidMount={(info) => {
+                      const today = new Date().toISOString().split('T')[0];
+                      const cellDate = info.date.toISOString().split('T')[0];
+                      
+                      // Add today styling
+                      if (cellDate === today) {
+                        info.el.classList.add('fc-day-today-custom');
+                        const todayPill = document.createElement('div');
+                        todayPill.className = 'fc-today-pill';
+                        todayPill.textContent = t.calendarUi.today;
+                        info.el.appendChild(todayPill);
+                      }
+                      
+                      // Add weekend shading
+                      const dayOfWeek = info.date.getDay();
+                      if (dayOfWeek === 0 || dayOfWeek === 6) {
+                        info.el.classList.add('fc-day-weekend');
+                      }
+                    }}
+                    datesSet={(dateInfo) => {
+                      const newYear = dateInfo.start.getFullYear();
+                      if (newYear !== selectedYear) {
+                        setSelectedYear(newYear);
+                      }
+                      
+                      // Announce date changes for accessibility
+                      const announcement = `${language === 'en' ? 'Viewing' : 'Viendo'} ${format(dateInfo.start, 'MMMM yyyy')}`;
+                      const ariaLive = document.getElementById('calendar-aria-live');
+                      if (ariaLive) {
+                        ariaLive.textContent = announcement;
+                      }
+                    }}
+                  />
+                  
+                  {/* Aria live region for screen readers */}
+                  <div
+                    id="calendar-aria-live"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    className="sr-only"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </main>
 
       <Footer language={language} />

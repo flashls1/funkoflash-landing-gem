@@ -6,7 +6,7 @@ import funkoFlashLogo from "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c1
 import flagUs from "@/assets/flag-us.png";
 import flagMx from "@/assets/flag-mx.png";
 import { Globe, Menu, X, Calendar } from "lucide-react";
-import { hasFeature } from "@/lib/features";
+import { hasFeature, FEATURES } from "@/lib/features";
 import { usePermissions } from "@/hooks/usePermissions";
 
 interface NavigationProps {
@@ -46,8 +46,19 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
     
     // Add calendar if feature is enabled and user has permission
     if (hasFeature('calendar') && user && hasPermission && hasPermission('calendar:view')) {
-      // Don't add calendar text to navigation, just keep original items
-      return { items: baseItems[language], links: baseLinks };
+      // Check if business role should see calendar based on feature flag
+      const userRole = profile?.role;
+      const shouldShowCalendar = userRole !== 'business' || FEATURES.calendarForBusiness;
+      
+      if (shouldShowCalendar) {
+        const calendarItems = {
+          en: ['HOME', 'SHOP', 'TALENT DIRECTORY', 'EVENTS', 'ABOUT', 'CONTACT', 'CALENDAR'],
+          es: ['INICIO', 'TIENDA', 'DIRECTORIO DE TALENTO', 'EVENTOS', 'ACERCA DE', 'CONTACTO', 'CALENDARIO']
+        };
+        const calendarLinks = ['/', '/shop', '/talent-directory', '/events', '/about', '/contact', '/calendar'];
+        
+        return { items: calendarItems[language], links: calendarLinks };
+      }
     }
     
     return { items: baseItems[language], links: baseLinks };
