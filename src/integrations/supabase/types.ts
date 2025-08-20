@@ -44,6 +44,162 @@ export type Database = {
         }
         Relationships: []
       }
+      business_account: {
+        Row: {
+          address_line: string | null
+          city: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          country: string | null
+          created_at: string
+          id: string
+          name: string
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line?: string | null
+          city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line?: string | null
+          city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      business_event_account: {
+        Row: {
+          business_account_id: string
+          event_id: string
+          id: string
+        }
+        Insert: {
+          business_account_id: string
+          event_id: string
+          id?: string
+        }
+        Update: {
+          business_account_id?: string
+          event_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_event_account_business_account_id_fkey"
+            columns: ["business_account_id"]
+            isOneToOne: false
+            referencedRelation: "business_account"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_event_account_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "business_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_event_talent: {
+        Row: {
+          event_id: string
+          id: string
+          talent_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          talent_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          talent_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_event_talent_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "business_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_event_talent_talent_id_fkey"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_events: {
+        Row: {
+          address_line: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          end_ts: string | null
+          hero_logo_path: string | null
+          id: string
+          start_ts: string | null
+          state: string | null
+          status: string | null
+          title: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address_line?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_ts?: string | null
+          hero_logo_path?: string | null
+          id?: string
+          start_ts?: string | null
+          state?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address_line?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_ts?: string | null
+          hero_logo_path?: string | null
+          id?: string
+          start_ts?: string | null
+          state?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       calendar_event: {
         Row: {
           address_line: string | null
