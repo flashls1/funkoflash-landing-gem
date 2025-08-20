@@ -140,118 +140,128 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
     let currentMonth = '';
     let currentYear = '';
     
+    console.log('Starting to process Google Sheets calendar data:', data.length, 'rows');
+    
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
       if (!row || row.length === 0) continue;
       
       const firstCell = String(row[0] || '').trim();
       
-      // Check if this is a month/year header row
-      if (firstCell.includes('2025') || firstCell.includes('2026') || firstCell.includes('2027') || firstCell.includes('2028')) {
+      // Check if this is a month/year header row (like "January 2025")
+      if (firstCell.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}$/i)) {
         const parts = firstCell.split(' ');
         currentMonth = parts[0];
-        currentYear = parts[1] || currentYear;
+        currentYear = parts[1];
+        console.log(`Found month header: ${currentMonth} ${currentYear}`);
         continue;
       }
       
-      // Skip header rows with Friday/Saturday/Sunday
+      // Skip column header rows (Friday, Saturday, Sunday, Event, Location)
       if (firstCell.toLowerCase().includes('friday') || 
           firstCell.toLowerCase().includes('saturday') || 
-          firstCell.toLowerCase().includes('sunday')) {
+          firstCell.toLowerCase().includes('sunday') ||
+          firstCell.toLowerCase().includes('event') ||
+          firstCell.toLowerCase().includes('location')) {
+        console.log('Skipping header row:', firstCell);
         continue;
       }
       
-      // Process event rows - look for numbered dates
-      if (firstCell && currentMonth && currentYear) {
+      // Process event rows - these contain the booking status and dates
+      if (currentMonth && currentYear && row.length >= 6) {
+        const statusCell = firstCell; // "BOOKED: $25,000" or "Booked", etc.
         const friday = String(row[1] || '').trim();
-        const saturday = String(row[2] || '').trim();
+        const saturday = String(row[2] || '').trim(); 
         const sunday = String(row[3] || '').trim();
         const eventName = String(row[4] || '').trim();
         const location = String(row[5] || '').trim();
         
-        // Extract just the numeric date parts and check if cells have content (colored)
-        const fridayNum = friday.replace(/\D/g, '');
-        const saturdayNum = saturday.replace(/\D/g, '');
-        const sundayNum = sunday.replace(/\D/g, '');
+        // Extract numeric dates
+        const fridayDate = friday.replace(/\D/g, '');
+        const saturdayDate = saturday.replace(/\D/g, '');
+        const sundayDate = sunday.replace(/\D/g, '');
         
-        // Check if cells have content (indicates colored/booked)
-        const fridayHasContent = friday.trim() !== '';
-        const saturdayHasContent = saturday.trim() !== '';
-        const sundayHasContent = sunday.trim() !== '';
+        // Determine booking status and income
+        let status = 'available';
+        let income = '';
         
-        if ((fridayNum || saturdayNum || sundayNum) && (eventName || firstCell.toLowerCase().includes('booked'))) {
-          // Determine status and income from first cell
-          let status = 'available';
-          let income = '';
-          
-          if (firstCell.toLowerCase().includes('booked')) {
-            status = 'booked';
-            const incomeMatch = firstCell.match(/\$[\d,]+/);
-            if (incomeMatch) {
-              income = incomeMatch[0];
-            }
+        if (statusCell.toLowerCase().includes('booked')) {
+          status = 'booked';
+          const incomeMatch = statusCell.match(/\$[\d,]+/);
+          if (incomeMatch) {
+            income = incomeMatch[0];
           }
-          
-          // Auto-detect start date based on colored cells (cells with content)
-          let startDateStr = '';
-          let endDateStr = '';
-          
-          if (fridayHasContent && fridayNum) {
-            // Friday is colored (has content), event starts Friday
-            startDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${fridayNum.padStart(2, '0')}`;
-            if (sundayNum) {
-              endDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayNum.padStart(2, '0')}`;
-            } else if (saturdayNum) {
-              endDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${saturdayNum.padStart(2, '0')}`;
-            } else {
-              endDateStr = startDateStr;
-            }
-          } else if (saturdayHasContent && saturdayNum) {
-            // Friday is white (no content), Saturday is colored, event starts Saturday
-            startDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${saturdayNum.padStart(2, '0')}`;
-            if (sundayNum) {
-              endDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayNum.padStart(2, '0')}`;
-            } else {
-              endDateStr = startDateStr;
-            }
-          } else if (sundayHasContent && sundayNum) {
-            // Only Sunday is colored
-            startDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayNum.padStart(2, '0')}`;
-            endDateStr = startDateStr;
-          }
-          
-          if (startDateStr) {
-            events.push({
-              // Original sheet data for reference
-              Month: `${currentMonth} ${currentYear}`,
-              Friday: friday,
-              Saturday: saturday, 
-              Sunday: sunday,
-              Event: eventName || 'Available Weekend',
-              Location: location,
-              Status: status,
-              Income: income,
-              
-              // Mapped fields for calendar_event table
-              event_title: eventName || (status === 'booked' ? 'Booked Event' : 'Available Weekend'),
-              start_date: startDateStr,
-              end_date: endDateStr || startDateStr,
-              venue_name: eventName || 'Event',
-              location_city: location,
-              status: status,
-              notes_internal: income ? `Income: ${income}` : '',
-              notes_public: status === 'available' ? 'Available for booking' : '',
-              all_day: true,
-              
-              _isGoogleSheetsFormat: true,
-              _rowIndex: i + 1,
-              _validationErrors: []
-            });
-          }
+        }
+        
+        console.log(`Processing row ${i + 1}: ${statusCell} | ${friday} | ${saturday} | ${sunday} | ${eventName} | ${location}`);
+        
+        // Create individual events for each day that has a date
+        // Friday event
+        if (fridayDate && friday.trim() !== '') {
+          const eventDate = `${currentYear}-${getMonthNumber(currentMonth)}-${fridayDate.padStart(2, '0')}`;
+          events.push({
+            event_title: eventName || (status === 'booked' ? 'Booked Event' : 'Available'),
+            start_date: eventDate,
+            end_date: eventDate, // Single day event
+            venue_name: eventName || 'Friday Event',
+            location_city: location,
+            status: status,
+            notes_internal: income ? `Income: ${income}` : '',
+            notes_public: status === 'available' ? 'Available for booking' : '',
+            all_day: true,
+            _isGoogleSheetsFormat: true,
+            _rowIndex: i + 1,
+            _validationErrors: [],
+            _dayOfWeek: 'Friday'
+          });
+          console.log(`Created Friday event: ${eventDate}`);
+        }
+        
+        // Saturday event  
+        if (saturdayDate && saturday.trim() !== '') {
+          const eventDate = `${currentYear}-${getMonthNumber(currentMonth)}-${saturdayDate.padStart(2, '0')}`;
+          events.push({
+            event_title: eventName || (status === 'booked' ? 'Booked Event' : 'Available'),
+            start_date: eventDate,
+            end_date: eventDate, // Single day event
+            venue_name: eventName || 'Saturday Event',
+            location_city: location,
+            status: status,
+            notes_internal: income ? `Income: ${income}` : '',
+            notes_public: status === 'available' ? 'Available for booking' : '',
+            all_day: true,
+            _isGoogleSheetsFormat: true,
+            _rowIndex: i + 1,
+            _validationErrors: [],
+            _dayOfWeek: 'Saturday'
+          });
+          console.log(`Created Saturday event: ${eventDate}`);
+        }
+        
+        // Sunday event
+        if (sundayDate && sunday.trim() !== '') {
+          const eventDate = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayDate.padStart(2, '0')}`;
+          events.push({
+            event_title: eventName || (status === 'booked' ? 'Booked Event' : 'Available'),
+            start_date: eventDate,
+            end_date: eventDate, // Single day event
+            venue_name: eventName || 'Sunday Event',
+            location_city: location,
+            status: status,
+            notes_internal: income ? `Income: ${income}` : '',
+            notes_public: status === 'available' ? 'Available for booking' : '',
+            all_day: true,
+            _isGoogleSheetsFormat: true,
+            _rowIndex: i + 1,
+            _validationErrors: [],
+            _dayOfWeek: 'Sunday'
+          });
+          console.log(`Created Sunday event: ${eventDate}`);
         }
       }
     }
     
+    console.log(`Processed calendar data: ${events.length} events created`);
     return events;
   };
 
