@@ -608,7 +608,11 @@ const Calendar = () => {
               <Label className="text-sm font-medium mb-2 block">Year</Label>
               <YearSelector
                 selectedYear={selectedYear}
-                onYearChange={setSelectedYear}
+                onYearChange={(year) => {
+                  setSelectedYear(year);
+                  // Update currentDate to January of the selected year
+                  setCurrentDate(new Date(year, 0, 1));
+                }}
                 language={language}
               />
             </div>
@@ -783,6 +787,11 @@ const Calendar = () => {
                 locale={language}
                 datesSet={(dateInfo) => {
                   setCurrentDate(dateInfo.start);
+                  // Update the selected year when user navigates to a different year
+                  const newYear = dateInfo.start.getFullYear();
+                  if (newYear !== selectedYear) {
+                    setSelectedYear(newYear);
+                  }
                 }}
               />
             )}
