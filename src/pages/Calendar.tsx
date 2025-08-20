@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid, Plus } from 'lucide-react';
+import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -15,11 +15,13 @@ import { hasFeature } from '@/lib/features';
 import { CalendarLegend } from '@/components/CalendarLegend';
 import { CalendarImportDialog } from '@/components/CalendarImportDialog';
 import { CalendarEventForm } from '@/components/CalendarEventForm';
+import { TalentSwitcher } from '@/components/TalentSwitcher';
+import { YearSelector } from '@/components/YearSelector';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, startOfYear, endOfYear } from 'date-fns';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -68,7 +70,12 @@ const Calendar = () => {
     hideNotAvailable: false
   });
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedYear, setSelectedYear] = useState(() => {
+    const currentYear = new Date().getFullYear();
+    return [2025, 2026, 2027].includes(currentYear) ? currentYear : 2025;
+  });
   const [talentSearch, setTalentSearch] = useState('');
+  const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
 
   const { user, profile, loading: authLoading } = useAuth();
   const { hasPermission, loading: permissionsLoading } = usePermissions();
@@ -173,7 +180,7 @@ const Calendar = () => {
 
   useEffect(() => {
     loadEvents();
-  }, [filters, currentDate, view]);
+  }, [filters, currentDate, view, selectedTalent, selectedYear]);
 
   const loadTalents = async () => {
     try {
@@ -196,8 +203,11 @@ const Calendar = () => {
       let startDate: Date;
       let endDate: Date;
 
-      // Calculate date range based on current view and filters
-      if (view === 'month') {
+      // Calculate date range based on selected year and current view
+      if (filters.dateRange === 'year') {
+        startDate = startOfYear(new Date(selectedYear, 0, 1));
+        endDate = endOfYear(new Date(selectedYear, 11, 31));
+      } else if (view === 'month') {
         startDate = startOfMonth(currentDate);
         endDate = endOfMonth(currentDate);
       } else {
@@ -236,9 +246,19 @@ const Calendar = () => {
         query = query.neq('status', 'not_available');
       }
 
-      // Apply talent filter
-      if (filters.talent.length > 0) {
-        query = query.in('talent_id', filters.talent);
+      // Apply talent filter (Admin/Staff can filter by specific talent, Talent/Business limited to own)
+      if (hasPermission('calendar:edit')) {
+        // Admin/Staff: apply selected talent filter
+        if (selectedTalent) {
+          query = query.eq('talent_id', selectedTalent);
+        }
+        if (filters.talent.length > 0) {
+          query = query.in('talent_id', filters.talent);
+        }
+      } else if (hasPermission('calendar:edit_own')) {
+        // Talent/Business: only show their own events
+        // This requires joining with talent_profiles to find talents owned by current user
+        // For now, we'll handle this in the UI layer
       }
 
       const { data, error } = await query.order('start_date');
@@ -284,11 +304,16 @@ const Calendar = () => {
 
   const handleEventClick = (clickInfo: any) => {
     const event = clickInfo.event.extendedProps as CalendarEvent;
-    // Show event details in a popup - simplified for now
-    toast({
-      title: event.event_title,
-      description: `${event.talent_profiles?.name || 'No talent assigned'} - ${event.status}`,
-    });
+    if (hasPermission('calendar:edit') || hasPermission('calendar:edit_own')) {
+      setEditEvent(event);
+      setEventFormOpen(true);
+    } else {
+      // Show read-only event details
+      toast({
+        title: event.event_title,
+        description: `${event.talent_profiles?.name || 'No talent assigned'} - ${event.status}`,
+      });
+    }
   };
 
   const exportCSV = () => {
@@ -325,11 +350,41 @@ const Calendar = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleDateClick = (info: any) => {
+  const handleDateSelect = (selectInfo: any) => {
     if (hasPermission('calendar:edit') || hasPermission('calendar:edit_own')) {
-      setSelectedDate(new Date(info.dateStr));
-      setSelectedEndDate(new Date(info.dateStr));
+      setSelectedDate(new Date(selectInfo.start));
+      setSelectedEndDate(new Date(selectInfo.end || selectInfo.start));
+      setEditEvent(null);
       setEventFormOpen(true);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('calendar_event')
+        .delete()
+        .eq('id', eventId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Event deleted',
+        description: 'The event has been successfully deleted.',
+      });
+
+      loadEvents();
+      setEditEvent(null);
+      setEventFormOpen(false);
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast({
+        title: 'Error deleting event',
+        description: 'Please try again later.',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -450,25 +505,51 @@ const Calendar = () => {
             </div>
           </div>
 
-          {/* Talent Selector for Admin/Staff */}
-          {hasPermission('calendar:edit') && (
-            <div className="mb-4">
-              <Label className="text-sm font-medium mb-2 block">{t.talentSelector}</Label>
-              <Select value={selectedTalent} onValueChange={setSelectedTalent}>
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder={t.allTalents} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">{t.allTalents}</SelectItem>
-                  {talents.map(talent => (
-                    <SelectItem key={talent.id} value={talent.id}>
-                      {talent.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Controls Bar */}
+          <div className="flex flex-wrap items-center gap-4 mb-6">
+            {/* Talent Switcher for Admin/Staff */}
+            {hasPermission('calendar:edit') && (
+              <div>
+                <Label className="text-sm font-medium mb-2 block">{t.talentSelector}</Label>
+                <TalentSwitcher
+                  selectedTalent={selectedTalent}
+                  onTalentChange={setSelectedTalent}
+                  language={language}
+                />
+              </div>
+            )}
+
+            {/* Year Selector */}
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Year</Label>
+              <YearSelector
+                selectedYear={selectedYear}
+                onYearChange={setSelectedYear}
+                language={language}
+              />
             </div>
-          )}
+
+            {/* View Toggle */}
+            <div>
+              <Label className="text-sm font-medium mb-2 block">View</Label>
+              <Tabs value={view} onValueChange={(value: any) => setView(value)}>
+                <TabsList>
+                  <TabsTrigger value="month" className="flex items-center gap-2">
+                    <Grid className="h-4 w-4" />
+                    {t.monthView}
+                  </TabsTrigger>
+                  <TabsTrigger value="week" className="flex items-center gap-2">
+                    <CalendarIconView className="h-4 w-4" />
+                    {t.weekView}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <div className="ml-auto">
+              <CalendarLegend language={language} />
+            </div>
+          </div>
 
           {/* Filters */}
           <Card className="mb-6">
@@ -566,6 +647,7 @@ const Calendar = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="year">Full Year</SelectItem>
                       <SelectItem value="next7">{t.next7}</SelectItem>
                       <SelectItem value="next30">{t.next30}</SelectItem>
                       <SelectItem value="next90">{t.next90}</SelectItem>
@@ -576,23 +658,6 @@ const Calendar = () => {
             </CardContent>
           </Card>
 
-          {/* View Toggle */}
-          <div className="flex items-center justify-between mb-4">
-            <Tabs value={view} onValueChange={(value: any) => setView(value)}>
-              <TabsList>
-                <TabsTrigger value="month" className="flex items-center gap-2">
-                  <Grid className="h-4 w-4" />
-                  {t.monthView}
-                </TabsTrigger>
-                <TabsTrigger value="week" className="flex items-center gap-2">
-                  <CalendarIconView className="h-4 w-4" />
-                  {t.weekView}
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <CalendarLegend language={language} />
-          </div>
         </div>
 
         {/* Calendar View */}
@@ -620,6 +685,7 @@ const Calendar = () => {
                 events={formatEventsForFullCalendar(events)}
                 eventClick={handleEventClick}
                 selectable={true}
+                select={handleDateSelect}
                 height="auto"
                 eventDisplay="block"
                 dayMaxEvents={3}
@@ -647,6 +713,7 @@ const Calendar = () => {
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
         language={language}
+        selectedTalent={selectedTalent}
         onImportComplete={() => {
           loadEvents();
           setImportDialogOpen(false);
@@ -661,9 +728,11 @@ const Calendar = () => {
         selectedDate={selectedDate}
         endDate={selectedEndDate}
         selectedTalent={selectedTalent}
+        editEvent={editEvent}
         onSave={() => {
           loadEvents();
           setEventFormOpen(false);
+          setEditEvent(null);
         }}
       />
     </div>

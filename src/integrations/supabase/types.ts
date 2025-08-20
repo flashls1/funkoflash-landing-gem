@@ -64,6 +64,7 @@ export type Database = {
           notes_internal: string | null
           notes_public: string | null
           source_file: string | null
+          source_row_id: string | null
           start_date: string
           start_time: string | null
           status: string
@@ -95,6 +96,7 @@ export type Database = {
           notes_internal?: string | null
           notes_public?: string | null
           source_file?: string | null
+          source_row_id?: string | null
           start_date: string
           start_time?: string | null
           status?: string
@@ -126,6 +128,7 @@ export type Database = {
           notes_internal?: string | null
           notes_public?: string | null
           source_file?: string | null
+          source_row_id?: string | null
           start_date?: string
           start_time?: string | null
           status?: string

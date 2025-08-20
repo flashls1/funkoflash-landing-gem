@@ -38,8 +38,17 @@ interface CalendarEvent {
   venue_name?: string;
   location_city?: string;
   location_state?: string;
+  location_country?: string;
+  address_line?: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
   notes_public?: string;
+  notes_internal?: string;
   url?: string;
+  travel_in?: string;
+  travel_out?: string;
+  timezone?: string;
 }
 
 export const CalendarEventForm = ({ 
@@ -64,8 +73,17 @@ export const CalendarEventForm = ({
     venue_name: string;
     location_city: string;
     location_state: string;
+    location_country: string;
+    address_line: string;
+    contact_name: string;
+    contact_email: string;
+    contact_phone: string;
     notes_public: string;
+    notes_internal: string;
     url: string;
+    travel_in: string;
+    travel_out: string;
+    timezone: string;
     is_not_available: boolean;
   }>({
     talent_id: '',
@@ -79,8 +97,17 @@ export const CalendarEventForm = ({
     venue_name: '',
     location_city: '',
     location_state: '',
+    location_country: 'USA',
+    address_line: '',
+    contact_name: '',
+    contact_email: '',
+    contact_phone: '',
     notes_public: '',
+    notes_internal: '',
     url: '',
+    travel_in: '',
+    travel_out: '',
+    timezone: 'America/Chicago',
     is_not_available: false
   });
   const [talents, setTalents] = useState<{ id: string; name: string }[]>([]);
@@ -170,8 +197,17 @@ export const CalendarEventForm = ({
           venue_name: editEvent.venue_name || '',
           location_city: editEvent.location_city || '',
           location_state: editEvent.location_state || '',
+          location_country: editEvent.location_country || 'USA',
+          address_line: editEvent.address_line || '',
+          contact_name: editEvent.contact_name || '',
+          contact_email: editEvent.contact_email || '',
+          contact_phone: editEvent.contact_phone || '',
           notes_public: editEvent.notes_public || '',
+          notes_internal: editEvent.notes_internal || '',
           url: editEvent.url || '',
+          travel_in: editEvent.travel_in || '',
+          travel_out: editEvent.travel_out || '',
+          timezone: editEvent.timezone || 'America/Chicago',
           is_not_available: editEvent.status === 'not_available'
         });
       } else {
@@ -189,8 +225,17 @@ export const CalendarEventForm = ({
           venue_name: '',
           location_city: '',
           location_state: '',
+          location_country: 'USA',
+          address_line: '',
+          contact_name: '',
+          contact_email: '',
+          contact_phone: '',
           notes_public: '',
+          notes_internal: '',
           url: '',
+          travel_in: '',
+          travel_out: '',
+          timezone: 'America/Chicago',
           is_not_available: false
         }));
       }
@@ -337,8 +382,17 @@ export const CalendarEventForm = ({
       venue_name: '',
       location_city: '',
       location_state: '',
+      location_country: 'USA',
+      address_line: '',
+      contact_name: '',
+      contact_email: '',
+      contact_phone: '',
       notes_public: '',
+      notes_internal: '',
       url: '',
+      travel_in: '',
+      travel_out: '',
+      timezone: 'America/Chicago',
       is_not_available: false
     });
   };

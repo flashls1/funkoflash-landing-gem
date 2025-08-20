@@ -18,6 +18,7 @@ interface ImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   language: 'en' | 'es';
+  selectedTalent?: string;
   onImportComplete: () => void;
 }
 
@@ -27,7 +28,7 @@ interface ImportRow {
   _validationErrors: string[];
 }
 
-export const CalendarImportDialog = ({ open, onOpenChange, language, onImportComplete }: ImportDialogProps) => {
+export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTalent, onImportComplete }: ImportDialogProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [data, setData] = useState<ImportRow[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
@@ -36,6 +37,10 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, onImportCom
   const [dryRunResults, setDryRunResults] = useState<any>(null);
   const [commitResults, setCommitResults] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [importTalent, setImportTalent] = useState(selectedTalent || '');
+  const [importYear, setImportYear] = useState(new Date().getFullYear());
+  const [importMode, setImportMode] = useState<'merge' | 'replace'>('merge');
+  const [talents, setTalents] = useState<{ id: string; name: string }[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -61,7 +66,14 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, onImportCom
       toBeSkipped: 'To be skipped',
       validationErrors: 'Validation errors',
       importComplete: 'Import completed successfully!',
-      close: 'Close'
+      close: 'Close',
+      talent: 'Talent',
+      selectTalent: 'Select talent',
+      year: 'Year',
+      importMode: 'Import Mode',
+      merge: 'Merge (add/update)',
+      replace: 'Replace entire year',
+      replaceWarning: '⚠️ This will DELETE ALL events for the selected year for this talent'
     },
     es: {
       title: 'Importar Eventos de Calendario',
@@ -84,7 +96,14 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, onImportCom
       toBeSkipped: 'A omitir',
       validationErrors: 'Errores de validación',
       importComplete: '¡Importación completada exitosamente!',
-      close: 'Cerrar'
+      close: 'Cerrar',
+      talent: 'Talento',
+      selectTalent: 'Seleccionar talento',
+      year: 'Año',
+      importMode: 'Modo de Importación',
+      merge: 'Combinar (agregar/actualizar)',
+      replace: 'Reemplazar año completo',
+      replaceWarning: '⚠️ Esto eliminará TODOS los eventos del año seleccionado para este talento'
     }
   };
 
