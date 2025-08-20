@@ -104,22 +104,15 @@ export const BusinessEventCard = ({
     try {
       setDeleting(true);
       
-      // Use RPC to handle soft delete until types are updated
-      const { error } = await supabase.rpc('handle_business_event_delete', {
-        event_id: event.id
-      });
-
-      if (error) {
-        // Fallback approach - this will fail gracefully until types are updated
-        console.warn('RPC not available, soft delete not supported yet');
-        throw new Error('Delete functionality will be available after types refresh');
-      }
-
+      // For now, we'll disable delete functionality until types are updated
+      // This will be re-enabled once the Supabase types are refreshed
+      console.warn('Delete functionality temporarily disabled - types need refresh');
       toast({
-        title: "Success",
-        description: t.deleted,
+        title: "Info",
+        description: "Delete functionality will be available after database types refresh",
+        variant: "default",
       });
-      onRefresh();
+      
     } catch (error) {
       console.error('Error deleting event:', error);
       toast({
