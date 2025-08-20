@@ -176,14 +176,16 @@ const Calendar = () => {
       return;
     }
 
-    // Load initial data
+    // Load initial data only once
     loadTalents();
-    loadEvents();
   }, [user, hasPermission, authLoading, permissionsLoading, navigate]);
 
   useEffect(() => {
-    loadEvents();
-  }, [filters, currentDate, view, selectedTalent, selectedYear]);
+    // Only load events if we have basic setup ready
+    if (user && hasPermission('calendar:view') && !authLoading && !permissionsLoading) {
+      loadEvents();
+    }
+  }, [filters, currentDate, view, selectedTalent, selectedYear, user, hasPermission, authLoading, permissionsLoading]);
 
   const loadTalents = async () => {
     try {
@@ -207,6 +209,11 @@ const Calendar = () => {
   };
 
   const loadEvents = async () => {
+    // Prevent loading if not ready
+    if (!user || !hasPermission('calendar:view') || authLoading || permissionsLoading) {
+      return;
+    }
+
     setLoading(true);
     try {
       // Don't load events if no talent selected and we need one
@@ -261,15 +268,15 @@ const Calendar = () => {
         query = query.neq('status', 'not_available');
       }
 
-      // Apply talent filter (Admin/Staff can filter by specific talent, Talent/Business limited to own)
-      if (hasPermission('calendar:edit')) {
-        // Admin/Staff: apply selected talent filter
-        if (selectedTalent) {
-          query = query.eq('talent_id', selectedTalent);
-        }
-        if (filters.talent.length > 0) {
-          query = query.in('talent_id', filters.talent);
-        }
+        // Apply talent filter (Admin/Staff can filter by specific talent, Talent/Business limited to own)
+        if (hasPermission('calendar:edit')) {
+          // Admin/Staff: apply selected talent filter if one is selected
+          if (selectedTalent) {
+            query = query.eq('talent_id', selectedTalent);
+          }
+          if (filters.talent.length > 0) {
+            query = query.in('talent_id', filters.talent);
+          }
       } else if (hasPermission('calendar:edit_own')) {
         // Talent/Business: only show their own events
         // This requires joining with talent_profiles to find talents owned by current user

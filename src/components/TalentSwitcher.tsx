@@ -14,8 +14,8 @@ interface Talent {
 }
 
 interface TalentSwitcherProps {
-  selectedTalent: string;
-  onTalentChange: (talentId: string) => void;
+  selectedTalent: string | null;
+  onTalentChange: (talentId: string | null) => void;
   language: 'en' | 'es';
 }
 
@@ -62,7 +62,7 @@ export const TalentSwitcher = ({ selectedTalent, onTalentChange, language }: Tal
     }
   };
 
-  const selectedTalentData = talents.find(talent => talent.id === selectedTalent);
+  const selectedTalentData = selectedTalent ? talents.find(talent => talent.id === selectedTalent) : null;
 
   const getInitials = (name: string) => {
     return name
@@ -142,7 +142,7 @@ export const TalentSwitcher = ({ selectedTalent, onTalentChange, language }: Tal
                 <CommandItem
                   value=""
                   onSelect={() => {
-                    onTalentChange('');
+                    onTalentChange(null);
                     setOpen(false);
                   }}
                 >
@@ -153,7 +153,7 @@ export const TalentSwitcher = ({ selectedTalent, onTalentChange, language }: Tal
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",
-                      selectedTalent === '' ? "opacity-100" : "opacity-0"
+                      selectedTalent === null ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>
