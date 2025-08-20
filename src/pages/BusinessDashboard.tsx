@@ -15,6 +15,8 @@ import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, Dol
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
+import { NextEventCard } from '@/components/NextEventCard';
+import { MiniAgenda } from '@/components/MiniAgenda';
 
 // Draggable card component for business
 const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
@@ -338,10 +340,17 @@ const BusinessDashboard = () => {
           </Card>
         </div>
 
-        {/* Main Content - Empty State */}
+        {/* Main Content */}
         <div className="space-y-6">
+          {/* Next Event and Mini Agenda */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <NextEventCard language={language} />
+            <MiniAgenda language={language} />
+          </div>
+
+          {/* Future modules placeholder */}
           <Card 
-            className="border-2 text-center py-16"
+            className="border-2 text-center py-8"
             style={{
               backgroundColor: currentTheme.cardBackground,
               borderColor: currentTheme.border,
@@ -349,22 +358,9 @@ const BusinessDashboard = () => {
             }}
           >
             <CardContent>
-              <Building2 className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-2xl font-semibold mb-2">{t.dashboard}</h3>
-              <p className="text-lg opacity-70 mb-8">{t.moduleComingSoon}</p>
-              
-              {/* Placeholder for future modules */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div 
-                    key={i}
-                    className="h-32 rounded-lg border-2 border-dashed opacity-30 flex items-center justify-center"
-                    style={{ borderColor: currentTheme.border }}
-                  >
-                    <span className="text-sm opacity-50">Module {i}</span>
-                  </div>
-                ))}
-              </div>
+              <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <h3 className="text-xl font-semibold mb-2">{t.dashboard}</h3>
+              <p className="opacity-70">{t.moduleComingSoon}</p>
             </CardContent>
           </Card>
         </div>

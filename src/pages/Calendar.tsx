@@ -11,7 +11,8 @@ import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIco
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
-import { hasFeature } from '@/lib/features';
+import { hasFeature, FEATURES } from '@/lib/features';
+import { ComingSoon } from '@/components/ui/ComingSoon';
 import { CalendarLegend } from '@/components/CalendarLegend';
 import { CalendarImportDialog } from '@/components/CalendarImportDialog';
 import { CalendarEventForm } from '@/components/CalendarEventForm';
@@ -470,6 +471,8 @@ const Calendar = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-2">
+              {!FEATURES.googleSync && <ComingSoon locale={language} />}
+              
               {(hasPermission('calendar:edit') || hasPermission('calendar:edit_own')) && (
                 <Button 
                   variant="outline" 

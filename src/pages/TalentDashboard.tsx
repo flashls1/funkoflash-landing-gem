@@ -16,6 +16,8 @@ import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, Dol
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
+import { NextEventCard } from '@/components/NextEventCard';
+import { MiniAgenda } from '@/components/MiniAgenda';
 
 // Draggable card component for talent
 const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
@@ -383,6 +385,12 @@ const TalentDashboard = () => {
         <Tabs defaultValue="overview" className="space-y-6">
 
           <TabsContent value="overview" className="space-y-6">
+            {/* Next Event and Mini Agenda */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <NextEventCard language={language} />
+              <MiniAgenda language={language} />
+            </div>
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card 
