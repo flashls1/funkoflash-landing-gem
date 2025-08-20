@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import StaffDashboard from "./pages/StaffDashboard"; 
 import TalentDashboard from "./pages/TalentDashboard";
+import BusinessDashboard from "./pages/BusinessDashboard";
 import SiteDesignModule from "./pages/SiteDesignModule";
 import TalentDirectory from "./pages/TalentDirectory";
 import TalentProfile from "./pages/TalentProfile";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/dashboard/admin" element={<AdminDashboard />} />
             <Route path="/dashboard/staff" element={<StaffDashboard />} />
             <Route path="/dashboard/talent" element={<TalentDashboard />} />
+            <Route path="/dashboard/business" element={<BusinessDashboard />} />
             <Route path="/admin/site-design" element={<SiteDesignModule />} />
             <Route path="/talent-directory" element={<TalentDirectory />} />
             <Route path="/talent/:slug" element={<TalentProfile />} />

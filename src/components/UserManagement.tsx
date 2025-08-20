@@ -44,7 +44,7 @@ interface UserProfile {
   first_name?: string;
   last_name?: string;
   phone?: string;
-  role: 'admin' | 'staff' | 'talent';
+  role: 'admin' | 'staff' | 'talent' | 'business';
   active: boolean;
   last_login?: string;
   created_at: string;
@@ -90,7 +90,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
     firstName: '',
     lastName: '',
     phone: '',
-    role: 'talent' as 'admin' | 'staff' | 'talent',
+    role: 'talent' as 'admin' | 'staff' | 'talent' | 'business',
     sendNotification: true
   });
 
@@ -134,6 +134,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       admin: "Admin",
       staff: "Staff",
       talent: "Talent",
+      business: "Business",
       never: "Never",
       deleteUser: "Delete User",
       confirmDelete: "This delete cannot be undone. Do you wish to permanently delete this user?",
@@ -186,6 +187,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       admin: "Administrador",
       staff: "Personal",
       talent: "Talento",
+      business: "Empresa",
       never: "Nunca",
       deleteUser: "Eliminar Usuario",
       confirmDelete: "Esta eliminación no se puede deshacer. ¿Deseas eliminar permanentemente a este usuario?",
@@ -339,7 +341,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: 'admin' | 'staff' | 'talent') => {
+  const updateUserRole = async (userId: string, newRole: 'admin' | 'staff' | 'talent' | 'business') => {
     try {
       const { error } = await supabase
         .from('profiles')
@@ -728,7 +730,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
                     <span className="text-sm font-medium">{t.role}:</span>
                     <Select
                       value={selectedUser.role}
-                      onValueChange={(value: 'admin' | 'staff' | 'talent') => {
+                      onValueChange={(value: 'admin' | 'staff' | 'talent' | 'business') => {
                         updateUserRole(selectedUser.user_id, value);
                         setSelectedUser({ ...selectedUser, role: value });
                       }}
@@ -740,6 +742,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
                         <SelectItem value="admin">{t.admin}</SelectItem>
                         <SelectItem value="staff">{t.staff}</SelectItem>
                         <SelectItem value="talent">{t.talent}</SelectItem>
+                        <SelectItem value="business">{t.business}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -950,14 +953,15 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
               <div>
                 <Label htmlFor="role">{t.role}</Label>
-                <Select value={newUser.role} onValueChange={(value: 'admin' | 'staff' | 'talent') => setNewUser({ ...newUser, role: value })}>
+                <Select value={newUser.role} onValueChange={(value: 'admin' | 'staff' | 'talent' | 'business') => setNewUser({ ...newUser, role: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">{t.admin}</SelectItem>
-                    <SelectItem value="staff">{t.staff}</SelectItem>
-                    <SelectItem value="talent">{t.talent}</SelectItem>
+                        <SelectItem value="admin">{t.admin}</SelectItem>
+                        <SelectItem value="staff">{t.staff}</SelectItem>
+                        <SelectItem value="talent">{t.talent}</SelectItem>
+                        <SelectItem value="business">{t.business}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1004,6 +1008,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
                 <SelectItem value="admin">{t.admin}</SelectItem>
                 <SelectItem value="staff">{t.staff}</SelectItem>
                 <SelectItem value="talent">{t.talent}</SelectItem>
+                <SelectItem value="business">{t.business}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>

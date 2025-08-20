@@ -10,7 +10,7 @@ interface Profile {
   first_name?: string;
   last_name?: string;
   phone?: string;
-  role: 'admin' | 'staff' | 'talent';
+  role: 'admin' | 'staff' | 'talent' | 'business';
   created_at: string;
   updated_at: string;
 }

@@ -28,7 +28,7 @@ interface Message {
 interface Profile {
   user_id: string;
   display_name: string;
-  role: 'admin' | 'staff' | 'talent';
+  role: 'admin' | 'staff' | 'talent' | 'business';
 }
 
 interface MessageCenterProps {

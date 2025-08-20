@@ -120,6 +120,9 @@ const Auth = () => {
         case 'talent':
           navigate('/dashboard/talent');
           break;
+        case 'business':
+          navigate('/dashboard/business');
+          break;
         default:
           navigate('/');
       }
