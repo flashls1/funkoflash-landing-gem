@@ -13,7 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
-import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Lock, Unlock, ChevronDown } from 'lucide-react';
+import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Building, Lock, Unlock, ChevronDown } from 'lucide-react';
 import { hasFeature } from '@/lib/features';
 import UserManagement from '@/components/UserManagement';
 import AccessRequestManager from '@/components/AccessRequestManager';
@@ -138,9 +138,9 @@ const AdminDashboard = () => {
       accessRequests: "Access Requests",
       accessRequestsDesc: "Review and approve new user access requests",
       reviewRequests: "Review Requests",
-      eventManagement: "Event Management",
-      eventManagementDesc: "Create, edit, and manage platform events",
-      manageEvents: "Manage Events",
+      businessManagement: "Business Management",
+      businessManagementDesc: "Create, edit, and manage business events",
+      manageBusinessEvents: "Manage Business Events",
       systemSettings: "System Settings",
       systemSettingsDesc: "Configure platform settings and preferences",
       configureSystem: "Configure System",
@@ -175,9 +175,9 @@ const AdminDashboard = () => {
       accessRequests: "Solicitudes de Acceso",
       accessRequestsDesc: "Revisa y aprueba nuevas solicitudes de acceso de usuarios",
       reviewRequests: "Revisar Solicitudes",
-      eventManagement: "Gestión de Eventos",
-      eventManagementDesc: "Crear, editar y gestionar eventos de la plataforma",
-      manageEvents: "Gestionar Eventos",
+      businessManagement: "Gestión de Negocios",
+      businessManagementDesc: "Crear, editar y gestionar eventos de negocios",
+      manageBusinessEvents: "Gestionar Eventos de Negocios",
       systemSettings: "Configuración del Sistema",
       systemSettingsDesc: "Configurar ajustes y preferencias de la plataforma",
       configureSystem: "Configurar Sistema",
@@ -215,11 +215,11 @@ const AdminDashboard = () => {
     return null;
   }
 
-  // Module definitions with colors - filter based on feature flags
+  // Module definitions with colors
   const allModuleCards = [
     { id: 'user-management', icon: Users, color: 'text-blue-500', title: t.userManagement, desc: t.userManagementDesc, action: t.manageUsers, onClick: () => setActiveTab('users') },
     { id: 'access-requests', icon: FileText, color: 'text-purple-500', title: t.accessRequests, desc: t.accessRequestsDesc, action: t.reviewRequests, onClick: () => setActiveTab('access-requests') },
-    { id: 'event-management', icon: Calendar, color: 'text-green-500', title: t.eventManagement, desc: t.eventManagementDesc, action: t.manageEvents, onClick: () => navigate('/admin/events-manager') },
+    { id: 'business-management', icon: Building, color: 'text-green-500', title: t.businessManagement, desc: t.businessManagementDesc, action: t.manageBusinessEvents, onClick: () => navigate('/admin/business-events') },
     { id: 'system-settings', icon: Settings, color: 'text-gray-500', title: t.systemSettings, desc: t.systemSettingsDesc, action: t.configureSystem },
     { id: 'reports-analytics', icon: BarChart3, color: 'text-orange-500', title: t.reportsAnalytics, desc: t.reportsAnalyticsDesc, action: t.viewReports },
     { id: 'content-management', icon: FileText, color: 'text-indigo-500', title: t.contentManagement, desc: t.contentManagementDesc, action: t.manageContent },
@@ -228,13 +228,6 @@ const AdminDashboard = () => {
     { id: 'shop-manager', icon: ShoppingBag, color: 'text-emerald-500', title: language === 'en' ? 'Shop Manager' : 'Gestor de Tienda', desc: language === 'en' ? 'Manage products, images, and shop inventory' : 'Gestionar productos, imágenes e inventario de la tienda', action: language === 'en' ? 'Manage Shop' : 'Gestionar Tienda', onClick: () => navigate('/admin/shop-manager') },
     { id: 'events-manager', icon: Calendar, color: 'text-red-500', title: language === 'en' ? 'Events Manager' : 'Gestor de Eventos', desc: language === 'en' ? 'Create, manage, and publish events with talent assignments' : 'Crear, gestionar y publicar eventos con asignaciones de talento', action: language === 'en' ? 'Manage Events' : 'Gestionar Eventos', onClick: () => navigate('/admin/events-manager') }
   ];
-
-  // Add calendar management if feature is enabled
-  if (hasFeature('calendar')) {
-    allModuleCards.push(
-      { id: 'calendar-management', icon: Calendar, color: 'text-teal-500', title: t.calendarManagement, desc: t.calendarManagementDesc, action: t.manageCalendar, onClick: () => navigate('/calendar') }
-    );
-  }
 
   const moduleCards = allModuleCards;
 

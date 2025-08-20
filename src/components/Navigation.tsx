@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import funkoFlashLogo from "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png";
 import flagUs from "@/assets/flag-us.png";
 import flagMx from "@/assets/flag-mx.png";
-import { Globe, Menu, X, Calendar } from "lucide-react";
+import { Globe, Menu, X } from "lucide-react";
 import { hasFeature, FEATURES } from "@/lib/features";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -35,7 +35,7 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
     fontFamily: customStyles?.fontFamily || 'inherit'
   };
 
-  // Build navigation items dynamically based on feature flags and permissions
+  // Build navigation items dynamically
   const buildNavigationItems = () => {
     const baseItems = {
       en: ['HOME', 'SHOP', 'TALENT DIRECTORY', 'EVENTS', 'ABOUT', 'CONTACT'],
@@ -43,23 +43,6 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
     };
     
     const baseLinks = ['/', '/shop', '/talent-directory', '/events', '/about', '/contact'];
-    
-    // Add calendar if feature is enabled and user has permission
-    if (hasFeature('calendar') && user && hasPermission && hasPermission('calendar:view')) {
-      // Check if business role should see calendar based on feature flag
-      const userRole = profile?.role;
-      const shouldShowCalendar = userRole !== 'business' || FEATURES.calendarForBusiness;
-      
-      if (shouldShowCalendar) {
-        const calendarItems = {
-          en: ['HOME', 'SHOP', 'TALENT DIRECTORY', 'EVENTS', 'ABOUT', 'CONTACT', 'CALENDAR'],
-          es: ['INICIO', 'TIENDA', 'DIRECTORIO DE TALENTO', 'EVENTOS', 'ACERCA DE', 'CONTACTO', 'CALENDARIO']
-        };
-        const calendarLinks = ['/', '/shop', '/talent-directory', '/events', '/about', '/contact', '/calendar'];
-        
-        return { items: calendarItems[language], links: calendarLinks };
-      }
-    }
     
     return { items: baseItems[language], links: baseLinks };
   };
