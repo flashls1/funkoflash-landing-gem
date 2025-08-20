@@ -1,318 +1,376 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Globe, Users, Plus, Building, BarChart3, Target } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import { useAuth } from '@/hooks/useAuth';
+import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useColorTheme } from '@/hooks/useColorTheme';
+import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown, Building2 } from 'lucide-react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useDrag, useDrop } from 'react-dnd';
+import { NextEventCard } from '@/components/NextEventCard';
+import { MiniAgenda } from '@/components/MiniAgenda';
 
-interface BusinessEvent {
-  id: string;
-  name: string;
-  start_date?: string;
-  end_date?: string;
-  location?: string;
-  website?: string;
-  logo_url?: string;
-  contact_name?: string;
-  contact_phone?: string;
-  contact_email?: string;
-  created_at: string;
-  updated_at: string;
-}
+// Draggable card component for business
+const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'card',
+    item: { id, index },
+    canDrag: isDragEnabled,
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
 
-interface DashboardStats {
-  totalEvents: number;
-  upcomingEvents: number;
-  activeProjects: number;
-  teamMembers: number;
-}
+  const [, drop] = useDrop({
+    accept: 'card',
+    hover: (item: any) => {
+      if (!isDragEnabled || item.index === index) return;
+      moveCard(item.index, index);
+      item.index = index;
+    },
+  });
+
+  return (
+    <div
+      ref={(node) => drag(drop(node))}
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+      className={isDragEnabled ? 'cursor-move' : 'cursor-default'}
+    >
+      {children}
+    </div>
+  );
+};
 
 const BusinessDashboard = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
-  const [events, setEvents] = useState<BusinessEvent[]>([]);
-  const [stats, setStats] = useState<DashboardStats>({
-    totalEvents: 0,
-    upcomingEvents: 0,
-    activeProjects: 0,
-    teamMembers: 0
-  });
-  const [loading, setLoading] = useState(true);
-  
-  const { user, profile } = useAuth();
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isDragEnabled, setIsDragEnabled] = useState(false);
+  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5]);
+  const { user, profile, loading } = useAuth();
+  const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const content = {
-    en: {
-      title: "Business Dashboard",
-      subtitle: "Manage your business events and projects",
-      overview: "Overview",
-      totalEvents: "Total Events",
-      upcomingEvents: "Upcoming Events",
-      activeProjects: "Active Projects",
-      teamMembers: "Team Members",
-      recentEvents: "Recent Events",
-      viewAllEvents: "View All Events",
-      createEvent: "Create Event",
-      noEvents: "No events found",
-      noEventsDescription: "Create your first business event to get started",
-      loading: "Loading dashboard...",
-      website: "Visit Website",
-      contact: "Contact"
-    },
-    es: {
-      title: "Panel Empresarial",
-      subtitle: "Gestiona tus eventos empresariales y proyectos",
-      overview: "Resumen",
-      totalEvents: "Total de Eventos",
-      upcomingEvents: "Próximos Eventos",
-      activeProjects: "Proyectos Activos",
-      teamMembers: "Miembros del Equipo",
-      recentEvents: "Eventos Recientes",
-      viewAllEvents: "Ver Todos los Eventos",
-      createEvent: "Crear Evento",
-      noEvents: "No se encontraron eventos",
-      noEventsDescription: "Crea tu primer evento empresarial para comenzar",
-      loading: "Cargando panel...",
-      website: "Visitar Sitio Web",
-      contact: "Contacto"
-    }
-  };
-
-  const t = content[language];
 
   useEffect(() => {
+    // Handle authentication and authorization separately
+    if (loading) return; // Wait for auth to initialize
+
     if (!user) {
       navigate('/auth');
       return;
     }
 
-    if (profile?.role !== 'business') {
-      navigate('/');
+    if (profile && profile.role !== 'business') {
+      navigate('/auth');
       return;
     }
 
-    fetchDashboardData();
-  }, [user, profile, navigate]);
+    // Update time every minute
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
 
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      
-      // For now, we'll show placeholder data until types are updated
-      console.log('Fetching business dashboard data...');
-      
-      // Simulate loading
-      setTimeout(() => {
-        setStats({
-          totalEvents: 0,
-          upcomingEvents: 0,
-          activeProjects: 0,
-          teamMembers: 1
-        });
-        setEvents([]);
-        setLoading(false);
-      }, 1000);
+    return () => clearInterval(timer);
+  }, [user, profile, loading, navigate]);
 
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load dashboard data",
-        variant: "destructive",
-      });
-      setLoading(false);
+  const moveCard = (dragIndex: number, hoverIndex: number) => {
+    const newOrder = [...cardOrder];
+    const draggedCard = newOrder[dragIndex];
+    newOrder.splice(dragIndex, 1);
+    newOrder.splice(hoverIndex, 0, draggedCard);
+    setCardOrder(newOrder);
+  };
+
+  const getGreeting = () => {
+    const cstTime = new Date(currentTime.toLocaleString("en-US", {timeZone: "America/Chicago"}));
+    const hour = cstTime.getHours();
+    const firstName = profile?.first_name || 'Business';
+
+    const greetings = {
+      en: {
+        morning: `Good morning ${firstName}`,
+        afternoon: `Good afternoon ${firstName}`,
+        evening: `Good evening ${firstName}`
+      },
+      es: {
+        morning: `Buenos días ${firstName}`,
+        afternoon: `Buenas tardes ${firstName}`,
+        evening: `Buenas noches ${firstName}`
+      }
+    };
+
+    const t = greetings[language];
+
+    if (hour >= 0 && hour < 12) return t.morning;
+    if (hour >= 12 && hour < 17) return t.afternoon;
+    return t.evening;
+  };
+
+  const content = {
+    en: {
+      dashboard: "Business Dashboard",
+      overview: "Overview",
+      messages: "Messages",
+      settings: "Settings",
+      moduleComingSoon: "Modules coming soon.",
+      moduleLayout: "Module Layout",
+      dashboardColors: "Dashboard Colors",
+      locked: "Locked",
+      unlocked: "Unlocked"
+    },
+    es: {
+      dashboard: "Panel de Empresa",
+      overview: "Resumen",
+      messages: "Mensajes",
+      settings: "Configuración",
+      moduleComingSoon: "Módulos próximamente.",
+      moduleLayout: "Diseño de Módulos",
+      dashboardColors: "Colores del Panel",
+      locked: "Bloqueado",
+      unlocked: "Desbloqueado"
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Date TBD';
-    try {
-      return new Intl.DateTimeFormat(language === 'es' ? 'es-ES' : 'en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      }).format(new Date(dateString));
-    } catch {
-      return 'Date TBD';
-    }
-  };
+  const t = content[language];
 
+  // Show loading while authentication is being checked
   if (loading) {
     return (
-      <div className="min-h-screen">
-        <Navigation language={language} setLanguage={setLanguage} />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">{t.loading}</p>
-            </div>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <p className="mt-4 text-lg">Loading dashboard...</p>
         </div>
-        <Footer language={language} />
       </div>
     );
   }
 
+  // If not authenticated or not business, don't render dashboard content
+  if (!user || !profile || profile.role !== 'business') {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation language={language} setLanguage={setLanguage} />
-
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">{t.title}</h1>
-            <p className="text-muted-foreground">{t.subtitle}</p>
-          </div>
-          <div className="flex gap-3">
-            <Button onClick={() => navigate('/business-events')} variant="outline">
-              {t.viewAllEvents}
-            </Button>
-            <Button onClick={() => navigate('/business-events')} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              {t.createEvent}
-            </Button>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t.totalEvents}</p>
-                  <p className="text-2xl font-bold">{stats.totalEvents}</p>
+    <DndProvider backend={HTML5Backend}>
+      <div 
+        className="min-h-screen"
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <Navigation language={language} setLanguage={setLanguage} />
+        
+        <div className="container mx-auto px-4 py-8">
+        {/* Combined Profile Header with Greeting and Date */}
+        <div className="mb-6">
+          <Card 
+            className="border-2 rounded-2xl overflow-hidden"
+            style={{
+              backgroundColor: currentTheme.cardBackground,
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
+            <div 
+              className="relative h-48 bg-cover bg-center bg-no-repeat"
+              style={{
+                backgroundImage: (profile as any)?.background_image_url 
+                  ? `url(${(profile as any).background_image_url})` 
+                  : "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')"
+              }}
+            >
+              {/* Overlay for better text visibility */}
+              <div className="absolute inset-0 bg-black/40"></div>
+              
+              {/* Profile content */}
+              <div className="relative flex items-end justify-between h-full p-6">
+                {/* Left side - Profile info */}
+                <div className="flex items-end gap-4">
+                  <Avatar className="h-20 w-20 border-4 border-white shadow-xl">
+                    <AvatarImage src={(profile as any)?.avatar_url || ''} />
+                    <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-blue-500 to-green-600 text-white">
+                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-white mb-2">
+                    <h2 className="text-2xl font-bold drop-shadow-lg">
+                      {profile?.first_name} {profile?.last_name}
+                    </h2>
+                    <p className="text-white/90 capitalize flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      {profile?.role}
+                    </p>
+                    <InvisibleModeToggle language={language} className="mt-2" />
+                  </div>
                 </div>
-                <Calendar className="h-8 w-8 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t.upcomingEvents}</p>
-                  <p className="text-2xl font-bold">{stats.upcomingEvents}</p>
+                
+                {/* Right side - Greeting and Date */}
+                <div className="text-right text-white">
+                  <h1 className="text-3xl font-bold mb-1 drop-shadow-lg">
+                    {getGreeting()}
+                  </h1>
+                  <div className="flex items-center gap-2 justify-end">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <p className="text-lg font-medium drop-shadow-lg">
+                      {currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        timeZone: 'America/Chicago'
+                      })}
+                    </p>
+                  </div>
                 </div>
-                <Target className="h-8 w-8 text-muted-foreground" />
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t.activeProjects}</p>
-                  <p className="text-2xl font-bold">{stats.activeProjects}</p>
-                </div>
-                <BarChart3 className="h-8 w-8 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t.teamMembers}</p>
-                  <p className="text-2xl font-bold">{stats.teamMembers}</p>
-                </div>
-                <Users className="h-8 w-8 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Events */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>{t.recentEvents}</CardTitle>
-                <CardDescription>Latest business events you're involved in</CardDescription>
-              </div>
-              <Button variant="outline" onClick={() => navigate('/business-events')}>
-                {t.viewAllEvents}
-              </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            {events.length === 0 ? (
-              <div className="text-center py-12">
-                <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">{t.noEvents}</h3>
-                <p className="text-muted-foreground mb-4">{t.noEventsDescription}</p>
-                <Button onClick={() => navigate('/business-events')} className="flex items-center gap-2 mx-auto">
-                  <Plus className="h-4 w-4" />
-                  {t.createEvent}
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {events.slice(0, 6).map((event) => (
-                  <Card key={event.id} className="group hover:shadow-md transition-shadow cursor-pointer">
-                    {event.logo_url && (
-                      <div className="aspect-[16/9] overflow-hidden rounded-t-lg">
-                        <img
-                          src={event.logo_url}
-                          alt={event.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+          </Card>
+          
+          {/* Control Bar - Module Layout and Dashboard Colors */}
+          <Card 
+            className="border-2 border-t-0 rounded-t-none"
+            style={{
+              backgroundColor: currentTheme.cardBackground,
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-8">
+                  {/* Module Layout Controls */}
+                  <div className="flex items-center gap-3">
+                    {isDragEnabled ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                    <span className="text-sm font-medium">
+                      {t.moduleLayout}
+                    </span>
+                    <Switch
+                      checked={isDragEnabled}
+                      onCheckedChange={setIsDragEnabled}
+                      style={{ backgroundColor: isDragEnabled ? currentTheme.accent : undefined }}
+                    />
+                    <span className="text-xs opacity-70">
+                      {isDragEnabled ? t.unlocked : t.locked}
+                    </span>
+                  </div>
+
+                  {/* Navigation Tabs */}
+                  <nav className="flex space-x-6">
+                    <button 
+                      className="py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 border-current"
+                      style={{ color: currentTheme.accent }}
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      {t.overview}
+                    </button>
+                    <button 
+                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
+                      style={{ color: currentTheme.cardForeground }}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      {t.messages}
+                    </button>
+                    <button 
+                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
+                      style={{ color: currentTheme.cardForeground }}
+                    >
+                      <Settings className="h-4 w-4" />
+                      {t.settings}
+                    </button>
+                  </nav>
+                </div>
+                
+                {/* Dashboard Colors Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      style={{
+                        backgroundColor: currentTheme.cardBackground,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.cardForeground
+                      }}
+                    >
+                      <Palette className="h-4 w-4 mr-2" />
+                      {t.dashboardColors}
+                      <ChevronDown className="h-4 w-4 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-48"
+                    style={{
+                      backgroundColor: currentTheme.cardBackground,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.cardForeground
+                    }}
+                  >
+                    {colorThemes.map((theme) => (
+                      <DropdownMenuItem
+                        key={theme.id}
+                        onClick={() => changeTheme(theme.id)}
+                        className="flex items-center gap-3 cursor-pointer"
+                        style={{
+                          backgroundColor: currentTheme.id === theme.id ? currentTheme.accent + '20' : 'transparent'
+                        }}
+                      >
+                        <div 
+                          className="w-4 h-4 rounded-full border"
+                          style={{ backgroundColor: theme.accent, borderColor: theme.border }}
                         />
-                      </div>
-                    )}
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2 line-clamp-1">{event.name || 'Untitled Event'}</h3>
-                      
-                      {event.start_date && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                          <Calendar className="h-4 w-4" />
-                          <span>{formatDate(event.start_date)}</span>
-                        </div>
-                      )}
-                      
-                      {event.location && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                          <MapPin className="h-4 w-4" />
-                          <span className="truncate">{event.location}</span>
-                        </div>
-                      )}
-
-                      <div className="flex gap-2">
-                        {event.website && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Globe className="h-3 w-3 mr-1" />
-                            {t.website}
-                          </Badge>
-                        )}
-                        {(event.contact_name || event.contact_email || event.contact_phone) && (
-                          <Badge variant="outline" className="text-xs">
-                            <Users className="h-3 w-3 mr-1" />
-                            {t.contact}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        {theme.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      <Footer language={language} />
-    </div>
+        {/* Main Content */}
+        <div className="space-y-6">
+          {/* Next Event and Mini Agenda */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <NextEventCard language={language} />
+            <MiniAgenda language={language} />
+          </div>
+
+          {/* Future modules placeholder */}
+          <Card 
+            className="border-2 text-center py-8"
+            style={{
+              backgroundColor: currentTheme.cardBackground,
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
+            <CardContent>
+              <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <h3 className="text-xl font-semibold mb-2">{t.dashboard}</h3>
+              <p className="opacity-70">{t.moduleComingSoon}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <RealtimeMessageCenter language={language} />
+        </div>
+        
+        <Footer language={language} />
+      </div>
+    </DndProvider>
   );
 };
 

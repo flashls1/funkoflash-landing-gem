@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,7 +19,6 @@ import Shop from "./pages/Shop";
 import ShopManager from "./pages/ShopManager";
 import Events from "./pages/Events";
 import EventsManager from "./pages/EventsManager";
-import BusinessEvents from "./pages/BusinessEvents";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Calendar from "./pages/Calendar";
@@ -51,7 +49,6 @@ const App = () => (
             <Route path="/admin/shop-manager" element={<ShopManager />} />
             <Route path="/events" element={<Events />} />
             <Route path="/admin/events-manager" element={<EventsManager />} />
-            <Route path="/admin/business-events" element={<BusinessEvents />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/calendar" element={<Calendar />} />
