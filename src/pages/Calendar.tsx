@@ -610,8 +610,10 @@ const Calendar = () => {
                 selectedYear={selectedYear}
                 onYearChange={(year) => {
                   setSelectedYear(year);
-                  // Update currentDate to January of the selected year
-                  setCurrentDate(new Date(year, 0, 1));
+                  // Preserve current month and day when changing years
+                  const newDate = new Date(currentDate);
+                  newDate.setFullYear(year);
+                  setCurrentDate(newDate);
                 }}
                 language={language}
               />
@@ -786,12 +788,12 @@ const Calendar = () => {
                 slotLabelInterval="01:00:00"
                 locale={language}
                 datesSet={(dateInfo) => {
-                  setCurrentDate(dateInfo.start);
-                  // Update the selected year when user navigates to a different year
+                  // Only update if we're not in the middle of programmatic navigation
                   const newYear = dateInfo.start.getFullYear();
                   if (newYear !== selectedYear) {
                     setSelectedYear(newYear);
                   }
+                  setCurrentDate(dateInfo.start);
                 }}
               />
             )}
