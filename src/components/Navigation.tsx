@@ -46,14 +46,8 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
     
     // Add calendar if feature is enabled and user has permission
     if (hasFeature('calendar') && user && hasPermission && hasPermission('calendar:view')) {
-      // Insert calendar after events (before about)
-      const items = [...baseItems[language]];
-      const links = [...baseLinks];
-      
-      items.splice(4, 0, '');  // Remove CALENDAR text - just add link
-      links.splice(4, 0, '/calendar');
-      
-      return { items, links };
+      // Don't add calendar text to navigation, just keep original items
+      return { items: baseItems[language], links: baseLinks };
     }
     
     return { items: baseItems[language], links: baseLinks };

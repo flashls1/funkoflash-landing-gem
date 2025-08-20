@@ -53,9 +53,11 @@ export type Database = {
           contact_phone: string | null
           created_at: string
           created_by: string | null
+          do_not_sync: boolean | null
           end_date: string
           end_time: string | null
           event_title: string
+          gcal_event_id: string | null
           id: string
           last_synced_at: string | null
           location_city: string | null
@@ -85,9 +87,11 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           created_by?: string | null
+          do_not_sync?: boolean | null
           end_date: string
           end_time?: string | null
           event_title: string
+          gcal_event_id?: string | null
           id?: string
           last_synced_at?: string | null
           location_city?: string | null
@@ -117,9 +121,11 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           created_by?: string | null
+          do_not_sync?: boolean | null
           end_date?: string
           end_time?: string | null
           event_title?: string
+          gcal_event_id?: string | null
           id?: string
           last_synced_at?: string | null
           location_city?: string | null
@@ -276,6 +282,48 @@ export type Database = {
           updated_by?: string | null
           visibility_end?: string | null
           visibility_start?: string | null
+        }
+        Relationships: []
+      }
+      gcal_connections: {
+        Row: {
+          access_token: string
+          calendar_id: string
+          created_at: string
+          created_by: string | null
+          google_email: string
+          id: string
+          refresh_token: string
+          talent_id: string
+          token_expiry: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          access_token: string
+          calendar_id: string
+          created_at?: string
+          created_by?: string | null
+          google_email: string
+          id?: string
+          refresh_token: string
+          talent_id: string
+          token_expiry: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          access_token?: string
+          calendar_id?: string
+          created_at?: string
+          created_by?: string | null
+          google_email?: string
+          id?: string
+          refresh_token?: string
+          talent_id?: string
+          token_expiry?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -721,6 +769,16 @@ export type Database = {
       delete_user_completely: {
         Args: { target_user_id: string }
         Returns: boolean
+      }
+      get_gcal_tokens: {
+        Args: { p_talent_id: string }
+        Returns: {
+          access_token: string
+          calendar_id: string
+          google_email: string
+          refresh_token: string
+          token_expiry: string
+        }[]
       }
       get_user_role: {
         Args: { _user_id: string }
