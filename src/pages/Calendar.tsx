@@ -17,6 +17,7 @@ import { CalendarImportDialog } from '@/components/CalendarImportDialog';
 import { CalendarEventForm } from '@/components/CalendarEventForm';
 import { TalentSwitcher } from '@/components/TalentSwitcher';
 import { YearSelector } from '@/components/YearSelector';
+import { GoogleCalendarSync } from '@/components/GoogleCalendarSync';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
