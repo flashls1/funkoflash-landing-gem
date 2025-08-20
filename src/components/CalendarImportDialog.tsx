@@ -110,8 +110,8 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
 
   const t = content[language];
 
-  const requiredFields = ['talent_name', 'event_title', 'start_date', 'end_date'];
-  const optionalFields = ['status', 'start_time', 'end_time', 'timezone', 'all_day', 'venue_name', 
+  const requiredFields = ['event_title', 'start_date']; // Only these are truly required
+  const optionalFields = ['end_date', 'talent_name', 'status', 'start_time', 'end_time', 'timezone', 'all_day', 'venue_name', 
     'location_city', 'location_state', 'location_country', 'address_line', 'contact_name', 
     'contact_email', 'contact_phone', 'url', 'notes_internal', 'notes_public', 'travel_in', 'travel_out'];
 
@@ -179,18 +179,73 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         setData(rows);
         setStep('mapping');
 
-        // Auto-detect mapping
+        // Smart auto-detection with multiple pattern matching
         const autoMapping: Record<string, string> = {};
         headers.forEach(header => {
-          const normalized = header.toLowerCase().replace(/[^a-z]/g, '');
-          if (normalized.includes('talent') || normalized.includes('performer')) autoMapping[header] = 'talent_name';
-          else if (normalized.includes('title') || normalized.includes('event')) autoMapping[header] = 'event_title';
-          else if (normalized.includes('startdate') || normalized.includes('datestart')) autoMapping[header] = 'start_date';
-          else if (normalized.includes('enddate') || normalized.includes('dateend')) autoMapping[header] = 'end_date';
-          else if (normalized.includes('status') || normalized.includes('state')) autoMapping[header] = 'status';
-          else if (normalized.includes('venue')) autoMapping[header] = 'venue_name';
-          else if (normalized.includes('city')) autoMapping[header] = 'location_city';
-          else if (normalized.includes('state')) autoMapping[header] = 'location_state';
+          const normalized = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const headerWords = header.toLowerCase().split(/[^a-z0-9]+/);
+          
+          // Talent/Artist detection
+          if (['talent', 'artist', 'performer', 'voice', 'actor', 'name'].some(word => 
+            normalized.includes(word) || headerWords.includes(word))) {
+            autoMapping[header] = 'talent_name';
+          }
+          
+          // Event title detection  
+          else if (['title', 'event', 'show', 'convention', 'con', 'project'].some(word => 
+            normalized.includes(word) || headerWords.includes(word))) {
+            autoMapping[header] = 'event_title';
+          }
+          
+          // Start date detection
+          else if (['startdate', 'start', 'datestart', 'begindate', 'from'].some(word => 
+            normalized.includes(word) || headerWords.includes(word)) && 
+            ['date', 'day', 'when'].some(word => normalized.includes(word) || headerWords.includes(word))) {
+            autoMapping[header] = 'start_date';
+          }
+          
+          // End date detection
+          else if (['enddate', 'end', 'dateend', 'finishdate', 'to', 'until'].some(word => 
+            normalized.includes(word) || headerWords.includes(word)) && 
+            ['date', 'day', 'when'].some(word => normalized.includes(word) || headerWords.includes(word))) {
+            autoMapping[header] = 'end_date';
+          }
+          
+          // Status detection
+          else if (['status', 'state', 'condition', 'booking'].some(word => 
+            normalized.includes(word) || headerWords.includes(word))) {
+            autoMapping[header] = 'status';
+          }
+          
+          // Venue detection
+          else if (['venue', 'location', 'place', 'site', 'facility'].some(word => 
+            normalized.includes(word) || headerWords.includes(word))) {
+            autoMapping[header] = 'venue_name';
+          }
+          
+          // City detection
+          else if (['city', 'town'].some(word => 
+            normalized.includes(word) || headerWords.includes(word))) {
+            autoMapping[header] = 'location_city';
+          }
+          
+          // State detection
+          else if (['state', 'province', 'region'].some(word => 
+            normalized.includes(word) || headerWords.includes(word))) {
+            autoMapping[header] = 'location_state';
+          }
+          
+          // URL/Website detection
+          else if (['url', 'website', 'link', 'web'].some(word => 
+            normalized.includes(word) || headerWords.includes(word))) {
+            autoMapping[header] = 'url';
+          }
+          
+          // Notes detection
+          else if (['notes', 'note', 'comment', 'description', 'info'].some(word => 
+            normalized.includes(word) || headerWords.includes(word))) {
+            autoMapping[header] = 'notes_public';
+          }
         });
         setMapping(autoMapping);
       }
@@ -217,12 +272,26 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         }
       });
 
-      // Validate required fields
+      // Validate required fields more flexibly
       requiredFields.forEach(field => {
         if (!mappedRow[field] || mappedRow[field].toString().trim() === '') {
           mappedRow._validationErrors.push(`Missing ${field}`);
         }
       });
+
+      // Set defaults for missing end_date
+      if (!mappedRow.end_date && mappedRow.start_date) {
+        mappedRow.end_date = mappedRow.start_date; // Default to same day if end date not provided
+      }
+
+      // Set default talent if not specified and one is selected
+      if (!mappedRow.talent_name && importTalent) {
+        // We'll use the selected talent from the UI
+        const selectedTalentData = talents.find(t => t.id === importTalent);
+        if (selectedTalentData) {
+          mappedRow.talent_name = selectedTalentData.name;
+        }
+      }
 
       // Normalize status
       if (mappedRow.status) {

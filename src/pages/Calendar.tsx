@@ -284,18 +284,17 @@ const Calendar = () => {
       setLoading(false);
     }
   }, [
-    user,
+    user?.id,
     authLoading,
     permissionsLoading,
-    hasPermission,
     talents.length,
     filters.dateRange,
     filters.status,
     filters.hideNotAvailable,
-    filters.talent,
+    filters.talent.join(','), // Convert array to string for comparison
     selectedYear,
     view,
-    currentDate,
+    currentDate.getTime(),
     selectedTalent,
     toast
   ]);
