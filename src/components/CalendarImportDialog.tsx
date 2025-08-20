@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,6 +41,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
   const [importYear, setImportYear] = useState(new Date().getFullYear());
   const [importMode, setImportMode] = useState<'merge' | 'replace'>('merge');
   const [talents, setTalents] = useState<{ id: string; name: string }[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -361,14 +362,15 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
           </TabsList>
 
           <TabsContent value="upload" className="space-y-4">
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+            <div 
+              className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <Label htmlFor="file-upload" className="cursor-pointer">
-                <div className="text-lg font-medium mb-2">{t.chooseFile}</div>
-                <div className="text-sm text-muted-foreground">CSV or Excel (.xlsx)</div>
-              </Label>
+              <div className="text-lg font-medium mb-2">{t.chooseFile}</div>
+              <div className="text-sm text-muted-foreground">CSV or Excel (.xlsx)</div>
               <Input
-                id="file-upload"
+                ref={fileInputRef}
                 type="file"
                 accept=".csv,.xlsx,.xls"
                 onChange={handleFileUpload}
