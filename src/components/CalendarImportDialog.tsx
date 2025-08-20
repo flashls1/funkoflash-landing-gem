@@ -8,7 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, AlertCircle, CheckCircle, FileText } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Upload, AlertCircle, CheckCircle, FileText, Calendar } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,6 +45,8 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
   const [importMode, setImportMode] = useState<'merge' | 'replace'>('merge');
   const [talents, setTalents] = useState<{ id: string; name: string }[]>([]);
   const [requiredFields, setRequiredFields] = useState<string[]>(['event_title', 'start_date']); // Default to standard CSV
+  const [importFormat, setImportFormat] = useState<'standard' | 'weekend-matrix'>('standard');
+  const [fallbackRule, setFallbackRule] = useState<'sat-sun' | 'fri-sat-sun'>('sat-sun');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -99,7 +103,33 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
       importMode: 'Import Mode',
       merge: 'Merge (add/update)',
       replace: 'Replace entire year',
-      replaceWarning: '⚠️ This will DELETE ALL events for the selected year for this talent'
+      replaceWarning: '⚠️ This will DELETE ALL events for the selected year for this talent',
+      format: {
+        title: 'Import Format',
+        standard: 'Standard table (existing)',
+        weekendMatrix: 'Weekend matrix (Fri/Sat/Sun)'
+      },
+      options: {
+        yearLabel: 'Year',
+        mode: {
+          merge: 'Merge',
+          replaceYear: 'Replace Year (danger)'
+        },
+        fallback: {
+          label: 'If XLSX styles are missing…',
+          satSun: 'Assume Sat–Sun only',
+          friSatSun: 'Assume Fri–Sun'
+        }
+      },
+      previewHeaders: {
+        month: 'Month',
+        status: 'Status'
+      },
+      errors: {
+        missingTitle: 'Missing event title',
+        missingDay: 'No day in Fri/Sat/Sun',
+        yearMismatch: 'Row month/year doesn\'t match the selected year'
+      }
     },
     es: {
       title: 'Importar Eventos de Calendario',
@@ -129,36 +159,86 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
       importMode: 'Modo de Importación',
       merge: 'Combinar (agregar/actualizar)',
       replace: 'Reemplazar año completo',
-      replaceWarning: '⚠️ Esto eliminará TODOS los eventos del año seleccionado para este talento'
+      replaceWarning: '⚠️ Esto eliminará TODOS los eventos del año seleccionado para este talento',
+      format: {
+        title: 'Formato de Importación',
+        standard: 'Tabla estándar (existente)',
+        weekendMatrix: 'Matriz de fin de semana (Vie/Sáb/Dom)'
+      },
+      options: {
+        yearLabel: 'Año',
+        mode: {
+          merge: 'Combinar',
+          replaceYear: 'Reemplazar año (peligro)'
+        },
+        fallback: {
+          label: 'Si faltan estilos del XLSX…',
+          satSun: 'Asumir solo Sáb–Dom',
+          friSatSun: 'Asumir Vie–Sáb–Dom'
+        }
+      },
+      previewHeaders: {
+        month: 'Mes',
+        status: 'Estado'
+      },
+      errors: {
+        missingTitle: 'Falta el título del evento',
+        missingDay: 'No hay día en Vie/Sáb/Dom',
+        yearMismatch: 'El mes/año de la fila no coincide con el año seleccionado'
+      }
     }
   };
 
   const t = content[language];
 
-  // Function to process Google Sheets calendar format
-  const processGoogleSheetsCalendar = (data: any[][]): any[] => {
+  // Function to process Weekend Matrix (Fri/Sat/Sun) format from XLSX
+  const processWeekendMatrix = (workbook: any, selectedYear: number, fallbackRule: 'sat-sun' | 'fri-sat-sun'): any[] => {
     const events: any[] = [];
     let currentMonth = '';
     let currentYear = '';
     
-    console.log('Starting to process Google Sheets calendar data:', data.length, 'rows');
+    console.log('Starting to process Weekend Matrix data for year:', selectedYear);
     
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      if (!row || row.length === 0) continue;
+    // Get the first sheet
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    
+    // Convert sheet to range to get raw cell data with styles
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
+    
+    for (let rowIndex = range.s.r; rowIndex <= range.e.r; rowIndex++) {
+      const row: any[] = [];
+      const cellStyles: any[] = [];
+      
+      // Read cells for this row
+      for (let colIndex = range.s.c; colIndex <= Math.min(range.e.c, 5); colIndex++) { // Only read first 6 columns (A-F)
+        const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+        const cell = worksheet[cellRef];
+        row[colIndex] = cell ? (cell.w || cell.v || '') : '';
+        cellStyles[colIndex] = cell ? cell.s : null;
+      }
+      
+      if (row.length === 0) continue;
       
       const firstCell = String(row[0] || '').trim();
       
       // Check if this is a month/year header row (like "January 2025")
-      if (firstCell.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}$/i)) {
-        const parts = firstCell.split(' ');
-        currentMonth = parts[0];
-        currentYear = parts[1];
+      const monthMatch = firstCell.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})$/i);
+      if (monthMatch) {
+        currentMonth = monthMatch[1];
+        currentYear = monthMatch[2];
         console.log(`Found month header: ${currentMonth} ${currentYear}`);
+        
+        // Skip if not the selected year
+        if (parseInt(currentYear) !== selectedYear) {
+          console.log(`Skipping month ${currentMonth} ${currentYear} - not selected year ${selectedYear}`);
+          currentMonth = '';
+          currentYear = '';
+        }
         continue;
       }
       
-      // Skip column header rows (Friday, Saturday, Sunday, Event, Location)
+      // Skip column header rows
       if (firstCell.toLowerCase().includes('friday') || 
           firstCell.toLowerCase().includes('saturday') || 
           firstCell.toLowerCase().includes('sunday') ||
@@ -168,92 +248,161 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         continue;
       }
       
-      // Process event rows - these contain the booking status and dates
+      // Process event rows
       if (currentMonth && currentYear && row.length >= 6) {
         const statusCell = firstCell; // "BOOKED: $25,000" or "Booked", etc.
-        const friday = String(row[1] || '').trim();
-        const saturday = String(row[2] || '').trim(); 
-        const sunday = String(row[3] || '').trim();
-        const eventName = String(row[4] || '').trim();
-        const location = String(row[5] || '').trim();
+        const fridayCell = String(row[1] || '').trim();
+        const saturdayCell = String(row[2] || '').trim(); 
+        const sundayCell = String(row[3] || '').trim();
+        const eventTitle = String(row[4] || '').trim();
+        const locationCell = String(row[5] || '').trim();
         
         // Extract numeric dates
-        const fridayDate = friday.replace(/\D/g, '');
-        const saturdayDate = saturday.replace(/\D/g, '');
-        const sundayDate = sunday.replace(/\D/g, '');
+        const fridayDate = fridayCell.replace(/\D/g, '');
+        const saturdayDate = saturdayCell.replace(/\D/g, '');
+        const sundayDate = sundayCell.replace(/\D/g, '');
         
-        // Determine booking status and income
-        let status = 'available';
-        let income = '';
+        console.log(`Processing row ${rowIndex + 1}: Status="${statusCell}" | Fri="${fridayCell}" | Sat="${saturdayCell}" | Sun="${sundayCell}" | Title="${eventTitle}" | Location="${locationCell}"`);
         
-        if (statusCell.toLowerCase().includes('booked')) {
-          status = 'booked';
-          const incomeMatch = statusCell.match(/\$[\d,]+/);
-          if (incomeMatch) {
-            income = incomeMatch[0];
+        // If title is present, create event
+        if (eventTitle) {
+          // Determine Friday inclusion based on cell background color
+          let includeFriday = false;
+          const fridayStyle = cellStyles[1]; // Column B (Friday)
+          
+          if (fridayStyle && fridayStyle.fgColor) {
+            // If Friday cell has any fill color, include Friday
+            const fillColor = fridayStyle.fgColor;
+            const isWhiteOrEmpty = !fillColor || 
+              fillColor.rgb === 'FFFFFF' || 
+              fillColor.rgb === 'ffffff' ||
+              fillColor.theme === 0;
+            includeFriday = !isWhiteOrEmpty;
+          } else {
+            // Fallback if no style info
+            includeFriday = fallbackRule === 'fri-sat-sun';
           }
-        }
-        
-        console.log(`Processing row ${i + 1}: ${statusCell} | ${friday} | ${saturday} | ${sunday} | ${eventName} | ${location}`);
-        
-        // Determine start and end dates for multi-day event
-        let startDate = null;
-        let endDate = null;
-        
-        // Find start date (first active day - Friday or Saturday)
-        if (fridayDate && friday.trim() !== '') {
-          startDate = `${currentYear}-${getMonthNumber(currentMonth)}-${fridayDate.padStart(2, '0')}`;
-          console.log(`Event starts Friday: ${startDate}`);
-        } else if (saturdayDate && saturday.trim() !== '') {
-          startDate = `${currentYear}-${getMonthNumber(currentMonth)}-${saturdayDate.padStart(2, '0')}`;
-          console.log(`Event starts Saturday: ${startDate}`);
-        }
-        
-        // Find end date (always Sunday if active)
-        if (sundayDate && sunday.trim() !== '') {
-          endDate = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayDate.padStart(2, '0')}`;
-          console.log(`Event ends Sunday: ${endDate}`);
-        }
-        
-        // Create single multi-day event if we have valid start and end dates
-        if (startDate && endDate) {
-          events.push({
-            event_title: eventName || (status === 'booked' ? 'Convention Event' : 'Available Convention'),
-            start_date: startDate,
-            end_date: endDate,
-            venue_name: eventName || 'Convention Event',
-            location_city: location,
-            status: status,
-            notes_internal: income ? `Income: ${income}` : '',
-            notes_public: status === 'available' ? 'Available for booking' : '',
-            all_day: true,
-            _isGoogleSheetsFormat: true,
-            _rowIndex: i + 1,
-            _validationErrors: []
+          
+          console.log(`Friday inclusion for "${eventTitle}": ${includeFriday} (style: ${JSON.stringify(fridayStyle)})`);
+          
+          // Build dates array
+          const dates: string[] = [];
+          if (includeFriday && fridayDate) {
+            dates.push(`${currentYear}-${getMonthNumber(currentMonth)}-${fridayDate.padStart(2, '0')}`);
+          }
+          if (saturdayDate) {
+            dates.push(`${currentYear}-${getMonthNumber(currentMonth)}-${saturdayDate.padStart(2, '0')}`);
+          }
+          if (sundayDate) {
+            dates.push(`${currentYear}-${getMonthNumber(currentMonth)}-${sundayDate.padStart(2, '0')}`);
+          }
+          
+          if (dates.length > 0) {
+            // Determine status
+            let status = 'available';
+            let notesInternal = '';
+            
+            if (statusCell) {
+              const statusLower = statusCell.toLowerCase();
+              if (statusLower.includes('booked') || statusLower.startsWith('booked:')) {
+                status = 'booked';
+                // Extract income if present
+                const incomeMatch = statusCell.match(/\$[\d,]+/);
+                if (incomeMatch) {
+                  notesInternal = `Income: ${incomeMatch[0]}`;
+                }
+              } else if (statusLower.includes('hold')) {
+                status = 'hold';
+              } else if (statusLower.includes('tentative')) {
+                status = 'tentative';
+              } else if (statusLower.includes('cancelled') || statusLower.includes('canceled')) {
+                status = 'cancelled';
+              } else if (['personal', 'ooo', 'out of office', 'unavailable', 'not available'].some(term => statusLower.includes(term))) {
+                status = 'not_available';
+              }
+              
+              // If status doesn't match known patterns, include raw status in notes
+              if (!['booked', 'hold', 'tentative', 'cancelled', 'available', 'not_available'].includes(status) && statusCell) {
+                notesInternal = statusCell;
+                status = 'booked'; // Default assumption
+              }
+            }
+            
+            // Parse location
+            let city = '', state = '', country = 'USA';
+            const addressLine = locationCell;
+            
+            if (locationCell) {
+              const parts = locationCell.split(',').map(p => p.trim());
+              if (parts.length === 1) {
+                city = parts[0];
+              } else if (parts.length === 2) {
+                city = parts[0];
+                state = parts[1];
+              } else if (parts.length >= 3) {
+                city = parts.slice(0, -2).join(', ');
+                state = parts[parts.length - 2];
+                country = parts[parts.length - 1];
+              }
+            }
+            
+            // Create event
+            const startDate = dates[0];
+            const endDate = dates[dates.length - 1];
+            
+            events.push({
+              event_title: eventTitle,
+              start_date: startDate,
+              end_date: endDate,
+              status: status,
+              venue_name: eventTitle,
+              location_city: city,
+              location_state: state,
+              location_country: country,
+              address_line: addressLine,
+              notes_internal: notesInternal,
+              notes_public: status === 'available' ? 'Available for booking' : '',
+              all_day: true,
+              timezone: 'America/Los_Angeles',
+              source_file: 'weekend-matrix-import',
+              source_row_id: `row-${rowIndex + 1}`,
+              _isWeekendMatrix: true,
+              _rowIndex: rowIndex + 1,
+              _validationErrors: []
+            });
+            
+            console.log(`Created event: ${eventTitle} from ${startDate} to ${endDate} (${status})`);
+          }
+        } else {
+          // Title is empty - create Available blocks for individual days
+          const availableDays: string[] = [];
+          if (fridayDate) availableDays.push(`${currentYear}-${getMonthNumber(currentMonth)}-${fridayDate.padStart(2, '0')}`);
+          if (saturdayDate) availableDays.push(`${currentYear}-${getMonthNumber(currentMonth)}-${saturdayDate.padStart(2, '0')}`);
+          if (sundayDate) availableDays.push(`${currentYear}-${getMonthNumber(currentMonth)}-${sundayDate.padStart(2, '0')}`);
+          
+          availableDays.forEach(date => {
+            events.push({
+              event_title: 'Available',
+              start_date: date,
+              end_date: date,
+              status: 'available',
+              venue_name: '',
+              location_city: '',
+              notes_public: 'Available for booking',
+              all_day: true,
+              timezone: 'America/Los_Angeles',
+              source_file: 'weekend-matrix-import',
+              source_row_id: `row-${rowIndex + 1}`,
+              _isWeekendMatrix: true,
+              _rowIndex: rowIndex + 1,
+              _validationErrors: []
+            });
           });
-          console.log(`Created multi-day event: ${startDate} to ${endDate}`);
-        } else if (startDate) {
-          // Fallback: single day event if only start date is found
-          events.push({
-            event_title: eventName || (status === 'booked' ? 'Convention Event' : 'Available Convention'),
-            start_date: startDate,
-            end_date: startDate,
-            venue_name: eventName || 'Single Day Event',
-            location_city: location,
-            status: status,
-            notes_internal: income ? `Income: ${income}` : '',
-            notes_public: status === 'available' ? 'Available for booking' : '',
-            all_day: true,
-            _isGoogleSheetsFormat: true,
-            _rowIndex: i + 1,
-            _validationErrors: []
-          });
-          console.log(`Created single-day event: ${startDate}`);
         }
       }
     }
     
-    console.log(`Processed calendar data: ${events.length} events created`);
+    console.log(`Processed Weekend Matrix: ${events.length} events created`);
     return events;
   };
 
@@ -325,216 +474,238 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
     setLoading(true);
 
     try {
-      let jsonData: any[];
-      
-      if (fileExtension === 'csv' || uploadedFile.type === 'text/csv' || uploadedFile.type === 'application/csv') {
-        // Enhanced CSV parsing with better error handling
-        const text = await uploadedFile.text();
-        if (!text || text.trim().length === 0) throw new Error('Empty or invalid CSV file');
+      // Handle file processing based on format
+      if (importFormat === 'weekend-matrix') {
+        // Weekend Matrix format - only process XLSX
+        if (fileExtension !== 'xlsx') {
+          toast({
+            title: 'Invalid file format for Weekend Matrix',
+            description: 'Weekend Matrix format requires XLSX files only.',
+            variant: 'destructive'
+          });
+          return;
+        }
         
-        // Split lines and handle different line endings (Windows, Mac, Unix)
-        const lines = text.split(/\r?\n|\r/).filter(line => line.trim().length > 0);
-        if (lines.length === 0) throw new Error('No valid data found in CSV file');
-        
-        console.log(`Processing CSV with ${lines.length} lines`);
-        
-        // Parse CSV with proper comma handling (including quoted commas)
-        const parseCSVLine = (line: string): string[] => {
-          const result: string[] = [];
-          let current = '';
-          let inQuotes = false;
-          
-          for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            
-            if (char === '"') {
-              inQuotes = !inQuotes;
-            } else if (char === ',' && !inQuotes) {
-              result.push(current.trim());
-              current = '';
-            } else {
-              current += char;
-            }
-          }
-          
-          result.push(current.trim()); // Add the last field
-          return result.map(field => field.replace(/^"|"$/g, '')); // Remove surrounding quotes
-        };
-        
-        const headers = parseCSVLine(lines[0]);
-        const rows = lines.slice(1).map(line => {
-          const values = parseCSVLine(line);
-          // Ensure each row has the same number of columns as headers
-          return headers.map((_, i) => values[i] || '');
-        });
-        
-        jsonData = [headers, ...rows];
-        console.log(`CSV parsed: ${headers.length} columns, ${rows.length} data rows`);
-        
-      } else {
-        // Handle Excel files with enhanced error handling
-        console.log('Processing Excel file...');
         const arrayBuffer = await uploadedFile.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { 
           type: 'array',
           cellDates: true,
           cellNF: false,
-          cellText: false
+          cellText: false,
+          cellStyles: true // Enable style reading for cell colors
         });
         
-        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
-          throw new Error('No sheets found in Excel file');
-        }
-        
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-        
-        console.log(`Excel parsed: ${jsonData.length} total rows`);
-      }
-
-      // Special handling for Google Sheets calendar format
-      const processedEvents = processGoogleSheetsCalendar(jsonData);
-      if (processedEvents.length > 0) {
-        setHeaders(['event_title', 'start_date', 'end_date', 'venue_name', 'location_city', 'status', 'notes_internal', 'notes_public', 'all_day']);
-        setData(processedEvents);
-        setStep('mapping');
-        
-        // Auto-map for Google Sheets format - all fields are already mapped
-        setMapping({
-          event_title: 'event_title',
-          start_date: 'start_date', 
-          end_date: 'end_date',
-          venue_name: 'venue_name',
-          location_city: 'location_city',
-          status: 'status',
-          notes_internal: 'notes_internal',
-          notes_public: 'notes_public',
-          all_day: 'all_day'
-        });
-        return;
-      }
-
-      if (jsonData.length > 0) {
-        const headers = (jsonData[0] as any[]).map(h => String(h || '').trim()); // Ensure all headers are strings
-        const rows = jsonData.slice(1).map((row: any, index) => ({
-          ...Object.fromEntries(headers.map((header, i) => [header, row[i] || ''])),
-          _rowIndex: index + 2,
-          _validationErrors: []
-        }));
-
-        setHeaders(headers);
-        setData(rows);
-        setStep('mapping');
-
-        // Smart auto-detection with Google Sheets calendar special handling
-        const autoMapping: Record<string, string> = {};
-        
-        // Check if this is a Google Sheets calendar format
-        const hasWeekdayColumns = ['Friday', 'Saturday', 'Sunday'].every(day => 
-          headers.some(header => header.toLowerCase().includes(day.toLowerCase()))
-        );
-        
-        if (hasWeekdayColumns) {
-          console.log('Detected Google Sheets calendar format - using special mapping');
-          // For Google Sheets format, we'll handle start/end dates in processing
-          // Don't map individual day columns to start_date
-          headers.forEach(header => {
-            if (!header || typeof header !== 'string' || header.trim() === '') return;
-            
-            const normalized = header.toLowerCase().replace(/[^a-z0-9]/g, '');
-            const headerWords = header.toLowerCase().split(/[^a-z0-9]+/);
-            
-            // Event/Title detection
-            if (['title', 'event', 'name', 'show', 'convention', 'con'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'event_title';
-            }
-            // Status detection
-            else if (['status', 'state', 'availability', 'booked'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'status';
-            }
-            // Location detection
-            else if (['location', 'city', 'venue', 'place'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'location_city';
-            }
-            // Skip Friday/Saturday/Sunday columns - they'll be processed automatically
+        const processedEvents = processWeekendMatrix(workbook, importYear, fallbackRule);
+        if (processedEvents.length > 0) {
+          setHeaders(['event_title', 'start_date', 'end_date', 'venue_name', 'location_city', 'status', 'notes_internal', 'notes_public', 'all_day']);
+          setData(processedEvents);
+          setStep('mapping');
+          
+          // Auto-map for Weekend Matrix format
+          setMapping({
+            event_title: 'event_title',
+            start_date: 'start_date', 
+            end_date: 'end_date',
+            venue_name: 'venue_name',
+            location_city: 'location_city',
+            status: 'status',
+            notes_internal: 'notes_internal',
+            notes_public: 'notes_public',
+            all_day: 'all_day'
           });
+          return;
+        }
+      } else {
+        // Standard format processing
+        let jsonData: any[];
+        
+        if (fileExtension === 'csv' || uploadedFile.type === 'text/csv' || uploadedFile.type === 'application/csv') {
+          // Enhanced CSV parsing with better error handling
+          const text = await uploadedFile.text();
+          if (!text || text.trim().length === 0) throw new Error('Empty or invalid CSV file');
+          
+          // Split lines and handle different line endings (Windows, Mac, Unix)
+          const lines = text.split(/\r?\n|\r/).filter(line => line.trim().length > 0);
+          if (lines.length === 0) throw new Error('No valid data found in CSV file');
+          
+          console.log(`Processing CSV with ${lines.length} lines`);
+          
+          // Parse CSV with proper comma handling (including quoted commas)
+          const parseCSVLine = (line: string): string[] => {
+            const result: string[] = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+              const char = line[i];
+              
+              if (char === '"') {
+                inQuotes = !inQuotes;
+              } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+              } else {
+                current += char;
+              }
+            }
+            
+            result.push(current.trim()); // Add the last field
+            return result.map(field => field.replace(/^"|"$/g, '')); // Remove surrounding quotes
+          };
+          
+          const headers = parseCSVLine(lines[0]);
+          const rows = lines.slice(1).map(line => {
+            const values = parseCSVLine(line);
+            // Ensure each row has the same number of columns as headers
+            return headers.map((_, i) => values[i] || '');
+          });
+          
+          jsonData = [headers, ...rows];
+          console.log(`CSV parsed: ${headers.length} columns, ${rows.length} data rows`);
+          
         } else {
-          // Standard auto-mapping for normal CSV files
-          headers.forEach(header => {
-            // Ensure header is a string and has content
-            if (!header || typeof header !== 'string' || header.trim() === '') return;
-            
-            const normalized = header.toLowerCase().replace(/[^a-z0-9]/g, '');
-            const headerWords = header.toLowerCase().split(/[^a-z0-9]+/);
-            
-            // Talent/Artist detection
-            if (['talent', 'artist', 'performer', 'voice', 'actor', 'name'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'talent_name';
-            }
-            
-            // Event title detection  
-            else if (['title', 'event', 'show', 'convention', 'con', 'project'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'event_title';
-            }
-            
-            // Start date detection
-            else if (['startdate', 'start', 'datestart', 'begindate', 'from'].some(word => 
-              normalized.includes(word) || headerWords.includes(word)) && 
-              ['date', 'day', 'when'].some(word => normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'start_date';
-            }
-            
-            // End date detection
-            else if (['enddate', 'end', 'dateend', 'finishdate', 'to', 'until'].some(word => 
-              normalized.includes(word) || headerWords.includes(word)) && 
-              ['date', 'day', 'when'].some(word => normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'end_date';
-            }
-            
-            // Status detection
-            else if (['status', 'state', 'condition', 'booking'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'status';
-            }
-            
-            // Venue detection
-            else if (['venue', 'location', 'place', 'site', 'facility'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'venue_name';
-            }
-            
-            // City detection
-            else if (['city', 'town'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'location_city';
-            }
-            
-            // State detection
-            else if (['state', 'province', 'region'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'location_state';
-            }
-            
-            // URL/Website detection
-            else if (['url', 'website', 'link', 'web'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'url';
-            }
-            
-            // Notes detection
-            else if (['notes', 'note', 'comment', 'description', 'info'].some(word => 
-              normalized.includes(word) || headerWords.includes(word))) {
-              autoMapping[header] = 'notes_public';
-            }
+          // Handle Excel files with enhanced error handling
+          console.log('Processing Excel file...');
+          const arrayBuffer = await uploadedFile.arrayBuffer();
+          const workbook = XLSX.read(arrayBuffer, { 
+            type: 'array',
+            cellDates: true,
+            cellNF: false,
+            cellText: false
           });
+          
+          if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+            throw new Error('No sheets found in Excel file');
+          }
+          
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+          
+          console.log(`Excel parsed: ${jsonData.length} total rows`);
         }
-        setMapping(autoMapping);
+
+        if (jsonData.length > 0) {
+          const headers = (jsonData[0] as any[]).map(h => String(h || '').trim()); // Ensure all headers are strings
+          const rows = jsonData.slice(1).map((row: any, index) => ({
+            ...Object.fromEntries(headers.map((header, i) => [header, row[i] || ''])),
+            _rowIndex: index + 2,
+            _validationErrors: []
+          }));
+
+          setHeaders(headers);
+          setData(rows);
+          setStep('mapping');
+
+          // Smart auto-detection with Google Sheets calendar special handling
+          const autoMapping: Record<string, string> = {};
+          
+          // Check if this is a Google Sheets calendar format
+          const hasWeekdayColumns = ['Friday', 'Saturday', 'Sunday'].every(day => 
+            headers.some(header => header.toLowerCase().includes(day.toLowerCase()))
+          );
+          
+          if (hasWeekdayColumns) {
+            console.log('Detected Google Sheets calendar format - using special mapping');
+            // For Google Sheets format, we'll handle start/end dates in processing
+            // Don't map individual day columns to start_date
+            headers.forEach(header => {
+              if (!header || typeof header !== 'string' || header.trim() === '') return;
+              
+              const normalized = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+              const headerWords = header.toLowerCase().split(/[^a-z0-9]+/);
+              
+              // Event/Title detection
+              if (['title', 'event', 'name', 'show', 'convention', 'con'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'event_title';
+              }
+              // Status detection
+              else if (['status', 'state', 'availability', 'booked'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'status';
+              }
+              // Location detection
+              else if (['location', 'city', 'venue', 'place'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'location_city';
+              }
+              // Skip Friday/Saturday/Sunday columns - they'll be processed automatically
+            });
+          } else {
+            // Standard auto-mapping for normal CSV files
+            headers.forEach(header => {
+              // Ensure header is a string and has content
+              if (!header || typeof header !== 'string' || header.trim() === '') return;
+              
+              const normalized = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+              const headerWords = header.toLowerCase().split(/[^a-z0-9]+/);
+              
+              // Talent/Artist detection
+              if (['talent', 'artist', 'performer', 'voice', 'actor', 'name'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'talent_name';
+              }
+              
+              // Event title detection  
+              else if (['title', 'event', 'show', 'convention', 'con', 'project'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'event_title';
+              }
+              
+              // Start date detection
+              else if (['startdate', 'start', 'datestart', 'begindate', 'from'].some(word => 
+                normalized.includes(word) || headerWords.includes(word)) && 
+                ['date', 'day', 'when'].some(word => normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'start_date';
+              }
+              
+              // End date detection
+              else if (['enddate', 'end', 'dateend', 'finishdate', 'to', 'until'].some(word => 
+                normalized.includes(word) || headerWords.includes(word)) && 
+                ['date', 'day', 'when'].some(word => normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'end_date';
+              }
+              
+              // Status detection
+              else if (['status', 'state', 'condition', 'booking'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'status';
+              }
+              
+              // Venue detection
+              else if (['venue', 'location', 'place', 'site', 'facility'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'venue_name';
+              }
+              
+              // City detection
+              else if (['city', 'town'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'location_city';
+              }
+              
+              // State detection
+              else if (['state', 'province', 'region'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'location_state';
+              }
+              
+              // URL/Website detection
+              else if (['url', 'website', 'link', 'web'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'url';
+              }
+              
+              // Notes detection
+              else if (['notes', 'note', 'comment', 'description', 'info'].some(word => 
+                normalized.includes(word) || headerWords.includes(word))) {
+                autoMapping[header] = 'notes_public';
+              }
+            });
+          }
+          setMapping(autoMapping);
+        }
       }
       } catch (error: any) {
         console.error('File processing error details:', {
@@ -745,6 +916,76 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
           </TabsList>
 
           <TabsContent value="upload" className="space-y-4">
+            {/* Import Format Selection */}
+            <div className="space-y-3">
+              <Label>{t.format.title}</Label>
+              <RadioGroup value={importFormat} onValueChange={(value: 'standard' | 'weekend-matrix') => setImportFormat(value)}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="standard" id="standard" />
+                  <Label htmlFor="standard" className="cursor-pointer">{t.format.standard}</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="weekend-matrix" id="weekend-matrix" />
+                  <Label htmlFor="weekend-matrix" className="cursor-pointer flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {t.format.weekendMatrix}
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Weekend Matrix Options */}
+            {importFormat === 'weekend-matrix' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Weekend Matrix Options</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>{t.options.yearLabel}</Label>
+                      <Select value={importYear.toString()} onValueChange={(value) => setImportYear(parseInt(value))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="2025">2025</SelectItem>
+                          <SelectItem value="2026">2026</SelectItem>
+                          <SelectItem value="2027">2027</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>{t.importMode}</Label>
+                      <Select value={importMode} onValueChange={(value: 'merge' | 'replace') => setImportMode(value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="merge">{t.options.mode.merge}</SelectItem>
+                          <SelectItem value="replace">{t.options.mode.replaceYear}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm text-muted-foreground">{t.options.fallback.label}</Label>
+                    <RadioGroup value={fallbackRule} onValueChange={(value: 'sat-sun' | 'fri-sat-sun') => setFallbackRule(value)} className="mt-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="sat-sun" id="sat-sun" />
+                        <Label htmlFor="sat-sun" className="text-sm cursor-pointer">{t.options.fallback.satSun}</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="fri-sat-sun" id="fri-sat-sun" />
+                        <Label htmlFor="fri-sat-sun" className="text-sm cursor-pointer">{t.options.fallback.friSatSun}</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Talent Selection */}
             <div className="space-y-2">
               <Label htmlFor="talent-select">{t.talent}</Label>
@@ -771,11 +1012,13 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
             >
               <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <div className="text-lg font-medium mb-2">{t.chooseFile}</div>
-              <div className="text-sm text-muted-foreground">CSV or Excel (.xlsx)</div>
+              <div className="text-sm text-muted-foreground">
+                {importFormat === 'weekend-matrix' ? 'Excel (.xlsx) only' : 'CSV or Excel (.xlsx)'}
+              </div>
               <Input
                 ref={fileInputRef}
                 type="file"
-                accept=".csv,.xlsx,.xls"
+                accept={importFormat === 'weekend-matrix' ? '.xlsx' : '.csv,.xlsx,.xls'}
                 onChange={handleFileUpload}
                 className="hidden"
                 disabled={!importTalent}
