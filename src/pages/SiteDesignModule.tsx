@@ -46,7 +46,7 @@ import heroContactNew from '@/assets/hero-contact-1920x240-real.jpg';
 import { supabase } from '@/integrations/supabase/client';
  
 export const SiteDesignModule = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const { currentTheme } = useColorTheme();
   const { savePageSettings, uploadFile, loading, settings, getCurrentPageSettings, setCurrentPage } = useSiteDesign();
   
@@ -65,34 +65,6 @@ export const SiteDesignModule = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isBuildingCollage, setIsBuildingCollage] = useState(false);
   const { toast } = useToast();
-
-  // Access control - only admin and staff can access
-  if (!user || (profile?.role !== 'admin' && profile?.role !== 'staff')) {
-    return (
-      <AdminThemeProvider>
-        <div className="flex items-center justify-center min-h-screen">
-          <Card 
-            className="max-w-md mx-auto border-2"
-            style={{
-              backgroundColor: currentTheme.cardBackground,
-              borderColor: currentTheme.border,
-              color: currentTheme.cardForeground
-            }}
-          >
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <XCircle className="w-16 h-16 mx-auto mb-4" style={{ color: currentTheme.accent }} />
-                <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-                <p className="opacity-70">
-                  You need admin or staff privileges to access the Site Design Module.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </AdminThemeProvider>
-    );
-  }
 
   const pages = [
     { id: 'home', name: 'Home Page', icon: Home, route: '/' },
@@ -604,6 +576,51 @@ export const SiteDesignModule = () => {
     );
   };
 
+  // Handle authentication loading
+  if (authLoading) {
+    return (
+      <AdminThemeProvider>
+        <Navigation language={language} setLanguage={setLanguage} />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-white" />
+            <p className="text-white">Loading authentication...</p>
+          </div>
+        </div>
+        <Footer language={language} />
+      </AdminThemeProvider>
+    );
+  }
+
+  // Handle access control
+  if (!user || (profile?.role !== 'admin' && profile?.role !== 'staff')) {
+    return (
+      <AdminThemeProvider>
+        <div className="flex items-center justify-center min-h-screen">
+          <Card 
+            className="max-w-md mx-auto border-2"
+            style={{
+              backgroundColor: currentTheme.cardBackground,
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <XCircle className="w-16 h-16 mx-auto mb-4" style={{ color: currentTheme.accent }} />
+                <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+                <p className="opacity-70">
+                  You need admin or staff privileges to access the Site Design Module.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </AdminThemeProvider>
+    );
+  }
+
+  // Handle design settings loading
   if (loading) {
     return (
       <AdminThemeProvider>
