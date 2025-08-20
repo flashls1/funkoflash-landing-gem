@@ -10,6 +10,7 @@ import { CalendarIcon, MapPinIcon, LinkIcon, ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { BusinessEvent, businessEventsApi } from './data';
 import FileUpload from '@/components/FileUpload';
+import TravelHotelSection from './TravelHotelSection';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,50 +31,74 @@ const BusinessEventFormDrawer = ({
   language = 'en'
 }: BusinessEventFormDrawerProps) => {
   const [formData, setFormData] = useState<Partial<BusinessEvent>>({
-    title: '',
-    start_ts: '',
-    end_ts: '',
-    city: '',
-    state: '',
-    country: 'USA',
-    address_line: '',
-    website: '',
-    hero_logo_path: '',
     status: 'draft'
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [businessAccounts, setBusinessAccounts] = useState<any[]>([]);
+  const [talentProfiles, setTalentProfiles] = useState<any[]>([]);
+  const [assignedTalents, setAssignedTalents] = useState<string[]>([]);
+  const [teamMembers, setTeamMembers] = useState<string[]>([]);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
   useEffect(() => {
+    if (isOpen) {
+      loadDropdownData();
+    }
     if (event) {
       setFormData({
-        title: event.title || '',
+        ...event,
         start_ts: event.start_ts ? new Date(event.start_ts).toISOString().slice(0, 16) : '',
-        end_ts: event.end_ts ? new Date(event.end_ts).toISOString().slice(0, 16) : '',
-        city: event.city || '',
-        state: event.state || '',
-        country: event.country || 'USA',
-        address_line: event.address_line || '',
-        website: event.website || '',
-        hero_logo_path: event.hero_logo_path || '',
-        status: event.status || 'draft'
+        end_ts: event.end_ts ? new Date(event.end_ts).toISOString().slice(0, 16) : ''
       });
-    } else {
+      loadEventAssignments();
+    } else if (isOpen) {
       setFormData({
-        title: '',
-        start_ts: '',
-        end_ts: '',
-        city: '',
-        state: '',
-        country: 'USA',
-        address_line: '',
-        website: '',
-        hero_logo_path: '',
         status: 'draft'
       });
+      setAssignedTalents([]);
+      setTeamMembers([]);
     }
   }, [event, isOpen]);
+
+  const loadDropdownData = async () => {
+    try {
+      const [accounts, talents] = await Promise.all([
+        businessEventsApi.getBusinessAccounts(),
+        businessEventsApi.getTalentProfiles()
+      ]);
+      setBusinessAccounts(accounts);
+      setTalentProfiles(talents);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load dropdown data",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const loadEventAssignments = async () => {
+    if (!event?.id) return;
+    
+    try {
+      const eventData = await businessEventsApi.getEvents();
+      const currentEvent = eventData.find(e => e.id === event.id);
+      
+      if (currentEvent) {
+        // Extract assigned talents
+        const talents = (currentEvent as any).business_event_talent?.map((bet: any) => bet.talent_profiles.id) || [];
+        setAssignedTalents(talents);
+        
+        // Extract team members (all business accounts except primary)
+        const accounts = (currentEvent as any).business_event_account?.map((bea: any) => bea.business_account.id) || [];
+        const teamAccounts = accounts.filter((id: string) => id !== formData.primary_business_id);
+        setTeamMembers(teamAccounts);
+      }
+    } catch (error) {
+      console.error('Failed to load event assignments:', error);
+    }
+  };
 
   const handleInputChange = (field: keyof BusinessEvent, value: string) => {
     setFormData(prev => ({
@@ -111,6 +136,9 @@ const BusinessEventFormDrawer = ({
         savedEvent = await businessEventsApi.createEvent(eventData);
       }
 
+      // Handle assignments
+      await handleAssignments(savedEvent.id);
+
       onSave(savedEvent);
       onClose();
       
@@ -130,6 +158,47 @@ const BusinessEventFormDrawer = ({
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAssignments = async (eventId: string) => {
+    try {
+      // Clear existing assignments
+      const existingEvent = await businessEventsApi.getEvents().then(events => 
+        events.find(e => e.id === eventId)
+      );
+
+      if (existingEvent) {
+        const existingTalents = (existingEvent as any).business_event_talent || [];
+        const existingAccounts = (existingEvent as any).business_event_account || [];
+
+        // Remove old talent assignments
+        for (const talent of existingTalents) {
+          await businessEventsApi.removeTalent(eventId, talent.talent_profiles.id);
+        }
+
+        // Remove old business account assignments
+        for (const account of existingAccounts) {
+          await businessEventsApi.removeBusinessAccount(eventId, account.business_account.id);
+        }
+      }
+
+      // Add new talent assignments
+      for (const talentId of assignedTalents) {
+        await businessEventsApi.assignTalent(eventId, talentId);
+      }
+
+      // Add primary business assignment
+      if (formData.primary_business_id) {
+        await businessEventsApi.assignBusinessAccount(eventId, formData.primary_business_id);
+      }
+
+      // Add team member assignments
+      for (const teamMemberId of teamMembers) {
+        await businessEventsApi.assignBusinessAccount(eventId, teamMemberId);
+      }
+    } catch (error) {
+      console.error('Failed to handle assignments:', error);
     }
   };
 
@@ -254,6 +323,113 @@ const BusinessEventFormDrawer = ({
         />
       </div>
 
+      {/* Assignments */}
+      <div className="space-y-4">
+        {/* Primary Business */}
+        <div className="space-y-2">
+          <Label htmlFor="primary_business">
+            {language === 'es' ? 'Empresa principal' : 'Primary Business'} *
+          </Label>
+          <Select 
+            value={formData.primary_business_id} 
+            onValueChange={(value) => handleInputChange('primary_business_id', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={language === 'es' ? 'Seleccionar empresa' : 'Select business'} />
+            </SelectTrigger>
+            <SelectContent>
+              {businessAccounts.map(account => (
+                <SelectItem key={account.id} value={account.id}>
+                  {account.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Team Members */}
+        <div className="space-y-2">
+          <Label htmlFor="team_members">
+            {language === 'es' ? 'Miembros del equipo' : 'Team Members'}
+          </Label>
+          <Select 
+            value={teamMembers.join(',')} 
+            onValueChange={(value) => setTeamMembers(value ? value.split(',') : [])}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={language === 'es' ? 'Seleccionar miembros' : 'Select team members'} />
+            </SelectTrigger>
+            <SelectContent>
+              {businessAccounts
+                .filter(account => account.id !== formData.primary_business_id)
+                .map(account => (
+                <SelectItem key={account.id} value={account.id}>
+                  {account.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {teamMembers.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {teamMembers.map(memberId => {
+                const member = businessAccounts.find(a => a.id === memberId);
+                return member ? (
+                  <span key={memberId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-secondary">
+                    {member.name}
+                    <button 
+                      onClick={() => setTeamMembers(prev => prev.filter(id => id !== memberId))}
+                      className="ml-1 text-muted-foreground hover:text-foreground"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ) : null;
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Talents */}
+        <div className="space-y-2">
+          <Label htmlFor="talents">
+            {language === 'es' ? 'Talentos' : 'Talents'}
+          </Label>
+          <Select 
+            value={assignedTalents.join(',')} 
+            onValueChange={(value) => setAssignedTalents(value ? value.split(',') : [])}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={language === 'es' ? 'Seleccionar talentos' : 'Select talents'} />
+            </SelectTrigger>
+            <SelectContent>
+              {talentProfiles.map(talent => (
+                <SelectItem key={talent.id} value={talent.id}>
+                  {talent.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {assignedTalents.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {assignedTalents.map(talentId => {
+                const talent = talentProfiles.find(t => t.id === talentId);
+                return talent ? (
+                  <span key={talentId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary text-primary-foreground">
+                    {talent.name}
+                    <button 
+                      onClick={() => setAssignedTalents(prev => prev.filter(id => id !== talentId))}
+                      className="ml-1 text-primary-foreground/80 hover:text-primary-foreground"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ) : null;
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Hero Image Upload */}
       <div className="space-y-2">
         <Label>
@@ -272,6 +448,20 @@ const BusinessEventFormDrawer = ({
           </div>
         )}
       </div>
+
+      {/* Travel & Hotel Section for existing events */}
+      {event?.id && assignedTalents.length > 0 && (
+        <div className="space-y-2">
+          <Label>
+            {language === 'es' ? 'Detalles de viaje y hotel' : 'Travel & Hotel Details'}
+          </Label>
+          <TravelHotelSection
+            eventId={event.id}
+            assignedTalents={talentProfiles.filter(t => assignedTalents.includes(t.id))}
+            language={language}
+          />
+        </div>
+      )}
     </div>
   );
 

@@ -13,9 +13,43 @@ export interface BusinessEvent {
   website?: string;
   hero_logo_path?: string;
   status: string;
+  primary_business_id?: string;
   created_by?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface BusinessEventTravel {
+  id: string;
+  event_id: string;
+  talent_id: string;
+  airline_name?: string;
+  confirmation_codes?: string;
+  status: 'Booked' | 'Not Booked';
+  arrival_datetime?: string;
+  departure_datetime?: string;
+  flight_tickets_url?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+}
+
+export interface BusinessEventHotel {
+  id: string;
+  event_id: string;
+  talent_id: string;
+  hotel_name?: string;
+  hotel_address?: string;
+  confirmation_number?: string;
+  checkin_date?: string;
+  checkout_date?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
 }
 
 export interface BusinessAccount {
@@ -154,5 +188,59 @@ export const businessEventsApi = {
       .eq('business_account_id', businessAccountId);
 
     if (error) throw error;
+  },
+
+  // Travel details API
+  async getTravelDetails(eventId: string, talentId?: string) {
+    let query = supabase
+      .from('business_event_travel')
+      .select('*, talent_profiles(id, name)')
+      .eq('event_id', eventId);
+
+    if (talentId) {
+      query = query.eq('talent_id', talentId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as BusinessEventTravel[];
+  },
+
+  async upsertTravelDetails(travelData: Omit<BusinessEventTravel, 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('business_event_travel')
+      .upsert(travelData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as BusinessEventTravel;
+  },
+
+  // Hotel details API
+  async getHotelDetails(eventId: string, talentId?: string) {
+    let query = supabase
+      .from('business_event_hotel')
+      .select('*, talent_profiles(id, name)')
+      .eq('event_id', eventId);
+
+    if (talentId) {
+      query = query.eq('talent_id', talentId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as BusinessEventHotel[];
+  },
+
+  async upsertHotelDetails(hotelData: Omit<BusinessEventHotel, 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('business_event_hotel')
+      .upsert(hotelData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as BusinessEventHotel;
   }
 };

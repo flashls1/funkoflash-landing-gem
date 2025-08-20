@@ -116,6 +116,54 @@ export type Database = {
           },
         ]
       }
+      business_event_hotel: {
+        Row: {
+          checkin_date: string | null
+          checkout_date: string | null
+          confirmation_number: string | null
+          created_at: string
+          created_by: string | null
+          event_id: string
+          hotel_address: string | null
+          hotel_name: string | null
+          id: string
+          notes: string | null
+          talent_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          checkin_date?: string | null
+          checkout_date?: string | null
+          confirmation_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          hotel_address?: string | null
+          hotel_name?: string | null
+          id?: string
+          notes?: string | null
+          talent_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          checkin_date?: string | null
+          checkout_date?: string | null
+          confirmation_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          hotel_address?: string | null
+          hotel_name?: string | null
+          id?: string
+          notes?: string | null
+          talent_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       business_event_talent: {
         Row: {
           event_id: string
@@ -149,6 +197,57 @@ export type Database = {
           },
         ]
       }
+      business_event_travel: {
+        Row: {
+          airline_name: string | null
+          arrival_datetime: string | null
+          confirmation_codes: string | null
+          created_at: string
+          created_by: string | null
+          departure_datetime: string | null
+          event_id: string
+          flight_tickets_url: string | null
+          id: string
+          notes: string | null
+          status: string | null
+          talent_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          airline_name?: string | null
+          arrival_datetime?: string | null
+          confirmation_codes?: string | null
+          created_at?: string
+          created_by?: string | null
+          departure_datetime?: string | null
+          event_id: string
+          flight_tickets_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          talent_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          airline_name?: string | null
+          arrival_datetime?: string | null
+          confirmation_codes?: string | null
+          created_at?: string
+          created_by?: string | null
+          departure_datetime?: string | null
+          event_id?: string
+          flight_tickets_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          talent_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       business_events: {
         Row: {
           address_line: string | null
@@ -159,6 +258,7 @@ export type Database = {
           end_ts: string | null
           hero_logo_path: string | null
           id: string
+          primary_business_id: string | null
           start_ts: string | null
           state: string | null
           status: string | null
@@ -175,6 +275,7 @@ export type Database = {
           end_ts?: string | null
           hero_logo_path?: string | null
           id?: string
+          primary_business_id?: string | null
           start_ts?: string | null
           state?: string | null
           status?: string | null
@@ -191,6 +292,7 @@ export type Database = {
           end_ts?: string | null
           hero_logo_path?: string | null
           id?: string
+          primary_business_id?: string | null
           start_ts?: string | null
           state?: string | null
           status?: string | null

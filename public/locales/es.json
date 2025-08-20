@@ -1,0 +1,24 @@
+{
+  "bizEvent": {
+    "primaryBusiness": "Empresa principal",
+    "teamMembers": "Miembros del equipo",
+    "talents": "Talentos",
+    "travel": "Detalles de viaje",
+    "hotel": "Detalles del hotel",
+    "airline": "Aerolínea",
+    "flightCode": "Código de confirmación",
+    "status": "Estado",
+    "booked": "Reservado",
+    "notBooked": "No reservado",
+    "arrival": "Llegada (hora local)",
+    "departure": "Salida (hora local)",
+    "ticketsUpload": "Subir boletos",
+    "ticketsDownload": "Descargar boletos",
+    "notes": "Notas (máx. 50 caracteres)",
+    "hotelName": "Nombre del hotel",
+    "hotelAddress": "Dirección del hotel",
+    "hotelConf": "Confirmación de reserva",
+    "checkin": "Check-in (hora local)",
+    "checkout": "Check-out (hora local)"
+  }
+}

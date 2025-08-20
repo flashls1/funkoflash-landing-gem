@@ -1,0 +1,24 @@
+{
+  "bizEvent": {
+    "primaryBusiness": "Primary Business",
+    "teamMembers": "Team Members",
+    "talents": "Talents",
+    "travel": "Travel Details",
+    "hotel": "Hotel Details",
+    "airline": "Airline",
+    "flightCode": "Flight confirmation",
+    "status": "Status",
+    "booked": "Booked",
+    "notBooked": "Not Booked",
+    "arrival": "Arrival (local)",
+    "departure": "Departure (local)",
+    "ticketsUpload": "Upload flight tickets",
+    "ticketsDownload": "Download flight tickets",
+    "notes": "Notes (max 50 chars)",
+    "hotelName": "Hotel name",
+    "hotelAddress": "Hotel address",
+    "hotelConf": "Reservation confirmation",
+    "checkin": "Check-in (local)",
+    "checkout": "Check-out (local)"
+  }
+}
