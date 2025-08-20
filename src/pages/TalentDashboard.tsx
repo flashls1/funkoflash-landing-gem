@@ -13,8 +13,6 @@ import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown } from 'lucide-react';
-import { NextEventCard } from '@/components/NextEventCard';
-import { usePermissions } from '@/hooks/usePermissions';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
@@ -55,10 +53,8 @@ const TalentDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5]);
-  const [talentId, setTalentId] = useState<string | null>(null);
   const { user, profile } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
-  const { permissions } = usePermissions();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,9 +63,6 @@ const TalentDashboard = () => {
       return;
     }
 
-    // Get talent profile ID for calendar events
-    fetchTalentId();
-
     // Update time every minute
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -77,23 +70,6 @@ const TalentDashboard = () => {
 
     return () => clearInterval(timer);
   }, [user, profile, navigate]);
-
-  const fetchTalentId = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('talent_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) throw error;
-      setTalentId(data?.id || null);
-    } catch (error) {
-      console.error('Error fetching talent ID:', error);
-    }
-  };
 
   const moveCard = (dragIndex: number, hoverIndex: number) => {
     const newOrder = [...cardOrder];
@@ -407,15 +383,6 @@ const TalentDashboard = () => {
         <Tabs defaultValue="overview" className="space-y-6">
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Next Event Card */}
-            <div className="mb-6">
-              <NextEventCard 
-                talentId={talentId || undefined}
-                language={language}
-                canEdit={permissions.includes('calendar:edit_own')}
-              />
-            </div>
-
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card 
