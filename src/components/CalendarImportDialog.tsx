@@ -179,7 +179,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         const saturdayHasContent = saturday.trim() !== '';
         const sundayHasContent = sunday.trim() !== '';
         
-        if (fridayNum || saturdayNum || sundayNum) {
+        if ((fridayNum || saturdayNum || sundayNum) && (eventName || firstCell.toLowerCase().includes('booked'))) {
           // Determine status and income from first cell
           let status = 'available';
           let income = '';
@@ -220,8 +220,9 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
             endDateStr = startDateStr;
           }
           
-          if (startDateStr && (eventName || status === 'booked')) {
+          if (startDateStr) {
             events.push({
+              // Original sheet data for reference
               Month: `${currentMonth} ${currentYear}`,
               Friday: friday,
               Saturday: saturday, 
@@ -230,8 +231,18 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
               Location: location,
               Status: status,
               Income: income,
+              
+              // Mapped fields for calendar_event table
+              event_title: eventName || (status === 'booked' ? 'Booked Event' : 'Available Weekend'),
               start_date: startDateStr,
               end_date: endDateStr || startDateStr,
+              venue_name: eventName || 'Event',
+              location_city: location,
+              status: status,
+              notes_internal: income ? `Income: ${income}` : '',
+              notes_public: status === 'available' ? 'Available for booking' : '',
+              all_day: true,
+              
               _isGoogleSheetsFormat: true,
               _rowIndex: i + 1,
               _validationErrors: []
@@ -253,7 +264,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
     return months[monthName.toLowerCase()] || '01';
   };
 
-  const requiredFields = ['event_title']; // Only event title is required
+  const requiredFields = ['event_title', 'start_date']; // Event title and start date are required
   const optionalFields = ['end_date', 'talent_name', 'status', 'start_time', 'end_time', 'timezone', 'all_day', 'venue_name', 
     'location_city', 'location_state', 'location_country', 'address_line', 'contact_name', 
     'contact_email', 'contact_phone', 'url', 'notes_internal', 'notes_public', 'travel_in', 'travel_out'];
@@ -362,13 +373,21 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
       // Special handling for Google Sheets calendar format
       const processedEvents = processGoogleSheetsCalendar(jsonData);
       if (processedEvents.length > 0) {
-        setHeaders(['Month', 'Friday', 'Saturday', 'Sunday', 'Event', 'Location', 'Status', 'Income']);
+        setHeaders(['event_title', 'start_date', 'end_date', 'venue_name', 'location_city', 'status', 'notes_internal', 'notes_public', 'all_day']);
         setData(processedEvents);
         setStep('mapping');
         
-        // Auto-map for Google Sheets format - only event title is required
+        // Auto-map for Google Sheets format - all fields are already mapped
         setMapping({
-          event_title: 'Event'
+          event_title: 'event_title',
+          start_date: 'start_date', 
+          end_date: 'end_date',
+          venue_name: 'venue_name',
+          location_city: 'location_city',
+          status: 'status',
+          notes_internal: 'notes_internal',
+          notes_public: 'notes_public',
+          all_day: 'all_day'
         });
         return;
       }
