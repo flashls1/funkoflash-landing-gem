@@ -269,15 +269,17 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
   const getRequiredFields = () => {
     // Check if this is Google Sheets format by looking at headers
     const hasWeekdayColumns = headers.length > 0 && ['Friday', 'Saturday', 'Sunday'].every(day => 
-      headers.some(header => header.toLowerCase().includes(day.toLowerCase()))
+      headers.some(header => header && typeof header === 'string' && header.toLowerCase().includes(day.toLowerCase()))
     );
     
     if (hasWeekdayColumns) {
       // For Google Sheets format, only event_title is required (dates are auto-generated)
+      console.log('Google Sheets format detected - only requiring event_title');
       return ['event_title'];
     }
     
     // For standard CSV, both event_title and start_date are required
+    console.log('Standard CSV format - requiring event_title and start_date');
     return ['event_title', 'start_date'];
   };
   
@@ -562,24 +564,25 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
 
       // Check if this is Google Sheets format (has Friday/Saturday/Sunday columns)
       const hasWeekdayColumns = Object.keys(row).some(key => 
-        ['friday', 'saturday', 'sunday'].includes(key.toLowerCase())
+        key && typeof key === 'string' && ['friday', 'saturday', 'sunday'].includes(key.toLowerCase())
       );
 
       if (hasWeekdayColumns) {
         // For Google Sheets format, skip start_date validation 
         // since we'll generate it from weekday columns
-        const nonDateRequiredFields = requiredFields.filter(field => 
-          !['start_date', 'end_date'].includes(field)
-        );
+        const nonDateRequiredFields = ['event_title']; // Only require event_title for Google Sheets
         
         nonDateRequiredFields.forEach(field => {
           if (!mappedRow[field] || mappedRow[field].toString().trim() === '') {
             mappedRow._validationErrors.push(`Missing ${field}`);
           }
         });
+        
+        // Don't validate start_date/end_date for Google Sheets - they'll be generated
       } else {
         // Standard validation for normal CSV files
-        requiredFields.forEach(field => {
+        const standardRequiredFields = ['event_title', 'start_date'];
+        standardRequiredFields.forEach(field => {
           if (!mappedRow[field] || mappedRow[field].toString().trim() === '') {
             mappedRow._validationErrors.push(`Missing ${field}`);
           }
