@@ -2,3 +2,6 @@ project_id = "gytjgmeoepglbrjrbfie"
 
 [functions.image-scrape]
 verify_jwt = true
+
+[functions.import-weekend-matrix-commit]
+verify_jwt = true

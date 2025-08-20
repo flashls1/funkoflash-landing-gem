@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { format, parse } from 'date-fns';
+import { commitWeekendMatrix, WeekendMatrixEvent } from '@/hooks/useWeekendMatrixCommit';
 
 interface ImportDialogProps {
   open: boolean;
@@ -815,68 +816,119 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
     if (!user) return;
     
     setLoading(true);
-    const validatedData = validateAndNormalizeData(data);
-    const validRows = validatedData.filter(row => row._validationErrors.length === 0);
-
+    
     try {
-      // First get talent profiles for mapping names to IDs
-      const { data: talents } = await supabase
-        .from('talent_profiles')
-        .select('id, name');
+      if (importFormat === 'weekend-matrix') {
+        // Weekend Matrix commit via edge function
+        const validatedData = validateAndNormalizeData(data);
+        const validRows = validatedData.filter(row => row._validationErrors.length === 0);
+        
+        // Transform data to match WeekendMatrixEvent interface
+        const events: WeekendMatrixEvent[] = validRows.map(row => ({
+          talent_id: importTalent,
+          event_title: row.event_title,
+          status: row.status || 'available',
+          all_day: true,
+          timezone: row.timezone || 'America/Los_Angeles',
+          start_date: row.start_date,
+          end_date: row.end_date,
+          venue_name: row.venue_name || null,
+          location_city: row.location_city || null,
+          location_state: row.location_state || null,
+          location_country: row.location_country || 'USA',
+          address_line: row.address_line || null,
+          notes_public: row.notes_public || null,
+          notes_internal: row.notes_internal || null,
+          source_file: file?.name || 'weekend-matrix-import',
+          source_row_id: row.source_row_id || null
+        }));
 
-      const talentMap = new Map(talents?.map(t => [t.name.toLowerCase(), t.id]) || []);
+        const result = await commitWeekendMatrix({
+          talentId: importTalent,
+          year: importYear,
+          mode: importMode,
+          events
+        });
 
-      const rowsToInsert = validRows.map(row => ({
-        talent_id: importTalent || talentMap.get(row.talent_name?.toLowerCase()) || null,
-        event_title: row.event_title,
-        start_date: row.start_date,
-        end_date: row.end_date,
-        start_time: row.start_time || null,
-        end_time: row.end_time || null,
-        timezone: row.timezone || 'America/Chicago',
-        all_day: !row.start_time && !row.end_time,
-        status: row.status,
-        venue_name: row.venue_name || null,
-        location_city: row.location_city || null,
-        location_state: row.location_state || null,
-        location_country: row.location_country || 'USA',
-        address_line: row.address_line || null,
-        contact_name: row.contact_name || null,
-        contact_email: row.contact_email || null,
-        contact_phone: row.contact_phone || null,
-        url: row.url || null,
-        notes_internal: row.notes_internal || null,
-        notes_public: row.notes_public || null,
-        travel_in: row.travel_in || null,
-        travel_out: row.travel_out || null,
-        source_file: file?.name || 'import',
-        created_by: user.id
-      }));
+        setCommitResults({
+          created: result.counts.created,
+          updated: result.counts.updated,
+          skipped: result.counts.skipped,
+          failed: result.counts.failed,
+          errors: result.errors
+        });
+        
+        setStep('results');
+        
+        toast({
+          title: t.importComplete,
+          description: `${result.counts.created} events imported successfully. ${result.counts.failed > 0 ? `${result.counts.failed} failed.` : ''}`
+        });
 
-      const { data: insertedData, error } = await supabase
-        .from('calendar_event')
-        .insert(rowsToInsert)
-        .select();
+      } else {
+        // Standard CSV/Excel import (existing logic)
+        const validatedData = validateAndNormalizeData(data);
+        const validRows = validatedData.filter(row => row._validationErrors.length === 0);
 
-      if (error) throw error;
+        // First get talent profiles for mapping names to IDs
+        const { data: talents } = await supabase
+          .from('talent_profiles')
+          .select('id, name');
 
-      setCommitResults({
-        created: insertedData?.length || 0,
-        skipped: validatedData.length - validRows.length
-      });
-      setStep('results');
-      
-      toast({
-        title: t.importComplete,
-        description: `${insertedData?.length || 0} events imported successfully.`
-      });
+        const talentMap = new Map(talents?.map(t => [t.name.toLowerCase(), t.id]) || []);
+
+        const rowsToInsert = validRows.map(row => ({
+          talent_id: importTalent || talentMap.get(row.talent_name?.toLowerCase()) || null,
+          event_title: row.event_title,
+          start_date: row.start_date,
+          end_date: row.end_date,
+          start_time: row.start_time || null,
+          end_time: row.end_time || null,
+          timezone: row.timezone || 'America/Chicago',
+          all_day: !row.start_time && !row.end_time,
+          status: row.status,
+          venue_name: row.venue_name || null,
+          location_city: row.location_city || null,
+          location_state: row.location_state || null,
+          location_country: row.location_country || 'USA',
+          address_line: row.address_line || null,
+          contact_name: row.contact_name || null,
+          contact_email: row.contact_email || null,
+          contact_phone: row.contact_phone || null,
+          url: row.url || null,
+          notes_internal: row.notes_internal || null,
+          notes_public: row.notes_public || null,
+          travel_in: row.travel_in || null,
+          travel_out: row.travel_out || null,
+          source_file: file?.name || 'import',
+          created_by: user.id
+        }));
+
+        const { data: insertedData, error } = await supabase
+          .from('calendar_event')
+          .insert(rowsToInsert)
+          .select();
+
+        if (error) throw error;
+
+        setCommitResults({
+          created: insertedData?.length || 0,
+          skipped: validatedData.length - validRows.length
+        });
+        setStep('results');
+        
+        toast({
+          title: t.importComplete,
+          description: `${insertedData?.length || 0} events imported successfully.`
+        });
+      }
 
       onImportComplete();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Import error:', error);
       toast({
         title: 'Import failed',
-        description: 'Please check your data and try again.',
+        description: error.message || 'Please check your data and try again.',
         variant: 'destructive'
       });
     } finally {

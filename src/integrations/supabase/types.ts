@@ -762,6 +762,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_calendar_year: {
+        Args: { p_talent_id: string; p_year: number }
+        Returns: number
+      }
       delete_user_and_files_completely: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -791,6 +795,10 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }[]
+      }
+      has_permission: {
+        Args: { p_scope: string; p_uid: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
