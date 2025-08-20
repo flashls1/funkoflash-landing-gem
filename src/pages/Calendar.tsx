@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -73,14 +73,11 @@ const Calendar = () => {
     dateRange: 'next30',
     hideNotAvailable: false
   });
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedYear, setSelectedYear] = useState(() => {
     return new Date().getFullYear();
   });
   const [talentSearch, setTalentSearch] = useState('');
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
-  const [isNavigatingProgrammatically, setIsNavigatingProgrammatically] = useState(false);
-  const calendarRef = useRef<FullCalendar>(null);
 
   const { user, profile, loading: authLoading } = useAuth();
   const { hasPermission, loading: permissionsLoading } = usePermissions();
@@ -203,12 +200,10 @@ const Calendar = () => {
       if (filters.dateRange === 'year') {
         startDate = startOfYear(new Date(selectedYear, 0, 1));
         endDate = endOfYear(new Date(selectedYear, 11, 31));
-      } else if (view === 'month') {
-        startDate = startOfMonth(currentDate);
-        endDate = endOfMonth(currentDate);
       } else {
-        startDate = startOfWeek(currentDate);
-        endDate = endOfWeek(currentDate);
+        // Use the current year for month/week views
+        startDate = startOfYear(new Date(selectedYear, 0, 1));
+        endDate = endOfYear(new Date(selectedYear, 11, 31));
       }
 
       // Apply date range filter
@@ -296,7 +291,6 @@ const Calendar = () => {
     filters.talent.join(','), // Convert array to string for comparison
     selectedYear,
     view,
-    currentDate.getTime(),
     selectedTalent,
     toast
   ]);
@@ -319,16 +313,6 @@ const Calendar = () => {
     hasPermission('calendar:view')
   ]);
 
-  // Sync currentDate changes with FullCalendar
-  useEffect(() => {
-    if (calendarRef.current && !isNavigatingProgrammatically) {
-      setIsNavigatingProgrammatically(true);
-      const calendarApi = calendarRef.current.getApi();
-      calendarApi.gotoDate(currentDate);
-      // Reset flag after a short delay to allow FullCalendar to update
-      setTimeout(() => setIsNavigatingProgrammatically(false), 100);
-    }
-  }, [currentDate, isNavigatingProgrammatically]);
 
   const loadTalents = async () => {
     try {
@@ -621,13 +605,7 @@ const Calendar = () => {
               <Label className="text-sm font-medium mb-2 block">Year</Label>
               <YearSelector
                 selectedYear={selectedYear}
-                onYearChange={(year) => {
-                  setSelectedYear(year);
-                  // Preserve current month and day when changing years
-                  const newDate = new Date(currentDate);
-                  newDate.setFullYear(year);
-                  setCurrentDate(newDate);
-                }}
+                 onYearChange={setSelectedYear}
                 language={language}
               />
             </div>
@@ -778,10 +756,9 @@ const Calendar = () => {
               </div>
             ) : (
               <FullCalendar
-                ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin]}
                 initialView={view === 'month' ? 'dayGridMonth' : 'timeGridWeek'}
-                initialDate={currentDate}
+                initialDate={new Date()}
                 headerToolbar={{
                   left: 'prev,next today',
                   center: 'title',
@@ -803,15 +780,11 @@ const Calendar = () => {
                 slotLabelInterval="01:00:00"
                 locale={language}
                 datesSet={(dateInfo) => {
-                  // Only update if we're not in the middle of programmatic navigation
-                  if (!isNavigatingProgrammatically) {
-                    const newYear = dateInfo.start.getFullYear();
-                    if (newYear !== selectedYear) {
-                      setSelectedYear(newYear);
-                    }
-                    setCurrentDate(dateInfo.start);
-                  }
-                }}
+                   const newYear = dateInfo.start.getFullYear();
+                   if (newYear !== selectedYear) {
+                     setSelectedYear(newYear);
+                   }
+                 }}
               />
             )}
           </CardContent>
