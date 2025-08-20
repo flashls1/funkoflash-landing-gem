@@ -78,7 +78,8 @@ export default {
 				'status-hold': 'hsl(var(--status-hold))',
 				'status-tentative': 'hsl(var(--status-tentative))',
 				'status-booked': 'hsl(var(--status-booked))',
-				'status-cancelled': 'hsl(var(--status-cancelled))'
+				'status-cancelled': 'hsl(var(--status-cancelled))',
+				'status-not-available': 'hsl(var(--status-not-available))'
 			},
 			backgroundImage: {
 				'gradient-hero': 'var(--gradient-hero)',

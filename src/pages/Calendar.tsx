@@ -4,15 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid } from 'lucide-react';
+import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
 import { hasFeature } from '@/lib/features';
 import { CalendarLegend } from '@/components/CalendarLegend';
 import { CalendarImportDialog } from '@/components/CalendarImportDialog';
+import { CalendarEventForm } from '@/components/CalendarEventForm';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +33,7 @@ interface CalendarEvent {
   start_time?: string;
   end_time?: string;
   all_day: boolean;
-  status: 'booked' | 'hold' | 'available' | 'tentative' | 'cancelled';
+  status: 'booked' | 'hold' | 'available' | 'tentative' | 'cancelled' | 'not_available';
   venue_name?: string;
   location_city?: string;
   location_state?: string;
@@ -45,6 +47,7 @@ interface CalendarFilters {
   status: string[];
   talent: string[];
   dateRange: string;
+  hideNotAvailable: boolean;
 }
 
 const Calendar = () => {
@@ -52,12 +55,17 @@ const Calendar = () => {
   const [view, setView] = useState<'month' | 'week'>('month');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [talents, setTalents] = useState<{ id: string; name: string }[]>([]);
+  const [selectedTalent, setSelectedTalent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [eventFormOpen, setEventFormOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
   const [filters, setFilters] = useState<CalendarFilters>({
-    status: ['booked', 'hold', 'available', 'tentative', 'cancelled'],
+    status: ['booked', 'hold', 'available', 'tentative', 'cancelled', 'not_available'],
     talent: [],
-    dateRange: 'next30'
+    dateRange: 'next30',
+    hideNotAvailable: false
   });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [talentSearch, setTalentSearch] = useState('');
@@ -91,7 +99,14 @@ const Calendar = () => {
       venue: 'Venue',
       location: 'Location',
       notes: 'Notes',
-      website: 'Website'
+      website: 'Website',
+      talentSelector: 'Select Talent',
+      allTalents: 'All Talents',
+      hideNotAvailable: 'Hide Not Available',
+      addEvent: 'Add Event',
+      blockDay: 'Block this day as Not Available',
+      blockWeekend: 'Block this weekend as Not Available',
+      blockRange: 'Block date range...'
     },
     es: {
       title: 'Calendario',
@@ -116,7 +131,14 @@ const Calendar = () => {
       venue: 'Lugar',
       location: 'Ubicación',
       notes: 'Notas',
-      website: 'Sitio Web'
+      website: 'Sitio Web',
+      talentSelector: 'Seleccionar Talento',
+      allTalents: 'Todos los Talentos',
+      hideNotAvailable: 'Ocultar No disponible',
+      addEvent: 'Agregar Evento',
+      blockDay: 'Bloquear este día como No disponible',
+      blockWeekend: 'Bloquear este fin de semana como No disponible',
+      blockRange: 'Bloquear rango de fechas...'
     }
   };
 
@@ -205,8 +227,13 @@ const Calendar = () => {
         .lte('end_date', format(endDate, 'yyyy-MM-dd'));
 
       // Apply status filter
-      if (filters.status.length > 0 && filters.status.length < 5) {
+      if (filters.status.length > 0 && filters.status.length < 6) {
         query = query.in('status', filters.status);
+      }
+
+      // Apply hide not available filter
+      if (filters.hideNotAvailable) {
+        query = query.neq('status', 'not_available');
       }
 
       // Apply talent filter
@@ -237,6 +264,7 @@ const Calendar = () => {
       case 'tentative': return 'hsl(var(--status-tentative))';
       case 'booked': return 'hsl(var(--status-booked))';
       case 'cancelled': return 'hsl(var(--status-cancelled))';
+      case 'not_available': return 'hsl(var(--status-not-available))';
       default: return 'hsl(var(--muted))';
     }
   };
@@ -295,6 +323,14 @@ const Calendar = () => {
     a.download = `calendar-events-${format(new Date(), 'yyyy-MM-dd')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDateClick = (info: any) => {
+    if (hasPermission('calendar:edit') || hasPermission('calendar:edit_own')) {
+      setSelectedDate(new Date(info.dateStr));
+      setSelectedEndDate(new Date(info.dateStr));
+      setEventFormOpen(true);
+    }
   };
 
   const exportICS = () => {
@@ -379,6 +415,17 @@ const Calendar = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-2">
+              {(hasPermission('calendar:edit') || hasPermission('calendar:edit_own')) && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setEventFormOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t.addEvent}
+                </Button>
+              )}
+              
               <Button 
                 variant="outline" 
                 onClick={() => setImportDialogOpen(true)}
@@ -403,6 +450,26 @@ const Calendar = () => {
             </div>
           </div>
 
+          {/* Talent Selector for Admin/Staff */}
+          {hasPermission('calendar:edit') && (
+            <div className="mb-4">
+              <Label className="text-sm font-medium mb-2 block">{t.talentSelector}</Label>
+              <Select value={selectedTalent} onValueChange={setSelectedTalent}>
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder={t.allTalents} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">{t.allTalents}</SelectItem>
+                  {talents.map(talent => (
+                    <SelectItem key={talent.id} value={talent.id}>
+                      {talent.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Filters */}
           <Card className="mb-6">
             <CardHeader>
@@ -417,7 +484,7 @@ const Calendar = () => {
                 <div>
                   <label className="text-sm font-medium mb-2 block">{t.status}</label>
                   <div className="space-y-2">
-                    {['booked', 'hold', 'available', 'tentative', 'cancelled'].map(status => (
+                    {['booked', 'hold', 'available', 'tentative', 'cancelled', 'not_available'].map(status => (
                       <div key={status} className="flex items-center space-x-2">
                         <Checkbox
                           id={status}
@@ -431,10 +498,25 @@ const Calendar = () => {
                           }}
                         />
                         <label htmlFor={status} className="capitalize text-sm">
-                          {status}
+                          {status === 'not_available' ? (language === 'en' ? 'Not Available' : 'No disponible') : status}
                         </label>
                       </div>
                     ))}
+                    {/* Hide Not Available Toggle */}
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="hide-not-available"
+                          checked={filters.hideNotAvailable}
+                          onCheckedChange={(checked) => 
+                            setFilters(prev => ({ ...prev, hideNotAvailable: !!checked }))
+                          }
+                        />
+                        <label htmlFor="hide-not-available" className="text-sm font-medium">
+                          {t.hideNotAvailable}
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -537,12 +619,12 @@ const Calendar = () => {
                 }}
                 events={formatEventsForFullCalendar(events)}
                 eventClick={handleEventClick}
+                selectable={true}
                 height="auto"
                 eventDisplay="block"
                 dayMaxEvents={3}
                 weekends={true}
                 editable={false}
-                selectable={false}
                 selectMirror={false}
                 dayHeaders={true}
                 allDaySlot={true}
@@ -568,6 +650,20 @@ const Calendar = () => {
         onImportComplete={() => {
           loadEvents();
           setImportDialogOpen(false);
+        }}
+      />
+
+      {/* Event Form Dialog */}
+      <CalendarEventForm
+        open={eventFormOpen}
+        onOpenChange={setEventFormOpen}
+        language={language}
+        selectedDate={selectedDate}
+        endDate={selectedEndDate}
+        selectedTalent={selectedTalent}
+        onSave={() => {
+          loadEvents();
+          setEventFormOpen(false);
         }}
       />
     </div>

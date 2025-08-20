@@ -173,6 +173,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, onImportCom
         else if (['available', 'open'].includes(normalizedStatus)) mappedRow.status = 'available';
         else if (['tentative', 'maybe'].includes(normalizedStatus)) mappedRow.status = 'tentative';
         else if (['cancelled', 'canceled'].includes(normalizedStatus)) mappedRow.status = 'cancelled';
+        else if (['not available', 'unavailable', 'ooo', 'off', 'personal day', 'out of office'].includes(normalizedStatus)) mappedRow.status = 'not_available';
         else mappedRow.status = 'available'; // default
       } else {
         mappedRow.status = 'available'; // default

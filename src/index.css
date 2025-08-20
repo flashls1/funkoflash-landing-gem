@@ -96,6 +96,7 @@ All colors MUST be HSL.
     --status-tentative: 40 90% 50%;      /* #FACC15 equivalent */
     --status-booked: 220 90% 45%;        /* #2563EB equivalent */
     --status-cancelled: 0 84% 60%;       /* #EF4444 equivalent */
+    --status-not-available: 210 7% 44%;  /* #6B7280 Gray 600 equivalent */
 
     /* Enhanced Shadows */
     --shadow-colorful: 0 8px 32px hsl(var(--funko-orange) / 0.15);
