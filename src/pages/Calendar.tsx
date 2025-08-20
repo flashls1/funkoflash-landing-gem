@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -180,40 +180,7 @@ const Calendar = () => {
     loadTalents();
   }, [hasFeature, navigate, authLoading, permissionsLoading, user, hasPermission]);
 
-  // Separate effect for events loading with proper dependencies
-  useEffect(() => {
-    // Only load events if we have basic setup ready
-    if (user && hasPermission('calendar:view') && !authLoading && !permissionsLoading) {
-      // Add small delay to prevent rapid calls during initialization
-      const timer = setTimeout(() => {
-        loadEvents();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [filters, currentDate, view, selectedTalent, selectedYear]);
-
-  const loadTalents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('talent_profiles')
-        .select('id, name')
-        .eq('active', true)
-        .order('name');
-
-      if (error) throw error;
-      const talentData = data || [];
-      setTalents(talentData);
-      
-      // Auto-select first talent if none selected and user has edit permissions
-      if (!selectedTalent && talentData.length > 0 && hasPermission('calendar:edit')) {
-        setSelectedTalent(talentData[0].id);
-      }
-    } catch (error) {
-      console.error('Error loading talents:', error);
-    }
-  };
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     // Prevent loading if not ready
     if (!user || !hasPermission('calendar:view') || authLoading || permissionsLoading) {
       return;
@@ -316,7 +283,62 @@ const Calendar = () => {
     } finally {
       setLoading(false);
     }
+  }, [
+    user,
+    authLoading,
+    permissionsLoading,
+    hasPermission,
+    talents.length,
+    filters.dateRange,
+    filters.status,
+    filters.hideNotAvailable,
+    filters.talent,
+    selectedYear,
+    view,
+    currentDate,
+    selectedTalent,
+    toast
+  ]);
+
+  // Separate effect for events loading with proper dependencies
+  useEffect(() => {
+    // Only load events if we have basic setup ready
+    if (user && hasPermission('calendar:view') && !authLoading && !permissionsLoading) {
+      // Add small delay to prevent rapid calls during initialization
+      const timer = setTimeout(() => {
+        loadEvents();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [
+    loadEvents, // Now using the memoized function
+    user?.id,
+    authLoading,
+    permissionsLoading,
+    hasPermission('calendar:view')
+  ]);
+
+  const loadTalents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('talent_profiles')
+        .select('id, name')
+        .eq('active', true)
+        .order('name');
+
+      if (error) throw error;
+      const talentData = data || [];
+      setTalents(talentData);
+      
+      // Auto-select first talent if none selected and user has edit permissions
+      if (!selectedTalent && talentData.length > 0 && hasPermission('calendar:edit')) {
+        setSelectedTalent(talentData[0].id);
+      }
+    } catch (error) {
+      console.error('Error loading talents:', error);
+    }
   };
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
