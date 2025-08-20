@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
 import { hasFeature, FEATURES } from '@/lib/features';
+import { AdminThemeProvider } from '@/components/AdminThemeProvider';
 import { ComingSoon } from '@/components/ui/ComingSoon';
 import { safeLocale } from '@/utils/locale';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -525,19 +526,20 @@ const Calendar = () => {
   }
 
   return (
-    <ErrorBoundary fallback={
-      <div className="min-h-screen bg-background">
-        <Navigation language={language} setLanguage={setLanguage} />
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center py-12">
-            <h1 className="text-2xl font-semibold mb-4">Calendar</h1>
-            <p className="text-muted-foreground">Something went wrong. Please refresh or contact an admin.</p>
-          </div>
-        </main>
-      </div>
-    }>
-      <div className="min-h-screen bg-background">
-        <Navigation language={language} setLanguage={setLanguage} />
+    <AdminThemeProvider>
+      <ErrorBoundary fallback={
+        <div className="min-h-screen bg-background">
+          <Navigation language={language} setLanguage={setLanguage} />
+          <main className="container mx-auto px-4 py-8">
+            <div className="text-center py-12">
+              <h1 className="text-2xl font-semibold mb-4">Calendar</h1>
+              <p className="text-muted-foreground">Something went wrong. Please refresh or contact an admin.</p>
+            </div>
+          </main>
+        </div>
+      }>
+        <div className="min-h-screen bg-background">
+          <Navigation language={language} setLanguage={setLanguage} />
       
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -818,8 +820,9 @@ const Calendar = () => {
           setEditEvent(null);
         }}
       />
-      </div>
-    </ErrorBoundary>
+        </div>
+      </ErrorBoundary>
+    </AdminThemeProvider>
   );
 };
 

@@ -119,22 +119,26 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
     const uploadedFile = event.target.files?.[0];
     if (!uploadedFile) return;
 
-    // Validate file type
+    // Enhanced file type validation - Google Sheets exports may not have proper MIME types
     const allowedTypes = [
       'text/csv',
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/csv',
-      'text/plain'
+      'text/plain',
+      'application/octet-stream', // Sometimes Google Sheets exports as this
+      '', // Some browsers don't set MIME type properly
+      'application/x-csv'
     ];
     
     const fileExtension = uploadedFile.name.toLowerCase().split('.').pop();
     const allowedExtensions = ['csv', 'xlsx', 'xls'];
     
-    if (!allowedTypes.includes(uploadedFile.type) && !allowedExtensions.includes(fileExtension || '')) {
+    // More lenient validation - prioritize file extension over MIME type
+    if (!allowedExtensions.includes(fileExtension || '')) {
       toast({
         title: 'Invalid file format',
-        description: 'Please upload a CSV or Excel file (.csv, .xlsx, .xls)',
+        description: 'Please upload a CSV or Excel file (.csv, .xlsx, .xls). File must have proper extension.',
         variant: 'destructive'
       });
       return;
@@ -146,25 +150,70 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
     try {
       let jsonData: any[];
       
-      if (fileExtension === 'csv' || uploadedFile.type === 'text/csv') {
-        // Handle CSV files
+      if (fileExtension === 'csv' || uploadedFile.type === 'text/csv' || uploadedFile.type === 'application/csv') {
+        // Enhanced CSV parsing with better error handling
         const text = await uploadedFile.text();
-        const lines = text.split('\n').filter(line => line.trim());
-        if (lines.length === 0) throw new Error('Empty file');
+        if (!text || text.trim().length === 0) throw new Error('Empty or invalid CSV file');
         
-        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        // Split lines and handle different line endings (Windows, Mac, Unix)
+        const lines = text.split(/\r?\n|\r/).filter(line => line.trim().length > 0);
+        if (lines.length === 0) throw new Error('No valid data found in CSV file');
+        
+        console.log(`Processing CSV with ${lines.length} lines`);
+        
+        // Parse CSV with proper comma handling (including quoted commas)
+        const parseCSVLine = (line: string): string[] => {
+          const result: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          
+          result.push(current.trim()); // Add the last field
+          return result.map(field => field.replace(/^"|"$/g, '')); // Remove surrounding quotes
+        };
+        
+        const headers = parseCSVLine(lines[0]);
         const rows = lines.slice(1).map(line => {
-          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const values = parseCSVLine(line);
+          // Ensure each row has the same number of columns as headers
           return headers.map((_, i) => values[i] || '');
         });
+        
         jsonData = [headers, ...rows];
+        console.log(`CSV parsed: ${headers.length} columns, ${rows.length} data rows`);
+        
       } else {
-        // Handle Excel files
+        // Handle Excel files with enhanced error handling
+        console.log('Processing Excel file...');
         const arrayBuffer = await uploadedFile.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const workbook = XLSX.read(arrayBuffer, { 
+          type: 'array',
+          cellDates: true,
+          cellNF: false,
+          cellText: false
+        });
+        
+        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+          throw new Error('No sheets found in Excel file');
+        }
+        
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+        
+        console.log(`Excel parsed: ${jsonData.length} total rows`);
       }
 
       if (jsonData.length > 0) {
@@ -249,16 +298,23 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         });
         setMapping(autoMapping);
       }
-    } catch (error) {
-      console.error('File processing error:', error);
-      toast({
-        title: 'Error reading file',
-        description: 'Please check your file format and try again. Make sure it\'s a valid CSV or Excel file.',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
+      } catch (error: any) {
+        console.error('File processing error details:', {
+          error: error.message,
+          fileType: uploadedFile.type,
+          fileName: uploadedFile.name,
+          fileSize: uploadedFile.size,
+          fileExtension
+        });
+        
+        toast({
+          title: 'Error reading file',
+          description: `File processing failed: ${error.message}. Please ensure it's a valid CSV or Excel file.`,
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
   };
 
   const validateAndNormalizeData = (rows: ImportRow[]) => {
