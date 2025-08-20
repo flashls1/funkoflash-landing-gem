@@ -265,8 +265,24 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
     return months[monthName.toLowerCase()] || '01';
   };
 
-  const requiredFields = ['event_title', 'start_date']; // Event title and start date are required
-  const optionalFields = ['end_date', 'talent_name', 'status', 'start_time', 'end_time', 'timezone', 'all_day', 'venue_name', 
+  // Dynamic required fields based on import format
+  const getRequiredFields = () => {
+    // Check if this is Google Sheets format by looking at headers
+    const hasWeekdayColumns = headers.length > 0 && ['Friday', 'Saturday', 'Sunday'].every(day => 
+      headers.some(header => header.toLowerCase().includes(day.toLowerCase()))
+    );
+    
+    if (hasWeekdayColumns) {
+      // For Google Sheets format, only event_title is required (dates are auto-generated)
+      return ['event_title'];
+    }
+    
+    // For standard CSV, both event_title and start_date are required
+    return ['event_title', 'start_date'];
+  };
+  
+  const requiredFields = getRequiredFields();
+  const optionalFields = ['end_date', 'talent_name', 'status', 'start_time', 'end_time', 'timezone', 'all_day', 'venue_name',
     'location_city', 'location_state', 'location_country', 'address_line', 'contact_name', 
     'contact_email', 'contact_phone', 'url', 'notes_internal', 'notes_public', 'travel_in', 'travel_out'];
 
