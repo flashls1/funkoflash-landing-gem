@@ -56,7 +56,7 @@ const AdminDashboard = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
-  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const [activeTab, setActiveTab] = useState('overview');
   const { user, profile, loading } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
