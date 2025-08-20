@@ -13,6 +13,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
 import { hasFeature, FEATURES } from '@/lib/features';
 import { ComingSoon } from '@/components/ui/ComingSoon';
+import { safeLocale } from '@/utils/locale';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { CalendarLegend } from '@/components/CalendarLegend';
 import { CalendarImportDialog } from '@/components/CalendarImportDialog';
 import { CalendarEventForm } from '@/components/CalendarEventForm';
@@ -58,7 +60,7 @@ const Calendar = () => {
   const [view, setView] = useState<'month' | 'week'>('month');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [talents, setTalents] = useState<{ id: string; name: string }[]>([]);
-  const [selectedTalent, setSelectedTalent] = useState<string>('');
+  const [selectedTalent, setSelectedTalent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [eventFormOpen, setEventFormOpen] = useState(false);
@@ -192,7 +194,13 @@ const Calendar = () => {
         .order('name');
 
       if (error) throw error;
-      setTalents(data || []);
+      const talentData = data || [];
+      setTalents(talentData);
+      
+      // Auto-select first talent if none selected
+      if (!selectedTalent && talentData.length > 0) {
+        setSelectedTalent(talentData[0].id);
+      }
     } catch (error) {
       console.error('Error loading talents:', error);
     }
@@ -201,6 +209,12 @@ const Calendar = () => {
   const loadEvents = async () => {
     setLoading(true);
     try {
+      // Don't load events if no talent selected and we need one
+      if (hasPermission('calendar:edit') && !selectedTalent && talents.length === 0) {
+        setEvents([]);
+        setLoading(false);
+        return;
+      }
       let startDate: Date;
       let endDate: Date;
 
@@ -448,14 +462,35 @@ const Calendar = () => {
     );
   }
 
-  // Don't render if user doesn't have access
+  // Show friendly message if user doesn't have access
   if (!user || !hasPermission('calendar:view') || !hasFeature('calendar')) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation language={language} setLanguage={setLanguage} />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-semibold mb-4">Calendar</h1>
+            <p className="text-muted-foreground">You don't have access to view the calendar.</p>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation language={language} setLanguage={setLanguage} />
+    <ErrorBoundary fallback={
+      <div className="min-h-screen bg-background">
+        <Navigation language={language} setLanguage={setLanguage} />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-semibold mb-4">Calendar</h1>
+            <p className="text-muted-foreground">Something went wrong. Please refresh or contact an admin.</p>
+          </div>
+        </main>
+      </div>
+    }>
+      <div className="min-h-screen bg-background">
+        <Navigation language={language} setLanguage={setLanguage} />
       
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -471,7 +506,7 @@ const Calendar = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-2">
-              {!FEATURES.googleSync && <ComingSoon locale={language} />}
+              {!FEATURES.googleSync && <ComingSoon locale={safeLocale(language)} />}
               
               {(hasPermission('calendar:edit') || hasPermission('calendar:edit_own')) && (
                 <Button 
@@ -738,7 +773,8 @@ const Calendar = () => {
           setEditEvent(null);
         }}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 

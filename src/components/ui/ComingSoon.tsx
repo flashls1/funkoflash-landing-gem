@@ -1,11 +1,13 @@
 import React from 'react';
+import { safeLocale } from '@/utils/locale';
 
 interface ComingSoonProps {
   locale?: 'en' | 'es';
 }
 
 export function ComingSoon({ locale = 'en' }: ComingSoonProps) {
-  const t = locale === 'es'
+  const safeLoc = safeLocale(locale);
+  const t = safeLoc === 'es'
     ? { 
         title: 'Próximamente — Google Calendar', 
         sub: 'La importación/sincronización se añadirá aquí.' 

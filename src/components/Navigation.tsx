@@ -45,17 +45,12 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
     const baseLinks = ['/', '/shop', '/talent-directory', '/events', '/about', '/contact'];
     
     // Add calendar if feature is enabled and user has permission
-    if (hasFeature('calendar') && user && hasPermission('calendar:view')) {
-      const calendarText = {
-        en: 'CALENDAR',
-        es: 'CALENDARIO'
-      };
-      
+    if (hasFeature('calendar') && user && hasPermission && hasPermission('calendar:view')) {
       // Insert calendar after events (before about)
       const items = [...baseItems[language]];
       const links = [...baseLinks];
       
-      items.splice(4, 0, calendarText[language]);
+      items.splice(4, 0, '');  // Remove CALENDAR text - just add link
       links.splice(4, 0, '/calendar');
       
       return { items, links };
