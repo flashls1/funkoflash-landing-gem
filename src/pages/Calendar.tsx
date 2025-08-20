@@ -178,14 +178,19 @@ const Calendar = () => {
 
     // Load initial data only once
     loadTalents();
-  }, [user, hasPermission, authLoading, permissionsLoading, navigate]);
+  }, [hasFeature, navigate, authLoading, permissionsLoading, user, hasPermission]);
 
+  // Separate effect for events loading with proper dependencies
   useEffect(() => {
     // Only load events if we have basic setup ready
     if (user && hasPermission('calendar:view') && !authLoading && !permissionsLoading) {
-      loadEvents();
+      // Add small delay to prevent rapid calls during initialization
+      const timer = setTimeout(() => {
+        loadEvents();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [filters, currentDate, view, selectedTalent, selectedYear, user, hasPermission, authLoading, permissionsLoading]);
+  }, [filters, currentDate, view, selectedTalent, selectedYear]);
 
   const loadTalents = async () => {
     try {
@@ -199,8 +204,8 @@ const Calendar = () => {
       const talentData = data || [];
       setTalents(talentData);
       
-      // Auto-select first talent if none selected
-      if (!selectedTalent && talentData.length > 0) {
+      // Auto-select first talent if none selected and user has edit permissions
+      if (!selectedTalent && talentData.length > 0 && hasPermission('calendar:edit')) {
         setSelectedTalent(talentData[0].id);
       }
     } catch (error) {
@@ -216,8 +221,8 @@ const Calendar = () => {
 
     setLoading(true);
     try {
-      // Don't load events if no talent selected and we need one
-      if (hasPermission('calendar:edit') && !selectedTalent && talents.length === 0) {
+      // For edit_own users, we need at least one talent to be loaded
+      if (hasPermission('calendar:edit_own') && !hasPermission('calendar:edit') && talents.length === 0) {
         setEvents([]);
         setLoading(false);
         return;
@@ -279,8 +284,22 @@ const Calendar = () => {
           }
       } else if (hasPermission('calendar:edit_own')) {
         // Talent/Business: only show their own events
-        // This requires joining with talent_profiles to find talents owned by current user
-        // For now, we'll handle this in the UI layer
+        // Get talents owned by current user and filter to those
+        const userTalentsQuery = await supabase
+          .from('talent_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('active', true);
+        
+        if (userTalentsQuery.data && userTalentsQuery.data.length > 0) {
+          const userTalentIds = userTalentsQuery.data.map(t => t.id);
+          query = query.in('talent_id', userTalentIds);
+        } else {
+          // User has no talents, show no events
+          setEvents([]);
+          setLoading(false);
+          return;
+        }
       }
 
       const { data, error } = await query.order('start_date');
@@ -536,11 +555,9 @@ const Calendar = () => {
               </Button>
               
               <Select onValueChange={(value) => value === 'csv' ? exportCSV() : exportICS()}>
-                <SelectTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    {t.export}
-                  </Button>
+                <SelectTrigger className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  <SelectValue placeholder={t.export} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="csv">{t.exportCSV}</SelectItem>
