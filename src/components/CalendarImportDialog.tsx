@@ -195,57 +195,32 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         
         console.log(`Processing row ${i + 1}: ${statusCell} | ${friday} | ${saturday} | ${sunday} | ${eventName} | ${location}`);
         
-        // Create individual events for each day that has a date
-        // Friday event
+        // Determine start and end dates for multi-day event
+        let startDate = null;
+        let endDate = null;
+        
+        // Find start date (first active day - Friday or Saturday)
         if (fridayDate && friday.trim() !== '') {
-          const eventDate = `${currentYear}-${getMonthNumber(currentMonth)}-${fridayDate.padStart(2, '0')}`;
-          events.push({
-            event_title: eventName || (status === 'booked' ? 'Booked Event' : 'Available'),
-            start_date: eventDate,
-            end_date: eventDate, // Single day event
-            venue_name: eventName || 'Friday Event',
-            location_city: location,
-            status: status,
-            notes_internal: income ? `Income: ${income}` : '',
-            notes_public: status === 'available' ? 'Available for booking' : '',
-            all_day: true,
-            _isGoogleSheetsFormat: true,
-            _rowIndex: i + 1,
-            _validationErrors: [],
-            _dayOfWeek: 'Friday'
-          });
-          console.log(`Created Friday event: ${eventDate}`);
+          startDate = `${currentYear}-${getMonthNumber(currentMonth)}-${fridayDate.padStart(2, '0')}`;
+          console.log(`Event starts Friday: ${startDate}`);
+        } else if (saturdayDate && saturday.trim() !== '') {
+          startDate = `${currentYear}-${getMonthNumber(currentMonth)}-${saturdayDate.padStart(2, '0')}`;
+          console.log(`Event starts Saturday: ${startDate}`);
         }
         
-        // Saturday event  
-        if (saturdayDate && saturday.trim() !== '') {
-          const eventDate = `${currentYear}-${getMonthNumber(currentMonth)}-${saturdayDate.padStart(2, '0')}`;
-          events.push({
-            event_title: eventName || (status === 'booked' ? 'Booked Event' : 'Available'),
-            start_date: eventDate,
-            end_date: eventDate, // Single day event
-            venue_name: eventName || 'Saturday Event',
-            location_city: location,
-            status: status,
-            notes_internal: income ? `Income: ${income}` : '',
-            notes_public: status === 'available' ? 'Available for booking' : '',
-            all_day: true,
-            _isGoogleSheetsFormat: true,
-            _rowIndex: i + 1,
-            _validationErrors: [],
-            _dayOfWeek: 'Saturday'
-          });
-          console.log(`Created Saturday event: ${eventDate}`);
-        }
-        
-        // Sunday event
+        // Find end date (always Sunday if active)
         if (sundayDate && sunday.trim() !== '') {
-          const eventDate = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayDate.padStart(2, '0')}`;
+          endDate = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayDate.padStart(2, '0')}`;
+          console.log(`Event ends Sunday: ${endDate}`);
+        }
+        
+        // Create single multi-day event if we have valid start and end dates
+        if (startDate && endDate) {
           events.push({
-            event_title: eventName || (status === 'booked' ? 'Booked Event' : 'Available'),
-            start_date: eventDate,
-            end_date: eventDate, // Single day event
-            venue_name: eventName || 'Sunday Event',
+            event_title: eventName || (status === 'booked' ? 'Convention Event' : 'Available Convention'),
+            start_date: startDate,
+            end_date: endDate,
+            venue_name: eventName || 'Convention Event',
             location_city: location,
             status: status,
             notes_internal: income ? `Income: ${income}` : '',
@@ -253,10 +228,26 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
             all_day: true,
             _isGoogleSheetsFormat: true,
             _rowIndex: i + 1,
-            _validationErrors: [],
-            _dayOfWeek: 'Sunday'
+            _validationErrors: []
           });
-          console.log(`Created Sunday event: ${eventDate}`);
+          console.log(`Created multi-day event: ${startDate} to ${endDate}`);
+        } else if (startDate) {
+          // Fallback: single day event if only start date is found
+          events.push({
+            event_title: eventName || (status === 'booked' ? 'Convention Event' : 'Available Convention'),
+            start_date: startDate,
+            end_date: startDate,
+            venue_name: eventName || 'Single Day Event',
+            location_city: location,
+            status: status,
+            notes_internal: income ? `Income: ${income}` : '',
+            notes_public: status === 'available' ? 'Available for booking' : '',
+            all_day: true,
+            _isGoogleSheetsFormat: true,
+            _rowIndex: i + 1,
+            _validationErrors: []
+          });
+          console.log(`Created single-day event: ${startDate}`);
         }
       }
     }
