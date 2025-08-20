@@ -118,15 +118,53 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
     const uploadedFile = event.target.files?.[0];
     if (!uploadedFile) return;
 
+    // Validate file type
+    const allowedTypes = [
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/csv',
+      'text/plain'
+    ];
+    
+    const fileExtension = uploadedFile.name.toLowerCase().split('.').pop();
+    const allowedExtensions = ['csv', 'xlsx', 'xls'];
+    
+    if (!allowedTypes.includes(uploadedFile.type) && !allowedExtensions.includes(fileExtension || '')) {
+      toast({
+        title: 'Invalid file format',
+        description: 'Please upload a CSV or Excel file (.csv, .xlsx, .xls)',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setFile(uploadedFile);
     setLoading(true);
 
     try {
-      const arrayBuffer = await uploadedFile.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      let jsonData: any[];
+      
+      if (fileExtension === 'csv' || uploadedFile.type === 'text/csv') {
+        // Handle CSV files
+        const text = await uploadedFile.text();
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length === 0) throw new Error('Empty file');
+        
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        const rows = lines.slice(1).map(line => {
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          return headers.map((_, i) => values[i] || '');
+        });
+        jsonData = [headers, ...rows];
+      } else {
+        // Handle Excel files
+        const arrayBuffer = await uploadedFile.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      }
 
       if (jsonData.length > 0) {
         const headers = jsonData[0] as string[];
@@ -156,9 +194,10 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         setMapping(autoMapping);
       }
     } catch (error) {
+      console.error('File processing error:', error);
       toast({
         title: 'Error reading file',
-        description: 'Please check your file format and try again.',
+        description: 'Please check your file format and try again. Make sure it\'s a valid CSV or Excel file.',
         variant: 'destructive'
       });
     } finally {
@@ -357,7 +396,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
                               Object.keys(newMapping).forEach(key => {
                                 if (newMapping[key] === field) delete newMapping[key];
                               });
-                              if (value) newMapping[value] = field;
+                              if (value && value !== "no-mapping") newMapping[value] = field;
                               setMapping(newMapping);
                             }}>
                       <SelectTrigger>
@@ -384,14 +423,14 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
                                 Object.keys(newMapping).forEach(key => {
                                   if (newMapping[key] === field) delete newMapping[key];
                                 });
-                                if (value) newMapping[value] = field;
+                                if (value && value !== "no-mapping") newMapping[value] = field;
                                 setMapping(newMapping);
                               }}>
                         <SelectTrigger>
                           <SelectValue placeholder={`Select column for ${field}`} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No mapping</SelectItem>
+                          <SelectItem value="no-mapping">No mapping</SelectItem>
                           {headers.map(header => (
                             <SelectItem key={header} value={header}>{header}</SelectItem>
                           ))}
