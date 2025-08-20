@@ -20,5 +20,17 @@
     "hotelConf": "Confirmación de reserva",
     "checkin": "Check-in (hora local)",
     "checkout": "Check-out (hora local)"
+  },
+  "appearance": {
+    "title": "Apariencia",
+    "bgMode": "Modo de fondo",
+    "black": "Negro sólido",
+    "siteImage": "Imagen de fondo del sitio",
+    "siteImageWatermark": "Fondo del sitio + marca de agua",
+    "watermarkOpacity": "Opacidad de marca de agua",
+    "watermarkScale": "Escala de marca de agua",
+    "ripple": "Activar efecto de onda (escritorio)",
+    "rippleIntensity": "Intensidad de onda",
+    "save": "Guardar"
   }
 }

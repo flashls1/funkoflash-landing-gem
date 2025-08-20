@@ -17,6 +17,7 @@ import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette,
 import { hasFeature } from '@/lib/features';
 import UserManagement from '@/components/UserManagement';
 import AccessRequestManager from '@/components/AccessRequestManager';
+import AppearanceManager from '@/features/appearance/AppearanceManager';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
@@ -155,7 +156,9 @@ const AdminDashboard = () => {
       manageSiteDesign: "Open Design Module",
       calendarManagement: "Calendar Management",
       calendarManagementDesc: "Manage schedules and events",
-      manageCalendar: "Manage Calendar"
+      manageCalendar: "Manage Calendar",
+      appearanceSettings: "Appearance Settings",
+      appearanceSettingsDesc: "Configure desktop ripple effects and background appearance"
     },
     es: {
       dashboard: "Panel de Administrador",
@@ -192,7 +195,9 @@ const AdminDashboard = () => {
       manageSiteDesign: "Abrir Módulo de Diseño",
       calendarManagement: "Gestión de Calendario",
       calendarManagementDesc: "Gestiona horarios y eventos",
-      manageCalendar: "Gestionar Calendario"
+      manageCalendar: "Gestionar Calendario",
+      appearanceSettings: "Configuración de Apariencia",
+      appearanceSettingsDesc: "Configurar efectos de ondas de escritorio y apariencia de fondo"
     }
   };
 
@@ -220,7 +225,7 @@ const AdminDashboard = () => {
     { id: 'user-management', icon: Users, color: 'text-blue-500', title: t.userManagement, desc: t.userManagementDesc, action: t.manageUsers, onClick: () => setActiveTab('users') },
     { id: 'access-requests', icon: FileText, color: 'text-purple-500', title: t.accessRequests, desc: t.accessRequestsDesc, action: t.reviewRequests, onClick: () => setActiveTab('access-requests') },
     { id: 'business-management', icon: Building, color: 'text-green-500', title: t.businessManagement, desc: t.businessManagementDesc, action: t.manageBusinessEvents, onClick: () => navigate('/admin/business-events') },
-    { id: 'system-settings', icon: Settings, color: 'text-gray-500', title: t.systemSettings, desc: t.systemSettingsDesc, action: t.configureSystem },
+    { id: 'system-settings', icon: Settings, color: 'text-gray-500', title: t.systemSettings, desc: t.systemSettingsDesc, action: t.configureSystem, onClick: () => setActiveTab('system-settings') },
     { id: 'reports-analytics', icon: BarChart3, color: 'text-orange-500', title: t.reportsAnalytics, desc: t.reportsAnalyticsDesc, action: t.viewReports },
     { id: 'content-management', icon: FileText, color: 'text-indigo-500', title: t.contentManagement, desc: t.contentManagementDesc, action: t.manageContent },
     { id: 'site-design', icon: Palette, color: 'text-pink-500', title: `✨ ${t.siteDesign}`, desc: t.siteDesignDesc, action: t.manageSiteDesign, onClick: () => navigate('/admin/site-design') },
@@ -612,6 +617,16 @@ const AdminDashboard = () => {
             <div className="text-center py-8">
               <h3 className="text-lg font-semibold mb-2">Settings Module</h3>
               <p className="text-muted-foreground">Settings management functionality coming soon.</p>
+            </div>
+          )}
+
+          {activeTab === 'system-settings' && hasFeature('appearance') && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">{t.systemSettings}</h3>
+                <p className="text-muted-foreground">{t.systemSettingsDesc}</p>
+              </div>
+              <AppearanceManager />
             </div>
           )}
         </div>

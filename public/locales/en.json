@@ -20,5 +20,17 @@
     "hotelConf": "Reservation confirmation",
     "checkin": "Check-in (local)",
     "checkout": "Check-out (local)"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "bgMode": "Background mode",
+    "black": "Solid black",
+    "siteImage": "Site background image",
+    "siteImageWatermark": "Site background + tiled logo watermark",
+    "watermarkOpacity": "Watermark opacity",
+    "watermarkScale": "Watermark scale",
+    "ripple": "Enable interactive ripple (desktop)",
+    "rippleIntensity": "Ripple intensity",
+    "save": "Save"
   }
 }

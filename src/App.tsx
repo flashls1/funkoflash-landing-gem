@@ -24,6 +24,7 @@ import Contact from "./pages/Contact";
 import Calendar from "./pages/Calendar";
 import NotFound from "./pages/NotFound";
 import BusinessEventsPage from "./features/business-events/BusinessEventsPage";
+import BackgroundManager from "./features/appearance/BackgroundManager";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <ErrorBoundary>
+          <BackgroundManager />
           <Toaster />
           <Sonner />
           <BrowserRouter>
