@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -79,6 +79,8 @@ const Calendar = () => {
   });
   const [talentSearch, setTalentSearch] = useState('');
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
+  const [isNavigatingProgrammatically, setIsNavigatingProgrammatically] = useState(false);
+  const calendarRef = useRef<FullCalendar>(null);
 
   const { user, profile, loading: authLoading } = useAuth();
   const { hasPermission, loading: permissionsLoading } = usePermissions();
@@ -316,6 +318,17 @@ const Calendar = () => {
     permissionsLoading,
     hasPermission('calendar:view')
   ]);
+
+  // Sync currentDate changes with FullCalendar
+  useEffect(() => {
+    if (calendarRef.current && !isNavigatingProgrammatically) {
+      setIsNavigatingProgrammatically(true);
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.gotoDate(currentDate);
+      // Reset flag after a short delay to allow FullCalendar to update
+      setTimeout(() => setIsNavigatingProgrammatically(false), 100);
+    }
+  }, [currentDate, isNavigatingProgrammatically]);
 
   const loadTalents = async () => {
     try {
@@ -765,8 +778,10 @@ const Calendar = () => {
               </div>
             ) : (
               <FullCalendar
+                ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin]}
                 initialView={view === 'month' ? 'dayGridMonth' : 'timeGridWeek'}
+                initialDate={currentDate}
                 headerToolbar={{
                   left: 'prev,next today',
                   center: 'title',
@@ -789,11 +804,13 @@ const Calendar = () => {
                 locale={language}
                 datesSet={(dateInfo) => {
                   // Only update if we're not in the middle of programmatic navigation
-                  const newYear = dateInfo.start.getFullYear();
-                  if (newYear !== selectedYear) {
-                    setSelectedYear(newYear);
+                  if (!isNavigatingProgrammatically) {
+                    const newYear = dateInfo.start.getFullYear();
+                    if (newYear !== selectedYear) {
+                      setSelectedYear(newYear);
+                    }
+                    setCurrentDate(dateInfo.start);
                   }
-                  setCurrentDate(dateInfo.start);
                 }}
               />
             )}
