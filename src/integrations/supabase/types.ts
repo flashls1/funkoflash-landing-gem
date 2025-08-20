@@ -44,6 +44,110 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_event: {
+        Row: {
+          address_line: string | null
+          all_day: boolean
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by: string | null
+          end_date: string
+          end_time: string | null
+          event_title: string
+          id: string
+          last_synced_at: string | null
+          location_city: string | null
+          location_country: string | null
+          location_state: string | null
+          notes_internal: string | null
+          notes_public: string | null
+          source_file: string | null
+          start_date: string
+          start_time: string | null
+          status: string
+          talent_id: string | null
+          timezone: string | null
+          travel_in: string | null
+          travel_out: string | null
+          updated_at: string
+          updated_by: string | null
+          url: string | null
+          venue_name: string | null
+        }
+        Insert: {
+          address_line?: string | null
+          all_day?: boolean
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          end_time?: string | null
+          event_title: string
+          id?: string
+          last_synced_at?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
+          notes_internal?: string | null
+          notes_public?: string | null
+          source_file?: string | null
+          start_date: string
+          start_time?: string | null
+          status?: string
+          talent_id?: string | null
+          timezone?: string | null
+          travel_in?: string | null
+          travel_out?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          url?: string | null
+          venue_name?: string | null
+        }
+        Update: {
+          address_line?: string | null
+          all_day?: boolean
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          end_time?: string | null
+          event_title?: string
+          id?: string
+          last_synced_at?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
+          notes_internal?: string | null
+          notes_public?: string | null
+          source_file?: string | null
+          start_date?: string
+          start_time?: string | null
+          status?: string
+          talent_id?: string | null
+          timezone?: string | null
+          travel_in?: string | null
+          travel_out?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          url?: string | null
+          venue_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_event_talent_id_fkey"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       directory_settings: {
         Row: {
           banner_alt_text: string | null
