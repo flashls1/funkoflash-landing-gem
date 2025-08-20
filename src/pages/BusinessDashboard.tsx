@@ -11,12 +11,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
-import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown, Building2 } from 'lucide-react';
+import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown, Building2, Briefcase, MapPin } from 'lucide-react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
 import { NextEventCard } from '@/components/NextEventCard';
 import { MiniAgenda } from '@/components/MiniAgenda';
+import { format, parseISO } from 'date-fns';
+import { enUS, es } from 'date-fns/locale';
 
 // Draggable card component for business
 const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
@@ -54,6 +56,8 @@ const BusinessDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5]);
+  const [businessEvents, setBusinessEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
   const { user, profile, loading } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const navigate = useNavigate();
@@ -77,8 +81,34 @@ const BusinessDashboard = () => {
       setCurrentTime(new Date());
     }, 60000);
 
+    if (profile && profile.role === 'business') {
+      fetchBusinessEvents();
+    }
+
     return () => clearInterval(timer);
   }, [user, profile, loading, navigate]);
+
+  const fetchBusinessEvents = async () => {
+    try {
+      setLoadingEvents(true);
+      const { data, error } = await supabase
+        .from('business_events')
+        .select(`
+          *,
+          business_event_members!inner(profile_id, role)
+        `)
+        .eq('business_event_members.profile_id', user?.id)
+        .is('deleted_at', null)
+        .order('start_date', { ascending: true, nullsLast: true });
+
+      if (error) throw error;
+      setBusinessEvents(data || []);
+    } catch (error) {
+      console.error('Error fetching business events:', error);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
 
   const moveCard = (dragIndex: number, hoverIndex: number) => {
     const newOrder = [...cardOrder];
@@ -123,7 +153,11 @@ const BusinessDashboard = () => {
       moduleLayout: "Module Layout",
       dashboardColors: "Dashboard Colors",
       locked: "Locked",
-      unlocked: "Unlocked"
+      unlocked: "Unlocked",
+      myEvents: "My Business Events",
+      noEvents: "No events assigned",
+      noEventsDesc: "You are not currently assigned to any business events.",
+      viewEvent: "View Event"
     },
     es: {
       dashboard: "Panel de Empresa",
@@ -134,7 +168,11 @@ const BusinessDashboard = () => {
       moduleLayout: "Diseño de Módulos",
       dashboardColors: "Colores del Panel",
       locked: "Bloqueado",
-      unlocked: "Desbloqueado"
+      unlocked: "Desbloqueado",
+      myEvents: "Mis Eventos Empresariales",
+      noEvents: "No hay eventos asignados",
+      noEventsDesc: "Actualmente no estás asignado a ningún evento empresarial.",
+      viewEvent: "Ver Evento"
     }
   };
 
@@ -347,6 +385,81 @@ const BusinessDashboard = () => {
             <NextEventCard language={language} />
             <MiniAgenda language={language} />
           </div>
+
+          {/* Business Events Section */}
+          <Card 
+            className="border-2"
+            style={{
+              backgroundColor: currentTheme.cardBackground,
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="h-5 w-5" />
+                    {t.myEvents}
+                  </CardTitle>
+                  <CardDescription style={{ color: currentTheme.cardForeground + '80' }}>
+                    Events you are assigned to as a team member
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingEvents ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : businessEvents.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-semibold mb-2">{t.noEvents}</h3>
+                  <p className="opacity-70">{t.noEventsDesc}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {businessEvents.map((event: any) => (
+                    <Card key={event.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        {event.logo_url && (
+                          <div className="aspect-[16/9] mb-3 overflow-hidden rounded-lg">
+                            <img
+                              src={event.logo_url}
+                              alt={event.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <h4 className="font-semibold mb-2">{event.name}</h4>
+                        {event.start_date && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                            <Calendar className="h-4 w-4" />
+                            <span>
+                              {format(parseISO(event.start_date), 'PPP', { 
+                                locale: language === 'es' ? es : enUS 
+                              })}
+                            </span>
+                          </div>
+                        )}
+                        {event.location && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                            <MapPin className="h-4 w-4" />
+                            <span className="truncate">{event.location}</span>
+                          </div>
+                        )}
+                        <Badge variant="outline" className="mb-3">
+                          {event.business_event_members[0]?.role || 'member'}
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Future modules placeholder */}
           <Card 

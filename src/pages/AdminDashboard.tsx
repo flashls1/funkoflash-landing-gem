@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -13,15 +11,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
-import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Lock, Unlock, ChevronDown } from 'lucide-react';
-import { hasFeature } from '@/lib/features';
-import UserManagement from '@/components/UserManagement';
-import AccessRequestManager from '@/components/AccessRequestManager';
+import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown, Users, Briefcase } from 'lucide-react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
+import { NextEventCard } from '@/components/NextEventCard';
+import { MiniAgenda } from '@/components/MiniAgenda';
 
-// Draggable card component
+// Draggable card component for business
 const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
   const [{ isDragging }, drag] = useDrag({
     type: 'card',
@@ -56,23 +53,13 @@ const AdminDashboard = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
-  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6]);
   const { user, profile, loading } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Update time every minute
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Handle authentication and authorization separately
-  useEffect(() => {
+    // Handle authentication and authorization separately
     if (loading) return; // Wait for auth to initialize
 
     if (!user) {
@@ -84,6 +71,13 @@ const AdminDashboard = () => {
       navigate('/auth');
       return;
     }
+
+    // Update time every minute
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+
+    return () => clearInterval(timer);
   }, [user, profile, loading, navigate]);
 
   const moveCard = (dragIndex: number, hoverIndex: number) => {
@@ -123,76 +117,48 @@ const AdminDashboard = () => {
     en: {
       dashboard: "Admin Dashboard",
       overview: "Overview",
-      users: "User Management",
       messages: "Messages",
       settings: "Settings",
-      analytics: "Analytics",
-      events: "Events",
-      totalUsers: "Total Users",
-      pendingRequests: "Pending Access Requests",
-      activeEvents: "Active Events",
-      systemHealth: "System Health",
+      siteDesign: "Site Design",
+      siteDesignDesc: "Customize the website design and branding",
+      talentDirectory: "Talent Directory",
+      talentDirectoryDesc: "Manage talent profiles and directory settings",
+      shopManager: "Shop Manager",
+      shopManagerDesc: "Manage products and shop settings",
+      eventsManager: "Events Manager",
+      eventsManagerDesc: "Manage events and event settings",
+      businessEvents: "Business Events",
+      businessEventsDesc: "Manage corporate events and business engagements",
       userManagement: "User Management",
-      userManagementDesc: "Manage all platform users, roles, and permissions",
-      manageUsers: "Manage Users",
-      accessRequests: "Access Requests",
-      accessRequestsDesc: "Review and approve new user access requests",
-      reviewRequests: "Review Requests",
-      eventManagement: "Event Management",
-      eventManagementDesc: "Create, edit, and manage platform events",
-      manageEvents: "Manage Events",
-      systemSettings: "System Settings",
-      systemSettingsDesc: "Configure platform settings and preferences",
-      configureSystem: "Configure System",
-      reportsAnalytics: "Reports & Analytics",
-      reportsAnalyticsDesc: "View detailed reports and platform analytics",
-      viewReports: "View Reports",
-      contentManagement: "Content Management",
-      contentManagementDesc: "Manage website content, pages, and media",
-      manageContent: "Manage Content",
-      siteDesign: "Site Design Module",
-      siteDesignDesc: "Customize backgrounds, heroes, colors, fonts, and layouts",
-      manageSiteDesign: "Open Design Module",
-      calendarManagement: "Calendar Management",
-      calendarManagementDesc: "Manage schedules and events",
-      manageCalendar: "Manage Calendar"
+      userManagementDesc: "Manage user accounts and permissions",
+      moduleComingSoon: "Additional modules coming soon.",
+      moduleLayout: "Module Layout",
+      dashboardColors: "Dashboard Colors",
+      locked: "Locked",
+      unlocked: "Unlocked"
     },
     es: {
       dashboard: "Panel de Administrador",
       overview: "Resumen",
-      users: "Gestión de Usuarios",
       messages: "Mensajes",
       settings: "Configuración",
-      analytics: "Analíticas",
-      events: "Eventos",
-      totalUsers: "Usuarios Totales",
-      pendingRequests: "Solicitudes Pendientes",
-      activeEvents: "Eventos Activos",
-      systemHealth: "Estado del Sistema",
+      siteDesign: "Diseño del Sitio",
+      siteDesignDesc: "Personaliza el diseño y la marca del sitio web",
+      talentDirectory: "Directorio de Talento",
+      talentDirectoryDesc: "Gestiona perfiles de talento y configuraciones del directorio",
+      shopManager: "Gestor de Tienda",
+      shopManagerDesc: "Gestiona productos y configuraciones de la tienda",
+      eventsManager: "Gestor de Eventos",
+      eventsManagerDesc: "Gestiona eventos y configuraciones de eventos",
+      businessEvents: "Eventos Empresariales",
+      businessEventsDesc: "Gestiona eventos corporativos y compromisos empresariales",
       userManagement: "Gestión de Usuarios",
-      userManagementDesc: "Gestiona todos los usuarios, roles y permisos de la plataforma",
-      manageUsers: "Gestionar Usuarios",
-      accessRequests: "Solicitudes de Acceso",
-      accessRequestsDesc: "Revisa y aprueba nuevas solicitudes de acceso de usuarios",
-      reviewRequests: "Revisar Solicitudes",
-      eventManagement: "Gestión de Eventos",
-      eventManagementDesc: "Crear, editar y gestionar eventos de la plataforma",
-      manageEvents: "Gestionar Eventos",
-      systemSettings: "Configuración del Sistema",
-      systemSettingsDesc: "Configurar ajustes y preferencias de la plataforma",
-      configureSystem: "Configurar Sistema",
-      reportsAnalytics: "Reportes y Analíticas",
-      reportsAnalyticsDesc: "Ver reportes detallados y analíticas de la plataforma",
-      viewReports: "Ver Reportes",
-      contentManagement: "Gestión de Contenido",
-      contentManagementDesc: "Gestionar contenido del sitio web, páginas y medios",
-      manageContent: "Gestionar Contenido",
-      siteDesign: "Módulo de Diseño del Sitio",
-      siteDesignDesc: "Personalizar fondos, héroes, colores, fuentes y diseños",
-      manageSiteDesign: "Abrir Módulo de Diseño",
-      calendarManagement: "Gestión de Calendario",
-      calendarManagementDesc: "Gestiona horarios y eventos",
-      manageCalendar: "Gestionar Calendario"
+      userManagementDesc: "Gestiona cuentas de usuario y permisos",
+      moduleComingSoon: "Módulos adicionales próximamente.",
+      moduleLayout: "Diseño de Módulos",
+      dashboardColors: "Colores del Panel",
+      locked: "Bloqueado",
+      unlocked: "Desbloqueado"
     }
   };
 
@@ -215,40 +181,61 @@ const AdminDashboard = () => {
     return null;
   }
 
-  // Module definitions with colors - filter based on feature flags
-  const allModuleCards = [
-    { id: 'user-management', icon: Users, color: 'text-blue-500', title: t.userManagement, desc: t.userManagementDesc, action: t.manageUsers, onClick: () => setActiveTab('users') },
-    { id: 'access-requests', icon: FileText, color: 'text-purple-500', title: t.accessRequests, desc: t.accessRequestsDesc, action: t.reviewRequests, onClick: () => setActiveTab('access-requests') },
-    { id: 'event-management', icon: Calendar, color: 'text-green-500', title: t.eventManagement, desc: t.eventManagementDesc, action: t.manageEvents, onClick: () => navigate('/admin/events-manager') },
-    { id: 'system-settings', icon: Settings, color: 'text-gray-500', title: t.systemSettings, desc: t.systemSettingsDesc, action: t.configureSystem },
-    { id: 'reports-analytics', icon: BarChart3, color: 'text-orange-500', title: t.reportsAnalytics, desc: t.reportsAnalyticsDesc, action: t.viewReports },
-    { id: 'content-management', icon: FileText, color: 'text-indigo-500', title: t.contentManagement, desc: t.contentManagementDesc, action: t.manageContent },
-    { id: 'site-design', icon: Palette, color: 'text-pink-500', title: `✨ ${t.siteDesign}`, desc: t.siteDesignDesc, action: t.manageSiteDesign, onClick: () => navigate('/admin/site-design') },
-    { id: 'talent-directory', icon: Users, color: 'text-cyan-500', title: language === 'en' ? 'Talent Directory' : 'Directorio de Talento', desc: language === 'en' ? 'Manage talent profiles and directory banner' : 'Gestionar perfiles de talento y banner del directorio', action: language === 'en' ? 'Manage Talent Directory' : 'Gestionar Directorio de Talento', onClick: () => navigate('/admin/talent-directory') },
-    { id: 'shop-manager', icon: ShoppingBag, color: 'text-emerald-500', title: language === 'en' ? 'Shop Manager' : 'Gestor de Tienda', desc: language === 'en' ? 'Manage products, images, and shop inventory' : 'Gestionar productos, imágenes e inventario de la tienda', action: language === 'en' ? 'Manage Shop' : 'Gestionar Tienda', onClick: () => navigate('/admin/shop-manager') },
-    { id: 'events-manager', icon: Calendar, color: 'text-red-500', title: language === 'en' ? 'Events Manager' : 'Gestor de Eventos', desc: language === 'en' ? 'Create, manage, and publish events with talent assignments' : 'Crear, gestionar y publicar eventos con asignaciones de talento', action: language === 'en' ? 'Manage Events' : 'Gestionar Eventos', onClick: () => navigate('/admin/events-manager') }
+  const adminModules = [
+    {
+      title: t.siteDesign,
+      description: t.siteDesignDesc,
+      icon: Palette,
+      href: "/admin/site-design",
+      gradient: "from-purple-500 to-pink-500"
+    },
+    {
+      title: t.talentDirectory,
+      description: t.talentDirectoryDesc,
+      icon: Users,
+      href: "/admin/talent-directory",
+      gradient: "from-blue-500 to-cyan-500"
+    },
+    {
+      title: t.shopManager,
+      description: t.shopManagerDesc,
+      icon: DollarSign,
+      href: "/admin/shop-manager",
+      gradient: "from-green-500 to-emerald-500"
+    },
+    {
+      title: t.eventsManager,
+      description: t.eventsManagerDesc,
+      icon: Calendar,
+      href: "/admin/events-manager",
+      gradient: "from-orange-500 to-red-500"
+    },
+    {
+      title: t.businessEvents,
+      description: t.businessEventsDesc,
+      icon: Briefcase,
+      href: "/admin/business-events",
+      gradient: "from-indigo-500 to-purple-500"
+    },
+    {
+      title: t.userManagement,
+      description: t.userManagementDesc,
+      icon: User,
+      href: "/admin/user-management",
+      gradient: "from-gray-500 to-slate-500"
+    }
   ];
-
-  // Add calendar management if feature is enabled
-  if (hasFeature('calendar')) {
-    allModuleCards.push(
-      { id: 'calendar-management', icon: Calendar, color: 'text-teal-500', title: t.calendarManagement, desc: t.calendarManagementDesc, action: t.manageCalendar, onClick: () => navigate('/calendar') }
-    );
-  }
-
-  const moduleCards = allModuleCards;
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div 
         className="min-h-screen"
         style={{
-          backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
+          backgroundImage: 'var(--site-background)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-          backgroundColor: currentTheme.background
+          backgroundAttachment: 'fixed'
         }}
       >
         <Navigation language={language} setLanguage={setLanguage} />
@@ -281,7 +268,7 @@ const AdminDashboard = () => {
                 <div className="flex items-end gap-4">
                   <Avatar className="h-20 w-20 border-4 border-white shadow-xl">
                     <AvatarImage src={(profile as any)?.avatar_url || ''} />
-                    <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                    <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-blue-500 to-green-600 text-white">
                       {profile?.first_name?.[0]}{profile?.last_name?.[0]}
                     </AvatarFallback>
                   </Avatar>
@@ -289,7 +276,10 @@ const AdminDashboard = () => {
                     <h2 className="text-2xl font-bold drop-shadow-lg">
                       {profile?.first_name} {profile?.last_name}
                     </h2>
-                    <p className="text-white/90 capitalize">{profile?.role}</p>
+                    <p className="text-white/90 capitalize flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      {profile?.role}
+                    </p>
                     <InvisibleModeToggle language={language} className="mt-2" />
                   </div>
                 </div>
@@ -332,7 +322,7 @@ const AdminDashboard = () => {
                   <div className="flex items-center gap-3">
                     {isDragEnabled ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     <span className="text-sm font-medium">
-                      {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
+                      {t.moduleLayout}
                     </span>
                     <Switch
                       checked={isDragEnabled}
@@ -340,71 +330,29 @@ const AdminDashboard = () => {
                       style={{ backgroundColor: isDragEnabled ? currentTheme.accent : undefined }}
                     />
                     <span className="text-xs opacity-70">
-                      {isDragEnabled 
-                        ? (language === 'en' ? 'Unlocked' : 'Desbloqueado')
-                        : (language === 'en' ? 'Locked' : 'Bloqueado')
-                      }
+                      {isDragEnabled ? t.unlocked : t.locked}
                     </span>
                   </div>
 
                   {/* Navigation Tabs */}
                   <nav className="flex space-x-6">
                     <button 
-                      onClick={() => setActiveTab('overview')}
-                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
-                        activeTab === 'overview'
-                          ? `border-current`
-                          : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
-                      style={{ color: activeTab === 'overview' ? currentTheme.accent : currentTheme.cardForeground }}
+                      className="py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 border-current"
+                      style={{ color: currentTheme.accent }}
                     >
                       <BarChart3 className="h-4 w-4" />
                       {t.overview}
                     </button>
                     <button 
-                      onClick={() => setActiveTab('users')}
-                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
-                        activeTab === 'users'
-                          ? `border-current`
-                          : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
-                      style={{ color: activeTab === 'users' ? currentTheme.accent : currentTheme.cardForeground }}
-                    >
-                      <Users className="h-4 w-4" />
-                      {t.users}
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab('messages')}
-                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
-                        activeTab === 'messages'
-                          ? `border-current`
-                          : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
-                      style={{ color: activeTab === 'messages' ? currentTheme.accent : currentTheme.cardForeground }}
+                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
+                      style={{ color: currentTheme.cardForeground }}
                     >
                       <MessageSquare className="h-4 w-4" />
                       {t.messages}
                     </button>
                     <button 
-                      onClick={() => setActiveTab('events')}
-                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
-                        activeTab === 'events'
-                          ? `border-current`
-                          : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
-                      style={{ color: activeTab === 'events' ? currentTheme.accent : currentTheme.cardForeground }}
-                    >
-                      <Calendar className="h-4 w-4" />
-                      {t.events}
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab('settings')}
-                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
-                        activeTab === 'settings'
-                          ? `border-current`
-                          : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
-                      style={{ color: activeTab === 'settings' ? currentTheme.accent : currentTheme.cardForeground }}
+                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
+                      style={{ color: currentTheme.cardForeground }}
                     >
                       <Settings className="h-4 w-4" />
                       {t.settings}
@@ -425,7 +373,7 @@ const AdminDashboard = () => {
                       }}
                     >
                       <Palette className="h-4 w-4 mr-2" />
-                      {language === 'en' ? 'Dashboard Colors' : 'Colores del Panel'}
+                      {t.dashboardColors}
                       <ChevronDown className="h-4 w-4 ml-2" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -461,169 +409,96 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {/* Main Content */}
         <div className="space-y-6">
-          {activeTab === 'overview' && (
-            <div className="space-y-6">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card 
-                className="border-2 transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: currentTheme.cardBackground,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.cardForeground
-                }}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.totalUsers}</CardTitle>
-                  <Users className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs opacity-80">Platform users</p>
-                </CardContent>
-              </Card>
+          {/* Next Event and Mini Agenda */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <NextEventCard language={language} />
+            <MiniAgenda language={language} />
+          </div>
 
-              <Card 
-                className="border-2 transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: currentTheme.cardBackground,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.cardForeground
-                }}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.pendingRequests}</CardTitle>
-                  <FileText className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs opacity-80">Awaiting review</p>
-                </CardContent>
-              </Card>
-
-              <Card 
-                className="border-2 transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: currentTheme.cardBackground,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.cardForeground
-                }}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.activeEvents}</CardTitle>
-                  <Calendar className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs opacity-80">Current events</p>
-                </CardContent>
-              </Card>
-
-              <Card 
-                className="border-2 transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: currentTheme.cardBackground,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.cardForeground
-                }}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.systemHealth}</CardTitle>
-                  <Badge variant="default" className="bg-green-500">
-                    Healthy
-                  </Badge>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">99.9%</div>
-                  <p className="text-xs opacity-80">Uptime</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {cardOrder.map((cardIndex, index) => {
-                const card = moduleCards[cardIndex];
-                const IconComponent = card.icon;
-                return (
-                  <DraggableCard
-                    key={card.id}
-                    id={card.id}
-                    index={index}
-                    moveCard={moveCard}
-                    isDragEnabled={isDragEnabled}
+          {/* Admin Modules Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {adminModules.map((module, index) => {
+              const actualIndex = cardOrder.indexOf(index);
+              return (
+                <DraggableCard
+                  key={index}
+                  id={index}
+                  index={actualIndex}
+                  moveCard={moveCard}
+                  isDragEnabled={isDragEnabled}
+                >
+                  <Card 
+                    className="group hover:shadow-xl transition-all duration-300 border-2 cursor-pointer overflow-hidden"
+                    style={{
+                      backgroundColor: currentTheme.cardBackground,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.cardForeground
+                    }}
+                    onClick={() => navigate(module.href)}
                   >
-                    <Card 
-                      className="border-2 transition-transform hover:scale-105"
-                      style={{
-                        backgroundColor: currentTheme.cardBackground,
-                        borderColor: currentTheme.border,
-                        color: currentTheme.cardForeground
-                      }}
-                    >
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <IconComponent className="h-5 w-5" style={{ color: currentTheme.accent }} />
-                          {card.title}
-                        </CardTitle>
-                        <CardDescription className="opacity-80">{card.desc}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Button 
-                          className="w-full" 
-                          onClick={card.onClick}
-                          style={{
-                            backgroundColor: currentTheme.accent,
-                            color: currentTheme.background,
-                            borderColor: currentTheme.accent
-                          }}
-                        >
-                          {card.action}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </DraggableCard>
-                );
-              })}
-            </div>
-            </div>
-          )}
+                    {/* Gradient Header */}
+                    <div className={`h-2 bg-gradient-to-r ${module.gradient}`} />
+                    
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center justify-between">
+                        <div className={`p-3 rounded-xl bg-gradient-to-r ${module.gradient} text-white shadow-lg`}>
+                          <module.icon className="h-6 w-6" />
+                        </div>
+                        <div className="text-right">
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        </div>
+                      </div>
+                      <CardTitle className="text-xl group-hover:scale-105 transition-transform">
+                        {module.title}
+                      </CardTitle>
+                      <CardDescription 
+                        className="text-sm leading-relaxed"
+                        style={{ color: currentTheme.cardForeground + '80' }}
+                      >
+                        {module.description}
+                      </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-0">
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start p-0 h-auto font-medium hover:translate-x-1 transition-transform"
+                        style={{ color: currentTheme.accent }}
+                      >
+                        Manage →
+                      </Button>
+                    </CardContent>
+                    
+                    {/* Hover Gradient Effect */}
+                    <div className={`absolute inset-0 bg-gradient-to-r ${module.gradient} opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none`} />
+                  </Card>
+                </DraggableCard>
+              );
+            })}
+          </div>
 
-          {activeTab === 'users' && (
-            <UserManagement 
-              language={language} 
-              onBack={() => setActiveTab('overview')} 
-            />
-          )}
-
-          {activeTab === 'access-requests' && (
-            <AccessRequestManager 
-              language={language} 
-              onBack={() => setActiveTab('overview')} 
-            />
-          )}
-
-          {activeTab === 'messages' && (
-            <RealtimeMessageCenter language={language} />
-          )}
-
-          {activeTab === 'events' && (
-            <div className="text-center py-8">
-              <h3 className="text-lg font-semibold mb-2">Events Module</h3>
-              <p className="text-muted-foreground">Event management functionality coming soon.</p>
-            </div>
-          )}
-
-          {activeTab === 'settings' && (
-            <div className="text-center py-8">
-              <h3 className="text-lg font-semibold mb-2">Settings Module</h3>
-              <p className="text-muted-foreground">Settings management functionality coming soon.</p>
-            </div>
-          )}
+          {/* Future modules placeholder */}
+          <Card 
+            className="border-2 text-center py-8"
+            style={{
+              backgroundColor: currentTheme.cardBackground,
+              borderColor: currentTheme.border,
+              color: currentTheme.cardForeground
+            }}
+          >
+            <CardContent>
+              <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <h3 className="text-xl font-semibold mb-2">Analytics & Reporting</h3>
+              <p className="opacity-70">{t.moduleComingSoon}</p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
+        <RealtimeMessageCenter language={language} />
+        </div>
+        
         <Footer language={language} />
       </div>
     </DndProvider>

@@ -1,8 +1,17 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-export type Permission = 'calendar:view' | 'calendar:edit' | 'calendar:edit_own' | 'calendar:manage';
+export type Permission = 
+  | 'calendar:view' 
+  | 'calendar:edit' 
+  | 'calendar:edit_own' 
+  | 'calendar:manage'
+  | 'business_events:view'
+  | 'business_events:edit'
+  | 'business_events:manage'
+  | 'business_events:upload';
 
 export const usePermissions = () => {
   const { profile } = useAuth();
