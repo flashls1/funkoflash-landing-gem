@@ -53,6 +53,7 @@ export const SiteDesignModule = () => {
   // Use local state for page selection instead of route-based state
   const [selectedPage, setSelectedPage] = useState('home');
   const [localSettings, setLocalSettings] = useState<Record<string, any>>({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [isSaving, setIsSaving] = useState(false);
@@ -210,6 +211,7 @@ export const SiteDesignModule = () => {
         delete newSettings[selectedPage];
         return newSettings;
       });
+      setHasUnsavedChanges(false); // Clear unsaved changes flag
       
       setUploadStatus({ 
         status: 'success', 
@@ -461,7 +463,7 @@ export const SiteDesignModule = () => {
         }
       };
       updateSelectedPageSettings(updated);
-      await savePageSettings('home', { ...currentSettings, ...updated });
+      setHasUnsavedChanges(true); // Mark as having unsaved changes instead of auto-saving
 
       setUploadStatus({ status: 'success', message: 'Collage created & published to Home tile.' });
       toast({ title: '✅ Collage published', description: 'Home tile updated with a seamless collage.' });

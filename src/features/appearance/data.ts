@@ -10,7 +10,7 @@ export interface AppearanceSettings {
 }
 
 export const defaultAppearanceSettings: AppearanceSettings = {
-  bgMode: 'siteImage',
+  bgMode: 'siteImage', // Default to respecting site design
   watermarkOpacity: 0.04,
   watermarkScale: 1.0,
   rippleEnabled: false,

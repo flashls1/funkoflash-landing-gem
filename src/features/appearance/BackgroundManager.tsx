@@ -9,12 +9,13 @@ interface RipplePoint {
 }
 
 export default function BackgroundManager() {
+  // TEMPORARILY DISABLED - Let existing site design system handle backgrounds
+  // This component will only manage ripple effects when explicitly enabled
+  
   const [settings, setSettings] = useState<AppearanceSettings>(defaultAppearanceSettings);
-  const [siteImageUrl, setSiteImageUrl] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationRef = useRef<number | null>(null);
   const ripplesRef = useRef<RipplePoint[]>([]);
-  const lastMouseRef = useRef({ x: 0, y: 0 });
   
   // Device and accessibility detection
   const isDesktop = window.matchMedia('(pointer: fine)').matches;
@@ -39,93 +40,17 @@ export default function BackgroundManager() {
   }, []);
 
   useEffect(() => {
-    updateBackground();
+    // Only manage ripple effects, not backgrounds
     updateRippleCanvas();
-  }, [settings, siteImageUrl]);
+  }, [settings]);
 
   const loadInitialSettings = async () => {
     try {
-      const [appearanceSettings, imageUrl] = await Promise.all([
-        appearanceApi.getSettings(),
-        appearanceApi.getSiteImageUrl()
-      ]);
-      
+      const appearanceSettings = await appearanceApi.getSettings();
       setSettings(appearanceSettings);
-      setSiteImageUrl(imageUrl);
     } catch (error) {
       console.error('Failed to load appearance settings:', error);
     }
-  };
-
-  const updateBackground = () => {
-    const body = document.body;
-    
-    // Remove existing watermark overlay
-    const existingOverlay = document.getElementById('ff-watermark-overlay');
-    if (existingOverlay) {
-      existingOverlay.remove();
-    }
-
-    // Apply background based on mode
-    switch (settings.bgMode) {
-      case 'black':
-        body.style.backgroundColor = '#000000';
-        body.style.backgroundImage = 'none';
-        body.style.setProperty('--ff-bg-color', '#000000');
-        break;
-        
-      case 'siteImage':
-        if (siteImageUrl) {
-          body.style.backgroundColor = '#000000';
-          body.style.backgroundImage = `url(${siteImageUrl})`;
-          body.style.backgroundSize = 'cover';
-          body.style.backgroundAttachment = 'fixed';
-          body.style.backgroundPosition = 'center';
-          body.style.setProperty('--ff-bg-color', '#000000');
-        } else {
-          body.style.backgroundColor = '#000000';
-          body.style.backgroundImage = 'none';
-        }
-        break;
-        
-      case 'siteImage+watermark':
-        // Apply site image first
-        if (siteImageUrl) {
-          body.style.backgroundColor = '#000000';
-          body.style.backgroundImage = `url(${siteImageUrl})`;
-          body.style.backgroundSize = 'cover';
-          body.style.backgroundAttachment = 'fixed';
-          body.style.backgroundPosition = 'center';
-          
-          // Create watermark overlay
-          createWatermarkOverlay();
-        } else {
-          body.style.backgroundColor = '#000000';
-          body.style.backgroundImage = 'none';
-        }
-        break;
-    }
-  };
-
-  const createWatermarkOverlay = () => {
-    const overlay = document.createElement('div');
-    overlay.id = 'ff-watermark-overlay';
-    overlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: -1;
-      opacity: ${settings.watermarkOpacity};
-      background-image: url(${siteImageUrl || '/funko-flash-logo.png'});
-      background-repeat: repeat;
-      background-size: ${200 * settings.watermarkScale}px;
-      filter: brightness(0.5);
-    `;
-    
-    document.body.appendChild(overlay);
   };
 
   const updateRippleCanvas = () => {
@@ -157,7 +82,7 @@ export default function BackgroundManager() {
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: -1;
+      z-index: 1;
     `;
     
     canvas.width = window.innerWidth;
@@ -169,7 +94,6 @@ export default function BackgroundManager() {
     // Add mouse listener for cursor following
     if (settings.rippleFollow === 'cursor') {
       const handleMouseMove = (e: MouseEvent) => {
-        lastMouseRef.current = { x: e.clientX, y: e.clientY };
         addRipple(e.clientX, e.clientY, settings.rippleIntensity);
       };
       
