@@ -405,77 +405,113 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         setData(rows);
         setStep('mapping');
 
-        // Smart auto-detection with multiple pattern matching
+        // Smart auto-detection with Google Sheets calendar special handling
         const autoMapping: Record<string, string> = {};
-        headers.forEach(header => {
-          // Ensure header is a string and has content
-          if (!header || typeof header !== 'string' || header.trim() === '') return;
-          
-          const normalized = header.toLowerCase().replace(/[^a-z0-9]/g, '');
-          const headerWords = header.toLowerCase().split(/[^a-z0-9]+/);
-          
-          // Talent/Artist detection
-          if (['talent', 'artist', 'performer', 'voice', 'actor', 'name'].some(word => 
-            normalized.includes(word) || headerWords.includes(word))) {
-            autoMapping[header] = 'talent_name';
-          }
-          
-          // Event title detection  
-          else if (['title', 'event', 'show', 'convention', 'con', 'project'].some(word => 
-            normalized.includes(word) || headerWords.includes(word))) {
-            autoMapping[header] = 'event_title';
-          }
-          
-          // Start date detection
-          else if (['startdate', 'start', 'datestart', 'begindate', 'from'].some(word => 
-            normalized.includes(word) || headerWords.includes(word)) && 
-            ['date', 'day', 'when'].some(word => normalized.includes(word) || headerWords.includes(word))) {
-            autoMapping[header] = 'start_date';
-          }
-          
-          // End date detection
-          else if (['enddate', 'end', 'dateend', 'finishdate', 'to', 'until'].some(word => 
-            normalized.includes(word) || headerWords.includes(word)) && 
-            ['date', 'day', 'when'].some(word => normalized.includes(word) || headerWords.includes(word))) {
-            autoMapping[header] = 'end_date';
-          }
-          
-          // Status detection
-          else if (['status', 'state', 'condition', 'booking'].some(word => 
-            normalized.includes(word) || headerWords.includes(word))) {
-            autoMapping[header] = 'status';
-          }
-          
-          // Venue detection
-          else if (['venue', 'location', 'place', 'site', 'facility'].some(word => 
-            normalized.includes(word) || headerWords.includes(word))) {
-            autoMapping[header] = 'venue_name';
-          }
-          
-          // City detection
-          else if (['city', 'town'].some(word => 
-            normalized.includes(word) || headerWords.includes(word))) {
-            autoMapping[header] = 'location_city';
-          }
-          
-          // State detection
-          else if (['state', 'province', 'region'].some(word => 
-            normalized.includes(word) || headerWords.includes(word))) {
-            autoMapping[header] = 'location_state';
-          }
-          
-          // URL/Website detection
-          else if (['url', 'website', 'link', 'web'].some(word => 
-            normalized.includes(word) || headerWords.includes(word))) {
-            autoMapping[header] = 'url';
-          }
-          
-          // Notes detection
-          else if (['notes', 'note', 'comment', 'description', 'info'].some(word => 
-            normalized.includes(word) || headerWords.includes(word))) {
-            autoMapping[header] = 'notes_public';
-          }
-        });
+        
+        // Check if this is a Google Sheets calendar format
+        const hasWeekdayColumns = ['Friday', 'Saturday', 'Sunday'].every(day => 
+          headers.some(header => header.toLowerCase().includes(day.toLowerCase()))
+        );
+        
+        if (hasWeekdayColumns) {
+          console.log('Detected Google Sheets calendar format - using special mapping');
+          // For Google Sheets format, we'll handle start/end dates in processing
+          // Don't map individual day columns to start_date
+          headers.forEach(header => {
+            if (!header || typeof header !== 'string' || header.trim() === '') return;
+            
+            const normalized = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const headerWords = header.toLowerCase().split(/[^a-z0-9]+/);
+            
+            // Event/Title detection
+            if (['title', 'event', 'name', 'show', 'convention', 'con'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'event_title';
+            }
+            // Status detection
+            else if (['status', 'state', 'availability', 'booked'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'status';
+            }
+            // Location detection
+            else if (['location', 'city', 'venue', 'place'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'location_city';
+            }
+            // Skip Friday/Saturday/Sunday columns - they'll be processed automatically
+          });
+        } else {
+          // Standard auto-mapping for normal CSV files
+          headers.forEach(header => {
+            // Ensure header is a string and has content
+            if (!header || typeof header !== 'string' || header.trim() === '') return;
+            
+            const normalized = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const headerWords = header.toLowerCase().split(/[^a-z0-9]+/);
+            
+            // Talent/Artist detection
+            if (['talent', 'artist', 'performer', 'voice', 'actor', 'name'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'talent_name';
+            }
+            
+            // Event title detection  
+            else if (['title', 'event', 'show', 'convention', 'con', 'project'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'event_title';
+            }
+            
+            // Start date detection
+            else if (['startdate', 'start', 'datestart', 'begindate', 'from'].some(word => 
+              normalized.includes(word) || headerWords.includes(word)) && 
+              ['date', 'day', 'when'].some(word => normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'start_date';
+            }
+            
+            // End date detection
+            else if (['enddate', 'end', 'dateend', 'finishdate', 'to', 'until'].some(word => 
+              normalized.includes(word) || headerWords.includes(word)) && 
+              ['date', 'day', 'when'].some(word => normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'end_date';
+            }
+            
+            // Status detection
+            else if (['status', 'state', 'condition', 'booking'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'status';
+            }
+            
+            // Venue detection
+            else if (['venue', 'location', 'place', 'site', 'facility'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'venue_name';
+            }
+            
+            // City detection
+            else if (['city', 'town'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'location_city';
+            }
+            
+            // State detection
+            else if (['state', 'province', 'region'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'location_state';
+            }
+            
+            // URL/Website detection
+            else if (['url', 'website', 'link', 'web'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'url';
+            }
+            
+            // Notes detection
+            else if (['notes', 'note', 'comment', 'description', 'info'].some(word => 
+              normalized.includes(word) || headerWords.includes(word))) {
+              autoMapping[header] = 'notes_public';
+            }
+          });
+        }
         setMapping(autoMapping);
       }
       } catch (error: any) {
@@ -508,16 +544,35 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         }
       });
 
-      // Validate required fields more flexibly
-      requiredFields.forEach(field => {
-        if (!mappedRow[field] || mappedRow[field].toString().trim() === '') {
-          mappedRow._validationErrors.push(`Missing ${field}`);
-        }
-      });
+      // Check if this is Google Sheets format (has Friday/Saturday/Sunday columns)
+      const hasWeekdayColumns = Object.keys(row).some(key => 
+        ['friday', 'saturday', 'sunday'].includes(key.toLowerCase())
+      );
 
-      // Set defaults for missing end_date
-      if (!mappedRow.end_date && mappedRow.start_date) {
-        mappedRow.end_date = mappedRow.start_date; // Default to same day if end date not provided
+      if (hasWeekdayColumns) {
+        // For Google Sheets format, skip start_date validation 
+        // since we'll generate it from weekday columns
+        const nonDateRequiredFields = requiredFields.filter(field => 
+          !['start_date', 'end_date'].includes(field)
+        );
+        
+        nonDateRequiredFields.forEach(field => {
+          if (!mappedRow[field] || mappedRow[field].toString().trim() === '') {
+            mappedRow._validationErrors.push(`Missing ${field}`);
+          }
+        });
+      } else {
+        // Standard validation for normal CSV files
+        requiredFields.forEach(field => {
+          if (!mappedRow[field] || mappedRow[field].toString().trim() === '') {
+            mappedRow._validationErrors.push(`Missing ${field}`);
+          }
+        });
+
+        // Set defaults for missing end_date
+        if (!mappedRow.end_date && mappedRow.start_date) {
+          mappedRow.end_date = mappedRow.start_date; // Default to same day if end date not provided
+        }
       }
 
       // Set default talent if not specified and one is selected
