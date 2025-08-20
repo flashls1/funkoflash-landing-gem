@@ -169,10 +169,15 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         const eventName = String(row[4] || '').trim();
         const location = String(row[5] || '').trim();
         
-        // Extract just the numeric date parts
+        // Extract just the numeric date parts and check if cells have content (colored)
         const fridayNum = friday.replace(/\D/g, '');
         const saturdayNum = saturday.replace(/\D/g, '');
         const sundayNum = sunday.replace(/\D/g, '');
+        
+        // Check if cells have content (indicates colored/booked)
+        const fridayHasContent = friday.trim() !== '';
+        const saturdayHasContent = saturday.trim() !== '';
+        const sundayHasContent = sunday.trim() !== '';
         
         if (fridayNum || saturdayNum || sundayNum) {
           // Determine status and income from first cell
@@ -187,25 +192,35 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
             }
           }
           
-          // Create proper date format - use Saturday as start if Friday is empty (colored Saturday means event starts Saturday)
+          // Auto-detect start date based on colored cells (cells with content)
           let startDateStr = '';
           let endDateStr = '';
           
-          if (fridayNum && saturdayNum) {
-            // Friday has date, event starts Friday
+          if (fridayHasContent && fridayNum) {
+            // Friday is colored (has content), event starts Friday
             startDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${fridayNum.padStart(2, '0')}`;
-            endDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${(sundayNum || saturdayNum).padStart(2, '0')}`;
-          } else if (saturdayNum) {
-            // Only Saturday has date (colored), event starts Saturday  
+            if (sundayNum) {
+              endDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayNum.padStart(2, '0')}`;
+            } else if (saturdayNum) {
+              endDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${saturdayNum.padStart(2, '0')}`;
+            } else {
+              endDateStr = startDateStr;
+            }
+          } else if (saturdayHasContent && saturdayNum) {
+            // Friday is white (no content), Saturday is colored, event starts Saturday
             startDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${saturdayNum.padStart(2, '0')}`;
-            endDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${(sundayNum || saturdayNum).padStart(2, '0')}`;
-          } else if (sundayNum) {
-            // Only Sunday has date
+            if (sundayNum) {
+              endDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayNum.padStart(2, '0')}`;
+            } else {
+              endDateStr = startDateStr;
+            }
+          } else if (sundayHasContent && sundayNum) {
+            // Only Sunday is colored
             startDateStr = `${currentYear}-${getMonthNumber(currentMonth)}-${sundayNum.padStart(2, '0')}`;
             endDateStr = startDateStr;
           }
           
-          if (startDateStr) {
+          if (startDateStr && (eventName || status === 'booked')) {
             events.push({
               Month: `${currentMonth} ${currentYear}`,
               Friday: friday,
@@ -238,7 +253,7 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
     return months[monthName.toLowerCase()] || '01';
   };
 
-  const requiredFields = ['event_title', 'start_date']; // Only these are truly required
+  const requiredFields = ['event_title']; // Only event title is required
   const optionalFields = ['end_date', 'talent_name', 'status', 'start_time', 'end_time', 'timezone', 'all_day', 'venue_name', 
     'location_city', 'location_state', 'location_country', 'address_line', 'contact_name', 
     'contact_email', 'contact_phone', 'url', 'notes_internal', 'notes_public', 'travel_in', 'travel_out'];
@@ -351,15 +366,9 @@ export const CalendarImportDialog = ({ open, onOpenChange, language, selectedTal
         setData(processedEvents);
         setStep('mapping');
         
-        // Auto-map for Google Sheets format
+        // Auto-map for Google Sheets format - only event title is required
         setMapping({
-          event_title: 'Event',
-          start_date: 'start_date',
-          end_date: 'end_date',
-          venue_name: 'Event',
-          location_city: 'Location',
-          status: 'Status',
-          notes_internal: 'Income'
+          event_title: 'Event'
         });
         return;
       }
