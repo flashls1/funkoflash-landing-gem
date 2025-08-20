@@ -355,8 +355,8 @@ export const BusinessEventFormDrawer = ({
             <Label>{t.eventLogo}</Label>
             <FileUpload
               onFileUploaded={(url) => setLogoUrl(url)}
-              accept="image/*"
-              maxSize={5 * 1024 * 1024}
+              acceptedTypes={['image/*']}
+              maxSize={5}
               bucket="business-events"
             />
             {logoUrl && (
