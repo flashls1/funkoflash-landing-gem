@@ -264,6 +264,7 @@ export type Database = {
           status: string | null
           title: string | null
           updated_at: string
+          venue: string | null
           website: string | null
         }
         Insert: {
@@ -281,6 +282,7 @@ export type Database = {
           status?: string | null
           title?: string | null
           updated_at?: string
+          venue?: string | null
           website?: string | null
         }
         Update: {
@@ -298,6 +300,7 @@ export type Database = {
           status?: string | null
           title?: string | null
           updated_at?: string
+          venue?: string | null
           website?: string | null
         }
         Relationships: []

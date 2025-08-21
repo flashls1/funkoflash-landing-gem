@@ -476,30 +476,30 @@ const BusinessDashboard = () => {
             </Card>
           </div>
 
-          {/* Talent Assets Access for Business Users */}
-          <Card 
-            className="border-2"
-            style={{
-              backgroundColor: currentTheme.cardBackground,
-              borderColor: currentTheme.border,
-              color: currentTheme.cardForeground
-            }}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FolderOpen className="h-5 w-5" style={{ color: currentTheme.accent }} />
-                {language === 'en' ? 'Talent Assets' : 'Activos de Talento'}
-              </CardTitle>
-              <CardDescription>
-                {language === 'en' ? 'Access assets of assigned talents for your events' : 'Accede a los activos de talentos asignados para tus eventos'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground">
-                {language === 'en' ? 'Talent assets access will be available once you have assigned talents to your events.' : 'El acceso a activos de talento estará disponible una vez que asignes talentos a tus eventos.'}
-              </p>
-            </CardContent>
-          </Card>
+          {/* Note about event access */}
+          <div className="col-span-full">
+            <Card 
+              className="border-2"
+              style={{
+                backgroundColor: currentTheme.cardBackground,
+                borderColor: currentTheme.border,
+                color: currentTheme.cardForeground
+              }}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FolderOpen className="h-5 w-5" style={{ color: currentTheme.accent }} />
+                  {language === 'en' ? 'Event Access' : 'Acceso a Eventos'}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'en' 
+                    ? 'Events are created by administrators. You will be notified when assigned to events.' 
+                    : 'Los eventos son creados por administradores. Serás notificado cuando seas asignado a eventos.'
+                  }
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
         </div>
 
         {/* Coming Soon Modal */}
