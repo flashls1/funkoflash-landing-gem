@@ -18,6 +18,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
 import { NextEventCard } from '@/components/NextEventCard';
 import { MiniAgenda } from '@/components/MiniAgenda';
+import BusinessProfileSettings from '@/components/BusinessProfileSettings';
 
 // Draggable card component for business
 const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
@@ -56,6 +57,7 @@ const BusinessDashboard = () => {
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [cardOrder, setCardOrder] = useState([0, 1]);
   const [comingSoonModal, setComingSoonModal] = useState({ isOpen: false, featureName: '' });
+  const [profileSettingsOpen, setProfileSettingsOpen] = useState(false);
   const { user, profile, loading } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const navigate = useNavigate();
@@ -227,11 +229,16 @@ const BusinessDashboard = () => {
                     <h2 className="text-2xl font-bold drop-shadow-lg">
                       {profile?.first_name} {profile?.last_name}
                     </h2>
-                    <p className="text-white/90 capitalize flex items-center gap-2">
+                    {(profile as any)?.business_name && (
+                      <p className="text-white/90 text-sm font-medium drop-shadow-lg">
+                        {(profile as any).business_name}
+                      </p>
+                    )}
+                    <p className="text-white/90 capitalize flex items-center gap-2 text-sm">
                       <Building2 className="h-4 w-4" />
                       {t.businessAccount}
                     </p>
-                    <InvisibleModeToggle language={language} className="mt-2" />
+                    <InvisibleModeToggle language={language} className="mt-3" />
                   </div>
                 </div>
                 
@@ -402,22 +409,30 @@ const BusinessDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => showComingSoon(t.uploadBusinessImage)}
+                    className="w-full justify-start h-8 text-sm bg-background hover:bg-accent hover:text-accent-foreground"
+                    onClick={() => setProfileSettingsOpen(true)}
                   >
-                    <Upload className="h-4 w-4 mr-2" />
+                    <Upload className="h-3 w-3 mr-2" />
                     {t.uploadBusinessImage}
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => showComingSoon(t.changeHeroImage)}
+                    className="w-full justify-start h-8 text-sm bg-background hover:bg-accent hover:text-accent-foreground"
+                    onClick={() => setProfileSettingsOpen(true)}
                   >
-                    <FileText className="h-4 w-4 mr-2" />
+                    <FileText className="h-3 w-3 mr-2" />
                     {t.changeHeroImage}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start h-8 text-sm bg-background hover:bg-accent hover:text-accent-foreground"
+                    onClick={() => setProfileSettingsOpen(true)}
+                  >
+                    <Building2 className="h-3 w-3 mr-2" />
+                    {language === 'en' ? 'Add Business Name' : 'Agregar Nombre Empresarial'}
                   </Button>
                 </div>
               </CardContent>
@@ -508,6 +523,13 @@ const BusinessDashboard = () => {
           onClose={() => setComingSoonModal({ isOpen: false, featureName: '' })}
           featureName={comingSoonModal.featureName}
           language={language}
+        />
+
+        {/* Business Profile Settings Modal */}
+        <BusinessProfileSettings
+          language={language}
+          isOpen={profileSettingsOpen}
+          onClose={() => setProfileSettingsOpen(false)}
         />
 
         <RealtimeMessageCenter language={language} />
