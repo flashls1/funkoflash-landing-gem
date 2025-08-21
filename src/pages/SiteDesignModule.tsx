@@ -594,8 +594,13 @@ export const SiteDesignModule = () => {
     );
   }
 
-  // Handle access control
-  if (!user || (profile?.role !== 'admin' && profile?.role !== 'staff')) {
+  // Handle access control - redirect to auth if not logged in
+  if (!user) {
+    window.location.href = '/auth';
+    return null;
+  }
+
+  if (profile?.role !== 'admin' && profile?.role !== 'staff') {
     return (
       <AdminThemeProvider>
         <div className="flex items-center justify-center min-h-screen">
@@ -614,10 +619,18 @@ export const SiteDesignModule = () => {
                 <p className="opacity-70">
                   You need admin or staff privileges to access the Site Design Module.
                 </p>
+                <Button 
+                  onClick={() => window.location.href = '/auth'}
+                  className="mt-4"
+                  style={{ backgroundColor: currentTheme.accent }}
+                >
+                  Sign In
+                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
+        <Footer language={language} />
       </AdminThemeProvider>
     );
   }
