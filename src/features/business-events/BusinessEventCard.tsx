@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, MapPinIcon, UsersIcon, EditIcon, TrashIcon } from 'lucide-react';
+import { CalendarIcon, MapPinIcon, UsersIcon, EditIcon, TrashIcon, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { BusinessEvent } from './data';
 
@@ -21,6 +22,7 @@ const BusinessEventCard = ({
   canEdit = false,
   language = 'en' 
 }: BusinessEventCardProps) => {
+  const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -128,27 +130,37 @@ const BusinessEventCard = ({
         )}
       </CardContent>
 
-      {canEdit && (
-        <CardFooter className="pt-0 flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onEdit(event)}
-            className="flex-1"
-          >
-            <EditIcon className="h-4 w-4 mr-1" />
-            {language === 'es' ? 'Editar' : 'Edit'}
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onDelete(event.id)}
-            className="text-destructive hover:text-destructive"
-          >
-            <TrashIcon className="h-4 w-4" />
-          </Button>
-        </CardFooter>
-      )}
+      <CardFooter className="pt-0 flex gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => navigate(`/admin/business-events/${event.id}`)}
+          className="flex-1"
+        >
+          <Eye className="h-4 w-4 mr-1" />
+          {language === 'es' ? 'Ver detalles' : 'View Details'}
+        </Button>
+        
+        {canEdit && (
+          <>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onEdit(event)}
+            >
+              <EditIcon className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onDelete(event.id)}
+              className="text-destructive hover:text-destructive"
+            >
+              <TrashIcon className="h-4 w-4" />
+            </Button>
+          </>
+        )}
+      </CardFooter>
     </Card>
   );
 };

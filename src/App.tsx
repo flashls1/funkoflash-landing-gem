@@ -24,6 +24,7 @@ import Contact from "./pages/Contact";
 import Calendar from "./pages/Calendar";
 import NotFound from "./pages/NotFound";
 import BusinessEventsPage from "./features/business-events/BusinessEventsPage";
+import BusinessEventDetail from "./features/business-events/BusinessEventDetail";
 import BackgroundManager from "./features/appearance/BackgroundManager";
 
 const queryClient = new QueryClient();
@@ -56,7 +57,9 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/admin/business-events" element={<BusinessEventsPage />} />
+            <Route path="/admin/business-events/:id" element={<BusinessEventDetail />} />
             <Route path="/business/events" element={<BusinessEventsPage />} />
+            <Route path="/business/events/:id" element={<BusinessEventDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
             </Routes>

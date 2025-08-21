@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { CalendarIcon, MapPinIcon, LinkIcon, ImageIcon } from 'lucide-react';
+import { CalendarIcon, MapPinIcon, LinkIcon, ImageIcon, Users, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { BusinessEvent, businessEventsApi } from './data';
 import FileUpload from '@/components/FileUpload';
@@ -305,7 +305,7 @@ const BusinessEventFormDialog = ({
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border z-[100]">
                   <SelectItem value="draft">{language === 'es' ? 'Borrador' : 'Draft'}</SelectItem>
                   <SelectItem value="published">{language === 'es' ? 'Publicado' : 'Published'}</SelectItem>
                   <SelectItem value="cancelled">{language === 'es' ? 'Cancelado' : 'Cancelled'}</SelectItem>
@@ -524,7 +524,7 @@ const BusinessEventFormDialog = ({
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder={language === 'es' ? 'Seleccionar empresa' : 'Select business'} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border z-[100]">
                   {businessAccounts.map(account => (
                     <SelectItem key={account.id} value={account.id}>
                       {account.name}
@@ -532,6 +532,67 @@ const BusinessEventFormDialog = ({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Talent Assignment Section */}
+            <div className="space-y-4">
+              <h4 className="text-md font-medium flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                {language === 'es' ? 'Asignar Talento (máximo 5)' : 'Assign Talent (max 5)'}
+              </h4>
+              
+              {/* Available Talents */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  {language === 'es' ? 'Talentos disponibles' : 'Available Talents'}
+                </Label>
+                <Select 
+                  onValueChange={(value) => {
+                    if (assignedTalents.length < 5 && !assignedTalents.includes(value)) {
+                      setAssignedTalents(prev => [...prev, value]);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={language === 'es' ? 'Seleccionar talento' : 'Select talent'} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border z-[100]">
+                    {talentProfiles
+                      .filter(talent => !assignedTalents.includes(talent.id))
+                      .map((talent) => (
+                      <SelectItem key={talent.id} value={talent.id}>
+                        {talent.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Assigned Talents Display */}
+              {assignedTalents.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    {language === 'es' ? 'Talentos asignados' : 'Assigned Talents'} ({assignedTalents.length}/5)
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {assignedTalents.map((talentId) => {
+                      const talent = talentProfiles.find(t => t.id === talentId);
+                      return (
+                        <div key={talentId} className="flex items-center gap-2 bg-secondary rounded-md px-3 py-1">
+                          <span className="text-sm">{talent?.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => setAssignedTalents(prev => prev.filter(id => id !== talentId))}
+                            className="text-destructive hover:text-destructive/80 text-sm font-medium"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Hero Image */}
