@@ -43,32 +43,64 @@ export interface WatermarkSettings {
 export const talentAssetsApi = {
   // Get all assets for a talent
   async getAssetsByTalent(talentId: string): Promise<TalentAsset[]> {
-    // Placeholder implementation - will work after migration
-    return [];
+    const { data, error } = await supabase
+      .from('talent_assets')
+      .select('*')
+      .eq('talent_id', talentId)
+      .eq('active', true)
+      .order('display_order', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   },
 
   // Get assets by category
   async getAssetsByCategory(talentId: string, category: AssetCategory): Promise<TalentAsset[]> {
-    // Placeholder implementation - will work after migration
-    return [];
+    const { data, error } = await supabase
+      .from('talent_assets')
+      .select('*')
+      .eq('talent_id', talentId)
+      .eq('category', category)
+      .eq('active', true)
+      .order('display_order', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   },
 
   // Create new asset
   async createAsset(asset: TalentAssetInsert): Promise<TalentAsset> {
-    // Placeholder implementation - will work after migration
-    throw new Error('Database migration not yet applied');
+    const { data, error } = await supabase
+      .from('talent_assets')
+      .insert(asset)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   // Update asset
   async updateAsset(id: string, updates: TalentAssetUpdate): Promise<TalentAsset> {
-    // Placeholder implementation - will work after migration
-    throw new Error('Database migration not yet applied');
+    const { data, error } = await supabase
+      .from('talent_assets')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   // Delete asset
   async deleteAsset(id: string): Promise<void> {
-    // Placeholder implementation - will work after migration
-    throw new Error('Database migration not yet applied');
+    const { error } = await supabase
+      .from('talent_assets')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
   },
 
   // Upload file to storage
@@ -105,14 +137,25 @@ export const talentAssetsApi = {
 export const watermarkApi = {
   // Get watermark settings
   async getSettings(): Promise<WatermarkSettings | null> {
-    // Placeholder implementation - will work after migration
-    return null;
+    const { data, error } = await supabase
+      .from('watermark_settings')
+      .select('*')
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data || null;
   },
 
   // Update watermark settings
   async updateSettings(settings: Partial<WatermarkSettings>): Promise<WatermarkSettings> {
-    // Placeholder implementation - will work after migration
-    throw new Error('Database migration not yet applied');
+    const { data, error } = await supabase
+      .from('watermark_settings')
+      .upsert(settings)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };
 
@@ -120,15 +163,44 @@ export const watermarkApi = {
 export const businessTalentAccessApi = {
   // Check if business user has access to talent
   async hasAccessToTalent(talentId: string): Promise<boolean> {
-    // Placeholder implementation - will work after migration
-    return false;
+    const { data, error } = await supabase
+      .from('business_talent_access')
+      .select('talent_id')
+      .eq('talent_id', talentId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') return false;
+    return !!data;
   },
 
   // Get accessible talents for business user
   async getAccessibleTalents(): Promise<string[]> {
-    // Placeholder implementation - will work after migration
-    return [];
+    const { data, error } = await supabase
+      .from('business_talent_access')
+      .select('talent_id');
+
+    if (error) return [];
+    return data?.map(item => item.talent_id) || [];
   }
+};
+
+// Get all talents with user accounts
+export const getTalentsWithUsers = async () => {
+  const { data, error } = await supabase
+    .from('talent_profiles')
+    .select(`
+      id,
+      name,
+      slug,
+      active,
+      user_id,
+      profiles!inner(email, first_name, last_name, role)
+    `)
+    .eq('active', true)
+    .eq('profiles.role', 'talent');
+
+  if (error) throw error;
+  return data || [];
 };
 
 // Helper functions
