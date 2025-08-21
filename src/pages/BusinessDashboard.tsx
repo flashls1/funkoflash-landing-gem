@@ -11,8 +11,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
-import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown, Building2, FolderOpen } from 'lucide-react';
+import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown, Building2, FolderOpen, Upload } from 'lucide-react';
 import { DndProvider } from 'react-dnd';
+import { ComingSoonModal } from '@/components/ui/ComingSoonModal';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
 import { NextEventCard } from '@/components/NextEventCard';
@@ -53,7 +54,8 @@ const BusinessDashboard = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
-  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5]);
+  const [cardOrder, setCardOrder] = useState([0, 1]);
+  const [comingSoonModal, setComingSoonModal] = useState({ isOpen: false, featureName: '' });
   const { user, profile, loading } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const navigate = useNavigate();
@@ -113,28 +115,46 @@ const BusinessDashboard = () => {
     return t.evening;
   };
 
+  const showComingSoon = (featureName: string) => {
+    setComingSoonModal({ isOpen: true, featureName });
+  };
+
   const content = {
     en: {
       dashboard: "Business Dashboard",
       overview: "Overview",
+      bookings: "Bookings",
+      portfolio: "Portfolio", 
       messages: "Messages",
-      settings: "Settings",
+      profileSettings: "Profile Settings",
+      performanceAnalytics: "Performance Analytics",
+      bookingManagement: "Booking Management",
       moduleComingSoon: "Modules coming soon.",
       moduleLayout: "Module Layout",
       dashboardColors: "Dashboard Colors",
       locked: "Locked",
-      unlocked: "Unlocked"
+      unlocked: "Unlocked",
+      businessAccount: "Business Account",
+      uploadBusinessImage: "Upload Business Image",
+      changeHeroImage: "Change Hero Image"
     },
     es: {
       dashboard: "Panel de Empresa",
       overview: "Resumen",
-      messages: "Mensajes",
-      settings: "Configuración",
+      bookings: "Reservas",
+      portfolio: "Portafolio",
+      messages: "Mensajes", 
+      profileSettings: "Configuración de Perfil",
+      performanceAnalytics: "Análisis de Rendimiento",
+      bookingManagement: "Gestión de Reservas",
       moduleComingSoon: "Módulos próximamente.",
       moduleLayout: "Diseño de Módulos",
       dashboardColors: "Colores del Panel",
       locked: "Bloqueado",
-      unlocked: "Desbloqueado"
+      unlocked: "Desbloqueado",
+      businessAccount: "Cuenta Empresarial",
+      uploadBusinessImage: "Subir Imagen Empresarial",
+      changeHeroImage: "Cambiar Imagen Principal"
     }
   };
 
@@ -209,7 +229,7 @@ const BusinessDashboard = () => {
                     </h2>
                     <p className="text-white/90 capitalize flex items-center gap-2">
                       <Building2 className="h-4 w-4" />
-                      {profile?.role}
+                      {t.businessAccount}
                     </p>
                     <InvisibleModeToggle language={language} className="mt-2" />
                   </div>
@@ -275,6 +295,14 @@ const BusinessDashboard = () => {
                       {t.overview}
                     </button>
                     <button 
+                      className="py-2 px-3 border-b-2 border-transparent opacity-50 font-medium text-sm flex items-center gap-2 cursor-not-allowed"
+                      style={{ color: currentTheme.cardForeground }}
+                      disabled
+                    >
+                      <Calendar className="h-4 w-4" />
+                      {t.bookings}
+                    </button>
+                    <button 
                       className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
                       style={{ color: currentTheme.cardForeground }}
                     >
@@ -285,8 +313,8 @@ const BusinessDashboard = () => {
                       className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
                       style={{ color: currentTheme.cardForeground }}
                     >
-                      <Settings className="h-4 w-4" />
-                      {t.settings}
+                      <FolderOpen className="h-4 w-4" />
+                      {t.portfolio}
                     </button>
                   </nav>
                 </div>
@@ -344,8 +372,107 @@ const BusinessDashboard = () => {
         <div className="space-y-6">
           {/* Next Event and Mini Agenda */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <NextEventCard language={language} />
-            <MiniAgenda language={language} />
+            <DraggableCard id="next-event" index={0} moveCard={moveCard} isDragEnabled={isDragEnabled}>
+              <NextEventCard language={language} />
+            </DraggableCard>
+            <DraggableCard id="mini-agenda" index={1} moveCard={moveCard} isDragEnabled={isDragEnabled}>
+              <MiniAgenda language={language} />
+            </DraggableCard>
+          </div>
+
+          {/* Business Dashboard Modules */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Profile Settings */}
+            <Card 
+              className="border-2 hover:border-primary/50 transition-colors cursor-pointer"
+              style={{
+                backgroundColor: currentTheme.cardBackground,
+                borderColor: currentTheme.border,
+                color: currentTheme.cardForeground
+              }}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" style={{ color: currentTheme.accent }} />
+                  {t.profileSettings}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'en' ? 'Manage your business profile and upload images' : 'Gestiona tu perfil empresarial y sube imágenes'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => showComingSoon(t.uploadBusinessImage)}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {t.uploadBusinessImage}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => showComingSoon(t.changeHeroImage)}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    {t.changeHeroImage}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Booking Management */}
+            <Card 
+              className="border-2 hover:border-primary/50 transition-colors cursor-pointer"
+              style={{
+                backgroundColor: currentTheme.cardBackground,
+                borderColor: currentTheme.border,
+                color: currentTheme.cardForeground
+              }}
+              onClick={() => showComingSoon(t.bookingManagement)}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" style={{ color: currentTheme.accent }} />
+                  {t.bookingManagement}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'en' ? 'Manage your talent bookings and events' : 'Gestiona tus reservas de talento y eventos'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center py-8">
+                <p className="text-muted-foreground text-sm">
+                  {language === 'en' ? 'Feature Coming Soon' : 'Función Próximamente'}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Performance Analytics */}
+            <Card 
+              className="border-2 hover:border-primary/50 transition-colors cursor-pointer"
+              style={{
+                backgroundColor: currentTheme.cardBackground,
+                borderColor: currentTheme.border,
+                color: currentTheme.cardForeground
+              }}
+              onClick={() => showComingSoon(t.performanceAnalytics)}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" style={{ color: currentTheme.accent }} />
+                  {t.performanceAnalytics}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'en' ? 'View analytics and performance metrics' : 'Ve analíticas y métricas de rendimiento'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center py-8">
+                <p className="text-muted-foreground text-sm">
+                  {language === 'en' ? 'Feature Coming Soon' : 'Función Próximamente'}
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Talent Assets Access for Business Users */}
@@ -373,6 +500,14 @@ const BusinessDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Coming Soon Modal */}
+        <ComingSoonModal
+          isOpen={comingSoonModal.isOpen}
+          onClose={() => setComingSoonModal({ isOpen: false, featureName: '' })}
+          featureName={comingSoonModal.featureName}
+          language={language}
+        />
 
         <RealtimeMessageCenter language={language} />
         </div>
