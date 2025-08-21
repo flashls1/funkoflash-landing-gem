@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
-import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown, Building2 } from 'lucide-react';
+import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown, Building2, FolderOpen } from 'lucide-react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
@@ -348,19 +348,28 @@ const BusinessDashboard = () => {
             <MiniAgenda language={language} />
           </div>
 
-          {/* Future modules placeholder */}
+          {/* Talent Assets Access for Business Users */}
           <Card 
-            className="border-2 text-center py-8"
+            className="border-2"
             style={{
               backgroundColor: currentTheme.cardBackground,
               borderColor: currentTheme.border,
               color: currentTheme.cardForeground
             }}
           >
-            <CardContent>
-              <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-xl font-semibold mb-2">{t.dashboard}</h3>
-              <p className="opacity-70">{t.moduleComingSoon}</p>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FolderOpen className="h-5 w-5" style={{ color: currentTheme.accent }} />
+                {language === 'en' ? 'Talent Assets' : 'Activos de Talento'}
+              </CardTitle>
+              <CardDescription>
+                {language === 'en' ? 'Access assets of assigned talents for your events' : 'Accede a los activos de talentos asignados para tus eventos'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center py-8">
+              <p className="text-muted-foreground">
+                {language === 'en' ? 'Talent assets access will be available once you have assigned talents to your events.' : 'El acceso a activos de talento estará disponible una vez que asignes talentos a tus eventos.'}
+              </p>
             </CardContent>
           </Card>
         </div>

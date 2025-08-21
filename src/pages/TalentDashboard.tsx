@@ -8,6 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
+import { TalentAssetsManager } from '@/features/talent-assets/TalentAssetsManager';
 import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
@@ -293,44 +294,6 @@ const TalentDashboard = () => {
                     </span>
                   </div>
 
-                  {/* Navigation Tabs */}
-                  <nav className="flex space-x-6">
-                    <button 
-                      className="py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 border-current"
-                      style={{ color: currentTheme.accent }}
-                    >
-                      <BarChart3 className="h-4 w-4" />
-                      {t.overview}
-                    </button>
-                    <button 
-                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
-                      style={{ color: currentTheme.cardForeground }}
-                    >
-                      <Calendar className="h-4 w-4" />
-                      {t.bookings}
-                    </button>
-                    <button 
-                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
-                      style={{ color: currentTheme.cardForeground }}
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      {t.messages}
-                    </button>
-                    <button 
-                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
-                      style={{ color: currentTheme.cardForeground }}
-                    >
-                      <User className="h-4 w-4" />
-                      {t.portfolio}
-                    </button>
-                    <button 
-                      className="py-2 px-3 border-b-2 border-transparent opacity-70 hover:opacity-100 font-medium text-sm transition-colors flex items-center gap-2"
-                      style={{ color: currentTheme.cardForeground }}
-                    >
-                      <BarChart3 className="h-4 w-4" />
-                      {t.earnings}
-                    </button>
-                  </nav>
                 </div>
                 
                 {/* Dashboard Colors Dropdown */}
@@ -383,6 +346,13 @@ const TalentDashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview">{t.overview}</TabsTrigger>
+            <TabsTrigger value="bookings">{t.bookings}</TabsTrigger>
+            <TabsTrigger value="messages">{t.messages}</TabsTrigger>
+            <TabsTrigger value="portfolio">{t.portfolio}</TabsTrigger>
+            <TabsTrigger value="earnings">{t.earnings}</TabsTrigger>
+          </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             {/* Next Event and Mini Agenda */}
@@ -530,15 +500,7 @@ const TalentDashboard = () => {
           </TabsContent>
 
           <TabsContent value="portfolio">
-            <Card className="border-2 border-black bg-white">
-              <CardHeader>
-                <CardTitle>{t.portfolioManagement}</CardTitle>
-                <CardDescription>Manage your portfolio and showcase your work</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Portfolio management functionality will be implemented here.</p>
-              </CardContent>
-            </Card>
+            <TalentAssetsManager talentId={profile?.id} locale={language} />
           </TabsContent>
 
           <TabsContent value="earnings">

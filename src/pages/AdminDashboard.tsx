@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
-import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Building, Lock, Unlock, ChevronDown } from 'lucide-react';
+import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Building, Lock, Unlock, ChevronDown, FolderOpen } from 'lucide-react';
 import { hasFeature } from '@/lib/features';
 import UserManagement from '@/components/UserManagement';
 import AccessRequestManager from '@/components/AccessRequestManager';
@@ -59,7 +59,7 @@ const AdminDashboard = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
-  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   const [activeTab, setActiveTab] = useState('overview');
   const { user, profile, loading } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
@@ -233,7 +233,8 @@ const AdminDashboard = () => {
     { id: 'site-design', icon: Palette, color: 'text-pink-500', title: `✨ ${t.siteDesign}`, desc: t.siteDesignDesc, action: t.manageSiteDesign, onClick: () => navigate('/admin/site-design') },
     { id: 'talent-directory', icon: Users, color: 'text-cyan-500', title: language === 'en' ? 'Talent Directory' : 'Directorio de Talento', desc: language === 'en' ? 'Manage talent profiles and directory banner' : 'Gestionar perfiles de talento y banner del directorio', action: language === 'en' ? 'Manage Talent Directory' : 'Gestionar Directorio de Talento', onClick: () => navigate('/admin/talent-directory') },
     { id: 'shop-manager', icon: ShoppingBag, color: 'text-emerald-500', title: language === 'en' ? 'Shop Manager' : 'Gestor de Tienda', desc: language === 'en' ? 'Manage products, images, and shop inventory' : 'Gestionar productos, imágenes e inventario de la tienda', action: language === 'en' ? 'Manage Shop' : 'Gestionar Tienda', onClick: () => navigate('/admin/shop-manager') },
-    { id: 'events-manager', icon: Calendar, color: 'text-red-500', title: language === 'en' ? 'Events Manager' : 'Gestor de Eventos', desc: language === 'en' ? 'Create, manage, and publish events with talent assignments' : 'Crear, gestionar y publicar eventos con asignaciones de talento', action: language === 'en' ? 'Manage Events' : 'Gestionar Eventos', onClick: () => navigate('/admin/events-manager') }
+    { id: 'events-manager', icon: Calendar, color: 'text-red-500', title: language === 'en' ? 'Events Manager' : 'Gestor de Eventos', desc: language === 'en' ? 'Create, manage, and publish events with talent assignments' : 'Crear, gestionar y publicar eventos con asignaciones de talento', action: language === 'en' ? 'Manage Events' : 'Gestionar Eventos', onClick: () => navigate('/admin/events-manager') },
+    { id: 'talent-assets', icon: FolderOpen, color: 'text-amber-500', title: language === 'en' ? 'Talent Assets Manager' : 'Gestor de Activos de Talento', desc: language === 'en' ? 'Manage talent assets, watermarks, and media files' : 'Gestionar activos, marcas de agua y archivos multimedia de talento', action: language === 'en' ? 'Manage Assets' : 'Gestionar Activos', onClick: () => setActiveTab('talent-assets') }
   ];
 
   const moduleCards = allModuleCards;
