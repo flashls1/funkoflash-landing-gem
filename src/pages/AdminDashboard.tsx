@@ -20,6 +20,7 @@ import { hasFeature } from '@/lib/features';
 import UserManagement from '@/components/UserManagement';
 import AccessRequestManager from '@/components/AccessRequestManager';
 import AppearanceManager from '@/features/appearance/AppearanceManager';
+import BusinessDashboard from './BusinessDashboard';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
@@ -410,7 +411,19 @@ const AdminDashboard = () => {
                       <FileText className="h-4 w-4" />
                       Assets
                     </button>
-                    <button 
+                     <button 
+                      onClick={() => setActiveTab('business-dashboard')}
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        activeTab === 'business-dashboard'
+                          ? `border-current`
+                          : 'border-transparent opacity-70 hover:opacity-100'
+                      }`}
+                      style={{ color: activeTab === 'business-dashboard' ? currentTheme.accent : currentTheme.cardForeground }}
+                    >
+                      <Building className="h-4 w-4" />
+                      Business
+                    </button>
+                     <button 
                       onClick={() => setActiveTab('settings')}
                       className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                         activeTab === 'settings'
@@ -639,6 +652,16 @@ const AdminDashboard = () => {
             <div className="space-y-6">
               <h2 className="text-2xl font-bold">Talent Assets Manager</h2>
               <AdminTalentAssetsWrapper locale={language} />
+            </div>
+          )}
+
+          {activeTab === 'business-dashboard' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Business Dashboard View</h2>
+                <div className="text-sm text-muted-foreground">Testing business user experience</div>
+              </div>
+              <BusinessDashboard />
             </div>
           )}
 
