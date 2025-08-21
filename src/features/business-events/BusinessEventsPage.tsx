@@ -162,9 +162,9 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
           {/* Status Summary */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             {Object.entries(statusCounts).map(([status, count]) => (
-              <div key={status} className="text-center p-4 rounded-lg border">
-                <div className="text-2xl font-bold">{count}</div>
-                <div className="text-sm text-muted-foreground capitalize">
+              <div key={status} className="text-center p-4 rounded-lg border bg-white">
+                <div className="text-2xl font-bold text-black">{count}</div>
+                <div className="text-sm text-black capitalize">
                   {status === 'all' 
                     ? (language === 'es' ? 'Total' : 'Total')
                     : status === 'draft'
