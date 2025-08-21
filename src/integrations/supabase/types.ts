@@ -763,6 +763,7 @@ export type Database = {
           active: boolean | null
           avatar_url: string | null
           background_image_url: string | null
+          business_name: string | null
           created_at: string
           created_by: string | null
           email: string
@@ -781,6 +782,7 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           background_image_url?: string | null
+          business_name?: string | null
           created_at?: string
           created_by?: string | null
           email: string
@@ -799,6 +801,7 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           background_image_url?: string | null
+          business_name?: string | null
           created_at?: string
           created_by?: string | null
           email?: string
