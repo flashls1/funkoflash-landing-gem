@@ -1202,6 +1202,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      ensure_business_account_exists: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       get_gcal_tokens: {
         Args: { p_talent_id: string }
         Returns: {

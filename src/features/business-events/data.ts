@@ -243,5 +243,14 @@ export const businessEventsApi = {
 
     if (error) throw error;
     return data as BusinessEventHotel;
+  },
+
+  // Helper function to ensure business account exists for business users
+  async ensureBusinessAccountForUser(userId: string) {
+    const { data, error } = await supabase
+      .rpc('ensure_business_account_exists', { p_user_id: userId });
+
+    if (error) throw error;
+    return data;
   }
 };
