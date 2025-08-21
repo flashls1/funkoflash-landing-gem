@@ -1,31 +1,17 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 
-// Temporary types until database migration is applied
-export interface TalentAsset {
-  id: string;
-  talent_id: string;
-  category: string;
-  format: string | null;
-  file_size: number | null;
-  content_data: any | null;
-  is_featured: boolean | null;
-  display_order: number | null;
-  active: boolean | null;
-  created_at: string;
-  updated_at: string;
-  created_by: string | null;
-  updated_by: string | null;
-  title: string;
-  description: string | null;
-  file_url: string | null;
-}
+// Using database types
+type DbTalentAsset = Database['public']['Tables']['talent_assets']['Row'];
+type DbTalentAssetInsert = Database['public']['Tables']['talent_assets']['Insert'];
+type DbTalentAssetUpdate = Database['public']['Tables']['talent_assets']['Update'];
 
-export type TalentAssetInsert = Omit<TalentAsset, 'id' | 'created_at' | 'updated_at'>;
-export type TalentAssetUpdate = Partial<TalentAssetInsert>;
+export interface TalentAsset extends DbTalentAsset {}
+export type TalentAssetInsert = DbTalentAssetInsert;
+export type TalentAssetUpdate = DbTalentAssetUpdate;
 
-export type AssetCategory = 'headshot' | 'character_image' | 'bio' | 'promo_video';
-export type AssetFormat = 'jpg' | 'png' | 'mp4' | 'pdf' | 'doc';
+export type AssetCategory = Database['public']['Enums']['asset_category'];
+export type AssetFormat = Database['public']['Enums']['asset_format'];
 
 export interface WatermarkSettings {
   id: string;
@@ -43,32 +29,64 @@ export interface WatermarkSettings {
 export const talentAssetsApi = {
   // Get all assets for a talent
   async getAssetsByTalent(talentId: string): Promise<TalentAsset[]> {
-    // Will be implemented when talent_assets table exists in types
-    return [];
+    const { data, error } = await supabase
+      .from('talent_assets')
+      .select('*')
+      .eq('talent_id', talentId)
+      .eq('active', true)
+      .order('display_order', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   },
 
   // Get assets by category
   async getAssetsByCategory(talentId: string, category: AssetCategory): Promise<TalentAsset[]> {
-    // Will be implemented when talent_assets table exists in types
-    return [];
+    const { data, error } = await supabase
+      .from('talent_assets')
+      .select('*')
+      .eq('talent_id', talentId)
+      .eq('category', category)
+      .eq('active', true)
+      .order('display_order', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   },
 
   // Create new asset
   async createAsset(asset: TalentAssetInsert): Promise<TalentAsset> {
-    // Will be implemented when talent_assets table exists in types
-    throw new Error('Not yet implemented');
+    const { data, error } = await supabase
+      .from('talent_assets')
+      .insert(asset)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   // Update asset
   async updateAsset(id: string, updates: TalentAssetUpdate): Promise<TalentAsset> {
-    // Will be implemented when talent_assets table exists in types
-    throw new Error('Not yet implemented');
+    const { data, error } = await supabase
+      .from('talent_assets')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   // Delete asset
   async deleteAsset(id: string): Promise<void> {
-    // Will be implemented when talent_assets table exists in types
-    throw new Error('Not yet implemented');
+    const { error } = await supabase
+      .from('talent_assets')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
   },
 
   // Upload file to storage
@@ -105,14 +123,44 @@ export const talentAssetsApi = {
 export const watermarkApi = {
   // Get watermark settings
   async getSettings(): Promise<WatermarkSettings | null> {
-    // Will be implemented when watermark_settings table exists in types
-    return null;
+    const { data, error } = await supabase
+      .from('watermark_settings')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
   },
 
   // Update watermark settings
   async updateSettings(settings: Partial<WatermarkSettings>): Promise<WatermarkSettings> {
-    // Will be implemented when watermark_settings table exists in types
-    throw new Error('Not yet implemented');
+    const { data: existing } = await supabase
+      .from('watermark_settings')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      const { data, error } = await supabase
+        .from('watermark_settings')
+        .update(settings)
+        .eq('id', existing.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('watermark_settings')
+        .insert(settings)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
   }
 };
 
@@ -120,14 +168,30 @@ export const watermarkApi = {
 export const businessTalentAccessApi = {
   // Check if business user has access to talent
   async hasAccessToTalent(talentId: string): Promise<boolean> {
-    // Will be implemented when business_talent_access table exists in types
-    return false;
+    const { data, error } = await supabase
+      .from('business_talent_access')
+      .select('*')
+      .eq('talent_id', talentId)
+      .limit(1);
+
+    if (error) {
+      console.error('Error checking talent access:', error);
+      return false;
+    }
+    return (data?.length || 0) > 0;
   },
 
   // Get accessible talents for business user
   async getAccessibleTalents(): Promise<string[]> {
-    // Will be implemented when business_talent_access table exists in types
-    return [];
+    const { data, error } = await supabase
+      .from('business_talent_access')
+      .select('talent_id');
+
+    if (error) {
+      console.error('Error fetching accessible talents:', error);
+      return [];
+    }
+    return data?.map(item => item.talent_id) || [];
   }
 };
 

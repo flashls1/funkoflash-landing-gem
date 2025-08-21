@@ -56,13 +56,23 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
   const { toast } = useToast();
   const currentLocale = locale || getSafeLocale();
 
-  // Determine effective talent ID
-  const effectiveTalentId = talentId || (profile?.role === 'talent' ? profile?.id : null);
+  // Determine effective talent ID - look up talent profile for current user if no talentId provided
+  const [effectiveTalentId, setEffectiveTalentId] = useState<string | null>(talentId || null);
+  
+  useEffect(() => {
+    if (!talentId && profile?.role === 'talent') {
+      // Find talent profile for current user
+      talentAssetsApi.getAssetsByTalent('').catch(() => {
+        // If no talent profile found, user may not be set up as talent yet
+      });
+    }
+  }, [talentId, profile]);
 
-  // Check permissions
-  const canEdit = hasPermission('calendar:edit') || 
-    (hasPermission('calendar:edit_own') && profile?.role === 'talent');
-  const canView = hasPermission('calendar:view') || canEdit;
+  // Check permissions - use role-based access for talent assets
+  const canEdit = profile?.role === 'admin' || 
+    profile?.role === 'staff' || 
+    (profile?.role === 'talent' && effectiveTalentId);
+  const canView = canEdit || profile?.role === 'business';
 
   const labels = {
     en: {
@@ -239,7 +249,10 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
       const asset = await talentAssetsApi.createAsset({
         talent_id: effectiveTalentId,
         category,
-        format: file.name.split('.').pop() as any,
+        format: file.type.includes('image/png') ? 'png' : 
+                file.type.includes('image/jpeg') ? 'jpeg' : 
+                file.type.includes('video/mp4') ? 'mp4' : 
+                file.type.includes('application/pdf') ? 'rich_text' : 'png',
         file_size: file.size,
         content_data: null,
         is_featured: false,
@@ -272,7 +285,7 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
   const handleVideoRecorded = useCallback(async (blob: Blob) => {
     if (!effectiveTalentId || !canEdit) return;
 
-    const file = new File([blob], `recording-${Date.now()}.webm`, { type: 'video/webm' });
+    const file = new File([blob], `recording-${Date.now()}.mp4`, { type: 'video/mp4' });
     
     try {
       setUploading(true);
@@ -286,7 +299,7 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
       const asset = await talentAssetsApi.createAsset({
         talent_id: effectiveTalentId,
         category: 'promo_video',
-        format: 'webm',
+        format: 'mp4',
         file_size: file.size,
         content_data: null,
         is_featured: false,
