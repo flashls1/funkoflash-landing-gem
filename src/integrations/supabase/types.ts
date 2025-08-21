@@ -1292,6 +1292,13 @@ export type Database = {
       }
     }
     Functions: {
+      can_modify_user_role: {
+        Args: {
+          new_role: Database["public"]["Enums"]["app_role"]
+          target_user_id: string
+        }
+        Returns: boolean
+      }
       delete_calendar_year: {
         Args: { p_talent_id: string; p_year: number }
         Returns: number
@@ -1316,6 +1323,20 @@ export type Database = {
           google_email: string
           refresh_token: string
           token_expiry: string
+        }[]
+      }
+      get_user_profiles_for_management: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active: boolean
+          avatar_url: string
+          email: string
+          first_name: string
+          id: string
+          last_login: string
+          last_name: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }[]
       }
       get_user_role: {
@@ -1359,6 +1380,13 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      update_user_role_safely: {
+        Args: {
+          new_role: Database["public"]["Enums"]["app_role"]
+          target_user_id: string
+        }
+        Returns: boolean
       }
       validate_attachment_url: {
         Args: { url: string }

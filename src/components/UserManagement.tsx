@@ -296,16 +296,30 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
           // This shouldn't happen since the trigger should create the profile
         }
 
-        // Log the activity
+        // Enhanced security logging
         const { error: logError } = await supabase.from('user_activity_logs').insert({
           user_id: authData.user.id,
           admin_user_id: currentUser?.id,
-          action: 'user_created',
+          action: 'user_created_via_admin',
           details: {
             email: newUser.email,
             role: newUser.role,
             send_notification: newUser.sendNotification,
-            auto_verified: true
+            auto_verified: true,
+            created_from_ip: window.location.hostname,
+            user_agent: navigator.userAgent
+          }
+        });
+
+        // Also log to security audit
+        const { error: securityLogError } = await supabase.rpc('log_security_event', {
+          p_action: 'admin_user_creation',
+          p_table_name: 'profiles',
+          p_record_id: authData.user.id,
+          p_new_values: {
+            email: newUser.email,
+            role: newUser.role,
+            created_by: currentUser?.id
           }
         });
 
@@ -343,19 +357,27 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
   const updateUserRole = async (userId: string, newRole: 'admin' | 'staff' | 'talent' | 'business') => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('user_id', userId);
+      // Enhanced security: Use the secure role update function with validation
+      const { data, error } = await supabase.rpc('update_user_role_safely', {
+        target_user_id: userId,
+        new_role: newRole
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Role update error:', error);
+        throw new Error(error.message || 'Failed to update user role');
+      }
 
-      // Log the activity
+      // Additional activity logging for frontend operations
       await supabase.from('user_activity_logs').insert({
         user_id: userId,
         admin_user_id: currentUser?.id,
-        action: 'role_changed',
-        details: { new_role: newRole }
+        action: 'role_updated_via_ui',
+        details: { 
+          new_role: newRole,
+          user_agent: navigator.userAgent,
+          timestamp: new Date().toISOString()
+        }
       });
 
       toast({
