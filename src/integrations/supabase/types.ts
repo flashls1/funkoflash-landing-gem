@@ -502,6 +502,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "directory_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       event_talent_assignments: {
@@ -1007,7 +1014,7 @@ export type Database = {
           slug: string
           sort_rank: number
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           active?: boolean
@@ -1019,7 +1026,7 @@ export type Database = {
           slug: string
           sort_rank?: number
           updated_at?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           active?: boolean
@@ -1031,7 +1038,7 @@ export type Database = {
           slug?: string
           sort_rank?: number
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1202,7 +1209,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          active: boolean | null
+          avatar_url: string | null
+          background_image_url: string | null
+          business_name: string | null
+          first_name: string | null
+          id: string | null
+          last_name: string | null
+          name_color: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          avatar_url?: string | null
+          background_image_url?: string | null
+          business_name?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          name_color?: string | null
+          role?: Database["public"]["Enums"]["app_role"] | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          avatar_url?: string | null
+          background_image_url?: string | null
+          business_name?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+          name_color?: string | null
+          role?: Database["public"]["Enums"]["app_role"] | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       delete_calendar_year: {
