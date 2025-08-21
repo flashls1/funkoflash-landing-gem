@@ -10,7 +10,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import TalentDirectoryCMS from './TalentDirectoryCMS';
-import { TalentAssetsManager } from '@/features/talent-assets/TalentAssetsManager';
+import { AdminTalentAssetsWrapper } from '@/features/talent-assets/AdminTalentAssetsWrapper';
 import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
@@ -636,7 +636,10 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === 'talent-assets' && (
-            <TalentAssetsManager />
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">Talent Assets Manager</h2>
+              <AdminTalentAssetsWrapper locale={language} />
+            </div>
           )}
 
           {activeTab === 'system-settings' && hasFeature('appearance') && (

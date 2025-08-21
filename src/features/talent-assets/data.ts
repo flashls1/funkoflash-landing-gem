@@ -43,70 +43,32 @@ export interface WatermarkSettings {
 export const talentAssetsApi = {
   // Get all assets for a talent
   async getAssetsByTalent(talentId: string): Promise<TalentAsset[]> {
-    const { data, error } = await supabase
-      .from('talent_assets')
-      .select('*')
-      .eq('talent_id', talentId)
-      .eq('active', true)
-      .order('display_order', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching talent assets:', error);
-      return [];
-    }
-    return data || [];
+    // Will be implemented when talent_assets table exists in types
+    return [];
   },
 
   // Get assets by category
   async getAssetsByCategory(talentId: string, category: AssetCategory): Promise<TalentAsset[]> {
-    const { data, error } = await supabase
-      .from('talent_assets')
-      .select('*')
-      .eq('talent_id', talentId)
-      .eq('category', category)
-      .eq('active', true)
-      .order('display_order', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching talent assets by category:', error);
-      return [];
-    }
-    return data || [];
+    // Will be implemented when talent_assets table exists in types
+    return [];
   },
 
   // Create new asset
   async createAsset(asset: TalentAssetInsert): Promise<TalentAsset> {
-    const { data, error } = await supabase
-      .from('talent_assets')
-      .insert(asset)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    // Will be implemented when talent_assets table exists in types
+    throw new Error('Not yet implemented');
   },
 
   // Update asset
   async updateAsset(id: string, updates: TalentAssetUpdate): Promise<TalentAsset> {
-    const { data, error } = await supabase
-      .from('talent_assets')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    // Will be implemented when talent_assets table exists in types
+    throw new Error('Not yet implemented');
   },
 
   // Delete asset
   async deleteAsset(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('talent_assets')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    // Will be implemented when talent_assets table exists in types
+    throw new Error('Not yet implemented');
   },
 
   // Upload file to storage
@@ -143,28 +105,14 @@ export const talentAssetsApi = {
 export const watermarkApi = {
   // Get watermark settings
   async getSettings(): Promise<WatermarkSettings | null> {
-    const { data, error } = await supabase
-      .from('watermark_settings')
-      .select('*')
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error fetching watermark settings:', error);
-      return null;
-    }
-    return data;
+    // Will be implemented when watermark_settings table exists in types
+    return null;
   },
 
   // Update watermark settings
   async updateSettings(settings: Partial<WatermarkSettings>): Promise<WatermarkSettings> {
-    const { data, error } = await supabase
-      .from('watermark_settings')
-      .upsert(settings)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    // Will be implemented when watermark_settings table exists in types
+    throw new Error('Not yet implemented');
   }
 };
 
@@ -172,30 +120,14 @@ export const watermarkApi = {
 export const businessTalentAccessApi = {
   // Check if business user has access to talent
   async hasAccessToTalent(talentId: string): Promise<boolean> {
-    const { data, error } = await supabase
-      .from('business_talent_access')
-      .select('talent_id')
-      .eq('talent_id', talentId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error checking talent access:', error);
-      return false;
-    }
-    return !!data;
+    // Will be implemented when business_talent_access table exists in types
+    return false;
   },
 
   // Get accessible talents for business user
   async getAccessibleTalents(): Promise<string[]> {
-    const { data, error } = await supabase
-      .from('business_talent_access')
-      .select('talent_id');
-
-    if (error) {
-      console.error('Error fetching accessible talents:', error);
-      return [];
-    }
-    return data?.map(item => item.talent_id) || [];
+    // Will be implemented when business_talent_access table exists in types
+    return [];
   }
 };
 
