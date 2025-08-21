@@ -50,7 +50,10 @@ export const talentAssetsApi = {
       .eq('active', true)
       .order('display_order', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching talent assets:', error);
+      return [];
+    }
     return data || [];
   },
 
@@ -64,7 +67,10 @@ export const talentAssetsApi = {
       .eq('active', true)
       .order('display_order', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching talent assets by category:', error);
+      return [];
+    }
     return data || [];
   },
 
@@ -140,10 +146,13 @@ export const watermarkApi = {
     const { data, error } = await supabase
       .from('watermark_settings')
       .select('*')
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') throw error;
-    return data || null;
+    if (error) {
+      console.error('Error fetching watermark settings:', error);
+      return null;
+    }
+    return data;
   },
 
   // Update watermark settings
@@ -167,9 +176,12 @@ export const businessTalentAccessApi = {
       .from('business_talent_access')
       .select('talent_id')
       .eq('talent_id', talentId)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') return false;
+    if (error) {
+      console.error('Error checking talent access:', error);
+      return false;
+    }
     return !!data;
   },
 
@@ -179,7 +191,10 @@ export const businessTalentAccessApi = {
       .from('business_talent_access')
       .select('talent_id');
 
-    if (error) return [];
+    if (error) {
+      console.error('Error fetching accessible talents:', error);
+      return [];
+    }
     return data?.map(item => item.talent_id) || [];
   }
 };
@@ -193,13 +208,14 @@ export const getTalentsWithUsers = async () => {
       name,
       slug,
       active,
-      user_id,
-      profiles!inner(email, first_name, last_name, role)
+      user_id
     `)
-    .eq('active', true)
-    .eq('profiles.role', 'talent');
+    .eq('active', true);
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching talents:', error);
+    return [];
+  }
   return data || [];
 };
 

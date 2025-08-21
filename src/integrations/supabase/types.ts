@@ -302,6 +302,45 @@ export type Database = {
         }
         Relationships: []
       }
+      business_talent_access: {
+        Row: {
+          business_event_id: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          talent_id: string
+        }
+        Insert: {
+          business_event_id: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          talent_id: string
+        }
+        Update: {
+          business_event_id?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          talent_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_business_talent_access_event_id"
+            columns: ["business_event_id"]
+            isOneToOne: false
+            referencedRelation: "business_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_business_talent_access_talent_id"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_event: {
         Row: {
           address_line: string | null
@@ -871,6 +910,71 @@ export type Database = {
         }
         Relationships: []
       }
+      talent_assets: {
+        Row: {
+          active: boolean | null
+          category: Database["public"]["Enums"]["asset_category"]
+          content_data: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_order: number | null
+          file_size: number | null
+          file_url: string | null
+          format: Database["public"]["Enums"]["asset_format"] | null
+          id: string
+          is_featured: boolean | null
+          talent_id: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          category: Database["public"]["Enums"]["asset_category"]
+          content_data?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number | null
+          file_size?: number | null
+          file_url?: string | null
+          format?: Database["public"]["Enums"]["asset_format"] | null
+          id?: string
+          is_featured?: boolean | null
+          talent_id: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          category?: Database["public"]["Enums"]["asset_category"]
+          content_data?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number | null
+          file_size?: number | null
+          file_url?: string | null
+          format?: Database["public"]["Enums"]["asset_format"] | null
+          id?: string
+          is_featured?: boolean | null
+          talent_id?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_talent_assets_talent_id"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       talent_profiles: {
         Row: {
           active: boolean
@@ -1039,6 +1143,42 @@ export type Database = {
         }
         Relationships: []
       }
+      watermark_settings: {
+        Row: {
+          business_logo_url: string | null
+          business_position: string | null
+          default_position: string | null
+          id: string
+          logo_size: number | null
+          logo_url: string | null
+          opacity: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          business_logo_url?: string | null
+          business_position?: string | null
+          default_position?: string | null
+          id?: string
+          logo_size?: number | null
+          logo_url?: string | null
+          opacity?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          business_logo_url?: string | null
+          business_position?: string | null
+          default_position?: string | null
+          id?: string
+          logo_size?: number | null
+          logo_url?: string | null
+          opacity?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1101,6 +1241,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "staff" | "talent" | "business"
+      asset_category: "headshot" | "character_image" | "bio" | "promo_video"
+      asset_format: "transparent_png" | "png" | "jpeg" | "mp4" | "rich_text"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1229,6 +1371,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "staff", "talent", "business"],
+      asset_category: ["headshot", "character_image", "bio", "promo_video"],
+      asset_format: ["transparent_png", "png", "jpeg", "mp4", "rich_text"],
     },
   },
 } as const
