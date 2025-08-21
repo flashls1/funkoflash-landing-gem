@@ -179,6 +179,17 @@ export const useSiteDesign = () => {
         break; // Use the first one found
       }
     }
+    
+    // If no site background found in settings, ensure we fall back to the default black background
+    if (Object.keys(settings).length > 0) {
+      const hasAnySiteBackground = Object.values(settings).some(s => s.siteBackground?.backgroundImage);
+      if (!hasAnySiteBackground) {
+        const root = document.documentElement;
+        const defaultBackground = 'https://gytjgmeoepglbrjrbfie.supabase.co/storage/v1/object/public/design-assets/0aae1285-c95b-4818-bd0a-05feba50e724/1755732650367.png';
+        root.style.setProperty('--site-background', `url('${defaultBackground}')`);
+        console.log('🎨 Applied fallback site background:', defaultBackground);
+      }
+    }
   };
 
 
