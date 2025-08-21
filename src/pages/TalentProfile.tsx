@@ -39,14 +39,12 @@ const TalentProfile = () => {
         
         if (!session) {
           // Unauthenticated users get curated public data
-          const result = await supabase
-            .from('public_talent_showcase')
-            .select('id, name, slug, headshot_url, preview_bio')
-            .eq('slug', slug)
-            .single();
+          const { data: talentData, error: talentError } = await supabase
+            .rpc('get_public_talent_showcase');
           
-          data = result.data ? { ...result.data, bio: result.data.preview_bio } : null;
-          error = result.error;
+          const foundTalent = talentData?.find(t => t.slug === slug);
+          data = foundTalent ? { ...foundTalent, bio: foundTalent.preview_bio } : null;
+          error = !foundTalent ? { code: 'PGRST116' } : talentError;
         } else {
           // Authenticated users can access full profiles
           const result = await supabase

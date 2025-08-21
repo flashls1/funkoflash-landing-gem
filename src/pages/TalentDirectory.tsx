@@ -36,12 +36,9 @@ const TalentDirectory = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Use the secure public showcase view for public access
-        // This provides curated, safe data without exposing sensitive information
+        // Use the secure public showcase function for public access
         const { data: talentData, error: talentError } = await supabase
-          .from('public_talent_showcase')
-          .select('id, name, slug, headshot_url, preview_bio, sort_rank')
-          .order('sort_rank', { ascending: true });
+          .rpc('get_public_talent_showcase');
 
         if (talentError) {
           console.error('Error fetching talent showcase:', talentError);
@@ -51,6 +48,7 @@ const TalentDirectory = () => {
               .from('talent_profiles')
               .select('id, name, slug, headshot_url, bio, sort_rank')
               .eq('active', true)
+              .eq('public_visibility', true)
               .order('sort_rank', { ascending: true });
             
             if (!fallbackError) {
@@ -61,7 +59,7 @@ const TalentDirectory = () => {
           throw talentError;
         }
 
-        // Map preview_bio to bio for component compatibility
+        // Map preview_bio to bio for component compatibility  
         const mappedData = talentData?.map(talent => ({
           ...talent,
           bio: talent.preview_bio
