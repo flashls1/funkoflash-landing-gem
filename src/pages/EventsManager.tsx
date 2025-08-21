@@ -95,12 +95,7 @@ export default function EventsManager() {
     try {
       const { data, error } = await supabase
         .from('events')
-        .select(`
-          *,
-          event_talent_assignments(
-            talent_profiles(name, slug)
-          )
-        `)
+        .select('*')
         .order('event_date', { ascending: false });
 
       if (error) throw error;

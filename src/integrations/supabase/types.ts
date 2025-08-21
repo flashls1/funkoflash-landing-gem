@@ -1405,7 +1405,7 @@ export type Database = {
         }[]
       }
       get_user_role: {
-        Args: { _user_id: string }
+        Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
       get_users_for_messaging: {

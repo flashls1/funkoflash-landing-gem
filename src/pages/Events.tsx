@@ -22,7 +22,7 @@ interface Event {
   event_date: string;
   tags: string[] | null;
   category: string | null;
-  event_talent_assignments: {
+  event_talent_assignments?: {
     talent_profiles: {
       name: string;
       slug: string;
@@ -50,17 +50,17 @@ export default function Events() {
     try {
       const { data, error } = await supabase
         .from("events")
-        .select(`
-          *,
-          event_talent_assignments(
-            talent_profiles(name, slug)
-          )
-        `)
+        .select("*")
         .eq("active", true)
         .order("event_date", { ascending: true });
 
       if (error) throw error;
-      setEvents(data || []);
+      // Add empty talent assignments array to each event since we're not fetching them
+      const eventsWithTalentAssignments = (data || []).map(event => ({
+        ...event,
+        event_talent_assignments: []
+      }));
+      setEvents(eventsWithTalentAssignments);
     } catch (error) {
       console.error("Error fetching events:", error);
     } finally {
@@ -279,7 +279,7 @@ export default function Events() {
                 </div>
               )}
 
-              {selectedEvent.event_talent_assignments.length > 0 && (
+              {selectedEvent.event_talent_assignments && selectedEvent.event_talent_assignments.length > 0 && (
                 <div>
                   <h4 className="font-semibold mb-2">Featured Talent</h4>
                   <div className="flex flex-wrap gap-2">
