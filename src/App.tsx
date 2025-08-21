@@ -15,6 +15,7 @@ import SiteDesignModule from "./pages/SiteDesignModule";
 import TalentDirectory from "./pages/TalentDirectory";
 import TalentProfile from "./pages/TalentProfile";
 import TalentDirectoryCMS from "./pages/TalentDirectoryCMS";
+import TalentBuildoutCMS from "./pages/TalentBuildoutCMS";
 import Shop from "./pages/Shop";
 import ShopManager from "./pages/ShopManager";
 import Events from "./pages/Events";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/talent-directory" element={<TalentDirectory />} />
             <Route path="/talent/:slug" element={<TalentProfile />} />
             <Route path="/admin/talent-directory" element={<TalentDirectoryCMS />} />
+            <Route path="/admin/talent-buildout/:talentId" element={<TalentBuildoutCMS />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/admin/shop-manager" element={<ShopManager />} />
             <Route path="/events" element={<Events />} />

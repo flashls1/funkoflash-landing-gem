@@ -1047,7 +1047,7 @@ export type Database = {
           slug: string
           sort_rank: number
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           active?: boolean
@@ -1060,7 +1060,7 @@ export type Database = {
           slug: string
           sort_rank?: number
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           active?: boolean
@@ -1073,7 +1073,7 @@ export type Database = {
           slug?: string
           sort_rank?: number
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1260,6 +1260,7 @@ export type Database = {
           p_bio?: string
           p_headshot_url?: string
           p_name: string
+          p_public_visibility?: boolean
           p_slug: string
           p_sort_rank?: number
         }

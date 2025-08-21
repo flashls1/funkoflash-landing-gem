@@ -24,6 +24,7 @@ interface TalentProfile {
   headshot_url: string | null;
   bio: string | null;
   active: boolean;
+  public_visibility: boolean;
   sort_rank: number;
 }
 
@@ -31,6 +32,7 @@ interface TalentFormData {
   name: string;
   bio: string;
   active: boolean;
+  public_visibility: boolean;
 }
 
 const TalentDirectoryCMS = () => {
@@ -44,7 +46,8 @@ const TalentDirectoryCMS = () => {
   const [formData, setFormData] = useState<TalentFormData>({
     name: '',
     bio: '',
-    active: true
+    active: true,
+    public_visibility: false
   });
   const [headshotFile, setHeadshotFile] = useState<File | null>(null);
   const [language, setLanguage] = useState<'en' | 'es'>('en');
@@ -158,6 +161,7 @@ const TalentDirectoryCMS = () => {
         bio: formData.bio,
         headshot_url,
         active: formData.active,
+        public_visibility: formData.public_visibility,
         sort_rank: editingTalent?.sort_rank ?? talents.length,
       };
 
@@ -179,7 +183,8 @@ const TalentDirectoryCMS = () => {
             p_bio: formData.bio,
             p_headshot_url: headshot_url,
             p_active: formData.active,
-            p_sort_rank: talents.length
+            p_sort_rank: talents.length,
+            p_public_visibility: formData.public_visibility
           });
         
         if (error) {
@@ -208,7 +213,7 @@ const TalentDirectoryCMS = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', bio: '', active: true });
+    setFormData({ name: '', bio: '', active: true, public_visibility: false });
     setHeadshotFile(null);
     setEditingTalent(null);
     setShowForm(false);
@@ -218,7 +223,8 @@ const TalentDirectoryCMS = () => {
     setFormData({
       name: talent.name,
       bio: talent.bio || '',
-      active: talent.active
+      active: talent.active,
+      public_visibility: talent.public_visibility || false
     });
     setEditingTalent(talent);
     setShowForm(true);
@@ -349,27 +355,66 @@ const TalentDirectoryCMS = () => {
                     <div className="flex-1">
                       <h3 className="font-semibold">{talent.name}</h3>
                       <p className="text-sm text-muted-foreground">/{talent.slug}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {talent.public_visibility ? '🌐 Public' : '🔒 Private'}
+                      </p>
                     </div>
-                    <Switch 
-                      checked={talent.active}
-                      onCheckedChange={async (checked) => {
-                        try {
-                          const { error } = await supabase
-                            .from('talent_profiles')
-                            .update({ active: checked })
-                            .eq('id', talent.id);
-                          
-                          if (error) throw error;
-                          await fetchData();
-                        } catch (error) {
-                          toast({
-                            title: "Error",
-                            description: "Failed to update talent status",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    />
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-center gap-1">
+                        <label className="text-xs text-muted-foreground">Active</label>
+                        <Switch 
+                          checked={talent.active}
+                          onCheckedChange={async (checked) => {
+                            try {
+                              const { error } = await supabase
+                                .from('talent_profiles')
+                                .update({ active: checked })
+                                .eq('id', talent.id);
+                              
+                              if (error) throw error;
+                              await fetchData();
+                            } catch (error) {
+                              toast({
+                                title: "Error",
+                                description: "Failed to update talent status",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <label className="text-xs text-muted-foreground">Public</label>
+                        <Switch 
+                          checked={talent.public_visibility}
+                          onCheckedChange={async (checked) => {
+                            try {
+                              const { error } = await supabase
+                                .from('talent_profiles')
+                                .update({ public_visibility: checked })
+                                .eq('id', talent.id);
+                              
+                              if (error) throw error;
+                              await fetchData();
+                            } catch (error) {
+                              toast({
+                                title: "Error",
+                                description: "Failed to update talent visibility",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/admin/talent-buildout/${talent.id}`)}
+                      title="Build Out Sheet"
+                    >
+                      📝
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -451,13 +496,23 @@ const TalentDirectoryCMS = () => {
               )}
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="active"
-                checked={formData.active}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
-              />
-              <Label htmlFor="active">Active (visible on website)</Label>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="active"
+                  checked={formData.active}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
+                />
+                <Label htmlFor="active">Active (visible in system)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="public_visibility"
+                  checked={formData.public_visibility}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, public_visibility: checked }))}
+                />
+                <Label htmlFor="public_visibility">Public (visible on public talent directory)</Label>
+              </div>
             </div>
 
             <div className="flex gap-2 pt-4">
