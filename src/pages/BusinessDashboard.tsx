@@ -298,6 +298,7 @@ const BusinessDashboard = () => {
                       className="py-2 px-3 border-b-2 border-transparent opacity-50 font-medium text-sm flex items-center gap-2 cursor-not-allowed"
                       style={{ color: currentTheme.cardForeground }}
                       disabled
+                      title={language === 'en' ? 'Coming soon' : 'Próximamente'}
                     >
                       <Calendar className="h-4 w-4" />
                       {t.bookings}

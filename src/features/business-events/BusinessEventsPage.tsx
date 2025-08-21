@@ -230,7 +230,7 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
               {canEdit && !searchTerm && statusFilter === 'all' && (
                 <Button onClick={handleCreateEvent}>
                   <PlusIcon className="h-4 w-4 mr-2" />
-                  {language === 'es' ? 'Crear el primer evento' : 'Create first event'}
+                  {language === 'es' ? 'Crear evento' : 'Create Event'}
                 </Button>
               )}
             </div>

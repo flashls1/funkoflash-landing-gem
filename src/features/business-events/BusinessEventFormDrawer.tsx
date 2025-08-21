@@ -4,9 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
-import { CalendarIcon, MapPinIcon, LinkIcon, ImageIcon } from 'lucide-react';
+import { CalendarIcon, MapPinIcon, LinkIcon, ImageIcon, Plus, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { BusinessEvent, businessEventsApi } from './data';
 import FileUpload from '@/components/FileUpload';
@@ -14,6 +16,7 @@ import TravelHotelSection from './TravelHotelSection';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 interface BusinessEventFormDrawerProps {
   isOpen: boolean;
@@ -38,6 +41,9 @@ const BusinessEventFormDrawer = ({
   const [talentProfiles, setTalentProfiles] = useState<any[]>([]);
   const [assignedTalents, setAssignedTalents] = useState<string[]>([]);
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
+  const [eventDates, setEventDates] = useState<Array<{ date: Date | undefined; startTime: string; endTime: string }>>([
+    { date: undefined, startTime: '', endTime: '' }
+  ]);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -46,11 +52,15 @@ const BusinessEventFormDrawer = ({
       loadDropdownData();
     }
     if (event) {
-      setFormData({
-        ...event,
-        start_ts: event.start_ts ? new Date(event.start_ts).toISOString().slice(0, 16) : '',
-        end_ts: event.end_ts ? new Date(event.end_ts).toISOString().slice(0, 16) : ''
-      });
+      setFormData(event);
+      if (event.start_ts) {
+        const startDate = new Date(event.start_ts);
+        setEventDates([{
+          date: startDate,
+          startTime: startDate.toTimeString().slice(0, 5),
+          endTime: event.end_ts ? new Date(event.end_ts).toTimeString().slice(0, 5) : ''
+        }]);
+      }
       loadEventAssignments();
     } else if (isOpen) {
       setFormData({
@@ -58,6 +68,7 @@ const BusinessEventFormDrawer = ({
       });
       setAssignedTalents([]);
       setTeamMembers([]);
+      setEventDates([{ date: undefined, startTime: '', endTime: '' }]);
     }
   }, [event, isOpen]);
 
@@ -120,13 +131,50 @@ const BusinessEventFormDrawer = ({
     }
   };
 
+  const addEventDate = () => {
+    if (eventDates.length < 3) {
+      setEventDates([...eventDates, { date: undefined, startTime: '', endTime: '' }]);
+    }
+  };
+
+  const removeEventDate = (index: number) => {
+    if (eventDates.length > 1) {
+      setEventDates(eventDates.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateEventDate = (index: number, field: string, value: any) => {
+    const updated = [...eventDates];
+    updated[index] = { ...updated[index], [field]: value };
+    setEventDates(updated);
+  };
+
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
+      // Use first event date as primary start/end times
+      const primaryDate = eventDates[0];
+      let start_ts = null;
+      let end_ts = null;
+      
+      if (primaryDate.date && primaryDate.startTime) {
+        const startDate = new Date(primaryDate.date);
+        const [hours, minutes] = primaryDate.startTime.split(':');
+        startDate.setHours(parseInt(hours), parseInt(minutes));
+        start_ts = startDate.toISOString();
+        
+        if (primaryDate.endTime) {
+          const endDate = new Date(primaryDate.date);
+          const [endHours, endMinutes] = primaryDate.endTime.split(':');
+          endDate.setHours(parseInt(endHours), parseInt(endMinutes));
+          end_ts = endDate.toISOString();
+        }
+      }
+
       const eventData = {
         ...formData,
-        start_ts: formData.start_ts ? new Date(formData.start_ts).toISOString() : null,
-        end_ts: formData.end_ts ? new Date(formData.end_ts).toISOString() : null,
+        start_ts,
+        end_ts,
       };
 
       let savedEvent: BusinessEvent;
@@ -211,7 +259,7 @@ const BusinessEventFormDrawer = ({
         </Label>
         <Input
           id="title"
-          value={formData.title}
+          value={formData.title || ''}
           onChange={(e) => handleInputChange('title', e.target.value)}
           placeholder={language === 'es' ? 'Título del evento' : 'Event title'}
         />
@@ -222,7 +270,7 @@ const BusinessEventFormDrawer = ({
         <Label htmlFor="status">
           {language === 'es' ? 'Estado' : 'Status'}
         </Label>
-        <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+        <Select value={formData.status || 'draft'} onValueChange={(value) => handleInputChange('status', value)}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -234,44 +282,122 @@ const BusinessEventFormDrawer = ({
         </Select>
       </div>
 
-      {/* Date and Time */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="start_ts">
+      {/* Event Dates */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label>
             <CalendarIcon className="inline h-4 w-4 mr-2" />
-            {language === 'es' ? 'Fecha de inicio' : 'Start Date & Time'}
+            {language === 'es' ? 'Fechas del evento' : 'Event Dates'}
           </Label>
-          <Input
-            id="start_ts"
-            type="datetime-local"
-            value={formData.start_ts}
-            onChange={(e) => handleInputChange('start_ts', e.target.value)}
-          />
+          {eventDates.length < 3 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addEventDate}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              {language === 'es' ? 'Agregar fecha' : 'Add Date'}
+            </Button>
+          )}
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="end_ts">
-            <CalendarIcon className="inline h-4 w-4 mr-2" />
-            {language === 'es' ? 'Fecha de fin' : 'End Date & Time'}
-          </Label>
-          <Input
-            id="end_ts"
-            type="datetime-local"
-            value={formData.end_ts}
-            onChange={(e) => handleInputChange('end_ts', e.target.value)}
-          />
-        </div>
+        
+        {eventDates.map((eventDate, index) => (
+          <div key={index} className="border rounded-lg p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">
+                {language === 'es' ? `Día ${index + 1}` : `Day ${index + 1}`}
+              </span>
+              {eventDates.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeEventDate(index)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Date Picker */}
+              <div className="space-y-2">
+                <Label>{language === 'es' ? 'Fecha' : 'Date'}</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !eventDate.date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {eventDate.date ? format(eventDate.date, "PPP") : 
+                        (language === 'es' ? 'Seleccionar fecha' : 'Pick a date')
+                      }
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={eventDate.date}
+                      onSelect={(date) => updateEventDate(index, 'date', date)}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              {/* Start Time */}
+              <div className="space-y-2">
+                <Label>{language === 'es' ? 'Hora de inicio' : 'Start Time'}</Label>
+                <Input
+                  type="time"
+                  value={eventDate.startTime}
+                  onChange={(e) => updateEventDate(index, 'startTime', e.target.value)}
+                />
+              </div>
+              
+              {/* End Time */}
+              <div className="space-y-2">
+                <Label>{language === 'es' ? 'Hora de fin' : 'End Time'}</Label>
+                <Input
+                  type="time"
+                  value={eventDate.endTime}
+                  onChange={(e) => updateEventDate(index, 'endTime', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Location */}
       <div className="space-y-4">
+        {/* Venue */}
+        <div className="space-y-2">
+          <Label htmlFor="venue">
+            <MapPinIcon className="inline h-4 w-4 mr-2" />
+            {language === 'es' ? 'Lugar' : 'Venue'}
+          </Label>
+          <Input
+            id="venue"
+            value={formData.venue || ''}
+            onChange={(e) => handleInputChange('venue', e.target.value)}
+            placeholder={language === 'es' ? 'Nombre del lugar' : 'Venue name'}
+          />
+        </div>
+        
         <div className="space-y-2">
           <Label htmlFor="address_line">
-            <MapPinIcon className="inline h-4 w-4 mr-2" />
             {language === 'es' ? 'Dirección' : 'Address'}
           </Label>
           <Input
             id="address_line"
-            value={formData.address_line}
+            value={formData.address_line || ''}
             onChange={(e) => handleInputChange('address_line', e.target.value)}
             placeholder={language === 'es' ? 'Dirección completa' : 'Full address'}
           />
@@ -282,7 +408,7 @@ const BusinessEventFormDrawer = ({
             <Label htmlFor="city">{language === 'es' ? 'Ciudad' : 'City'}</Label>
             <Input
               id="city"
-              value={formData.city}
+              value={formData.city || ''}
               onChange={(e) => handleInputChange('city', e.target.value)}
               placeholder={language === 'es' ? 'Ciudad' : 'City'}
             />
@@ -291,7 +417,7 @@ const BusinessEventFormDrawer = ({
             <Label htmlFor="state">{language === 'es' ? 'Estado' : 'State'}</Label>
             <Input
               id="state"
-              value={formData.state}
+              value={formData.state || ''}
               onChange={(e) => handleInputChange('state', e.target.value)}
               placeholder={language === 'es' ? 'Estado' : 'State'}
             />
@@ -300,7 +426,7 @@ const BusinessEventFormDrawer = ({
             <Label htmlFor="country">{language === 'es' ? 'País' : 'Country'}</Label>
             <Input
               id="country"
-              value={formData.country}
+              value={formData.country || ''}
               onChange={(e) => handleInputChange('country', e.target.value)}
               placeholder={language === 'es' ? 'País' : 'Country'}
             />
@@ -317,7 +443,7 @@ const BusinessEventFormDrawer = ({
         <Input
           id="website"
           type="url"
-          value={formData.website}
+          value={formData.website || ''}
           onChange={(e) => handleInputChange('website', e.target.value)}
           placeholder="https://example.com"
         />
@@ -331,7 +457,7 @@ const BusinessEventFormDrawer = ({
             {language === 'es' ? 'Empresa principal' : 'Primary Business'} *
           </Label>
           <Select 
-            value={formData.primary_business_id} 
+            value={formData.primary_business_id || ''} 
             onValueChange={(value) => handleInputChange('primary_business_id', value)}
           >
             <SelectTrigger>
