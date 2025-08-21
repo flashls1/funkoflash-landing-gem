@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 
 interface TalentProfile {
@@ -22,11 +23,11 @@ interface TalentProfile {
 
 const TalentDirectory = () => {
   const [talents, setTalents] = useState<TalentProfile[]>([]);
-  
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const { toast } = useToast();
   const { setCurrentPage } = useSiteDesign();
+  const { session } = useAuth();
 
   useEffect(() => {
     setCurrentPage('talent-directory');
@@ -35,16 +36,38 @@ const TalentDirectory = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch talent profiles
+        // Use the secure public showcase view for public access
+        // This provides curated, safe data without exposing sensitive information
         const { data: talentData, error: talentError } = await supabase
-          .from('talent_profiles')
-          .select('id, name, slug, headshot_url, bio, sort_rank')
-          .eq('active', true)
+          .from('public_talent_showcase')
+          .select('id, name, slug, headshot_url, preview_bio, sort_rank')
           .order('sort_rank', { ascending: true });
 
-        if (talentError) throw talentError;
+        if (talentError) {
+          console.error('Error fetching talent showcase:', talentError);
+          // Fallback for authenticated users - they can see full profiles
+          if (session) {
+            const { data: fallbackData, error: fallbackError } = await supabase
+              .from('talent_profiles')
+              .select('id, name, slug, headshot_url, bio, sort_rank')
+              .eq('active', true)
+              .order('sort_rank', { ascending: true });
+            
+            if (!fallbackError) {
+              setTalents(fallbackData || []);
+              return;
+            }
+          }
+          throw talentError;
+        }
 
-        setTalents(talentData || []);
+        // Map preview_bio to bio for component compatibility
+        const mappedData = talentData?.map(talent => ({
+          ...talent,
+          bio: talent.preview_bio
+        })) || [];
+
+        setTalents(mappedData);
       } catch (error) {
         console.error('Error fetching talent directory:', error);
         toast({

@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TalentProfile {
   id: string;
@@ -22,6 +23,7 @@ const TalentProfile = () => {
   const [notFound, setNotFound] = useState(false);
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const { toast } = useToast();
+  const { session } = useAuth();
 
   useEffect(() => {
     const fetchTalent = async () => {
@@ -32,12 +34,31 @@ const TalentProfile = () => {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('talent_profiles')
-          .select('id, name, slug, headshot_url, bio')
-          .eq('slug', slug)
-          .eq('active', true)
-          .single();
+        // Try public showcase view first for unauthenticated users
+        let data, error;
+        
+        if (!session) {
+          // Unauthenticated users get curated public data
+          const result = await supabase
+            .from('public_talent_showcase')
+            .select('id, name, slug, headshot_url, preview_bio')
+            .eq('slug', slug)
+            .single();
+          
+          data = result.data ? { ...result.data, bio: result.data.preview_bio } : null;
+          error = result.error;
+        } else {
+          // Authenticated users can access full profiles
+          const result = await supabase
+            .from('talent_profiles')
+            .select('id, name, slug, headshot_url, bio')
+            .eq('slug', slug)
+            .eq('active', true)
+            .single();
+          
+          data = result.data;
+          error = result.error;
+        }
 
         if (error) {
           if (error.code === 'PGRST116') {
@@ -61,7 +82,7 @@ const TalentProfile = () => {
     };
 
     fetchTalent();
-  }, [slug, toast]);
+  }, [slug, toast, session]);
 
   const getImageUrl = (url: string | null) => {
     if (!url) return null;

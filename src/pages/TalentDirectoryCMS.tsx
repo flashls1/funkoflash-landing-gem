@@ -163,9 +163,20 @@ const TalentDirectoryCMS = () => {
         
         if (error) throw error;
       } else {
+        // For new talent profiles, we need a user_id
+        // Since this is admin-created, we'll use the talent profile's own ID as a temporary solution
+        // The admin should link this to a real user later via the user management interface
+        const tempId = crypto.randomUUID();
+        const insertPayload = {
+          ...payload,
+          id: tempId,
+          user_id: tempId, // Temporary self-reference until linked to real user
+          public_visibility: false // Default to private for admin-created profiles
+        };
+        
         const { error } = await supabase
           .from('talent_profiles')
-          .insert(payload);
+          .insert(insertPayload);
         
         if (error) throw error;
       }

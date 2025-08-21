@@ -204,6 +204,13 @@ export type Database = {
             foreignKeyName: "business_event_talent_talent_id_fkey"
             columns: ["talent_id"]
             isOneToOne: false
+            referencedRelation: "public_talent_showcase"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_event_talent_talent_id_fkey"
+            columns: ["talent_id"]
+            isOneToOne: false
             referencedRelation: "talent_profiles"
             referencedColumns: ["id"]
           },
@@ -354,6 +361,13 @@ export type Database = {
             foreignKeyName: "fk_business_talent_access_talent_id"
             columns: ["talent_id"]
             isOneToOne: false
+            referencedRelation: "public_talent_showcase"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_business_talent_access_talent_id"
+            columns: ["talent_id"]
+            isOneToOne: false
             referencedRelation: "talent_profiles"
             referencedColumns: ["id"]
           },
@@ -467,6 +481,13 @@ export type Database = {
             foreignKeyName: "calendar_event_talent_id_fkey"
             columns: ["talent_id"]
             isOneToOne: false
+            referencedRelation: "public_talent_showcase"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_event_talent_id_fkey"
+            columns: ["talent_id"]
+            isOneToOne: false
             referencedRelation: "talent_profiles"
             referencedColumns: ["id"]
           },
@@ -539,6 +560,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_talent_assignments_talent_id_fkey"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "public_talent_showcase"
             referencedColumns: ["id"]
           },
           {
@@ -1037,6 +1065,13 @@ export type Database = {
             foreignKeyName: "fk_talent_assets_talent_id"
             columns: ["talent_id"]
             isOneToOne: false
+            referencedRelation: "public_talent_showcase"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_talent_assets_talent_id"
+            columns: ["talent_id"]
+            isOneToOne: false
             referencedRelation: "talent_profiles"
             referencedColumns: ["id"]
           },
@@ -1050,6 +1085,7 @@ export type Database = {
           headshot_url: string | null
           id: string
           name: string
+          public_visibility: boolean | null
           slug: string
           sort_rank: number
           updated_at: string
@@ -1062,6 +1098,7 @@ export type Database = {
           headshot_url?: string | null
           id?: string
           name: string
+          public_visibility?: boolean | null
           slug: string
           sort_rank?: number
           updated_at?: string
@@ -1074,6 +1111,7 @@ export type Database = {
           headshot_url?: string | null
           id?: string
           name?: string
+          public_visibility?: boolean | null
           slug?: string
           sort_rank?: number
           updated_at?: string
@@ -1287,6 +1325,33 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"] | null
           status?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      public_talent_showcase: {
+        Row: {
+          headshot_url: string | null
+          id: string | null
+          name: string | null
+          preview_bio: string | null
+          slug: string | null
+          sort_rank: number | null
+        }
+        Insert: {
+          headshot_url?: string | null
+          id?: string | null
+          name?: string | null
+          preview_bio?: never
+          slug?: string | null
+          sort_rank?: number | null
+        }
+        Update: {
+          headshot_url?: string | null
+          id?: string | null
+          name?: string | null
+          preview_bio?: never
+          slug?: string | null
+          sort_rank?: number | null
         }
         Relationships: []
       }
