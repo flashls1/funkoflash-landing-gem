@@ -127,40 +127,47 @@ export const SiteDesignModule = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
 
-  // Validate image dimensions for hero images
-  const validateHeroImageSize = (file: File): Promise<{ valid: boolean; dimensions: { width: number; height: number } }> => {
-    return new Promise((resolve) => {
+  // Resize image to exact dimensions
+  const resizeImageToSize = (file: File, targetWidth: number, targetHeight: number): Promise<File> => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
-        const { width, height } = img;
-        const isValid1920x240 = width === 1920 && height === 240;
-        resolve({ 
-          valid: isValid1920x240, 
-          dimensions: { width, height } 
-        });
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        
+        // Stretch image to exact dimensions
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const resizedFile = new File([blob], file.name, { type: file.type });
+            resolve(resizedFile);
+          } else {
+            reject(new Error('Failed to resize image'));
+          }
+        }, file.type, 0.9);
       };
-      img.onerror = () => resolve({ valid: false, dimensions: { width: 0, height: 0 } });
+      img.onerror = () => reject(new Error('Failed to load image'));
       img.src = URL.createObjectURL(file);
     });
   };
 
-  // Validate background image dimensions (1920x1920 minimum with 10% tolerance)
-  const validateBackgroundImageSize = (file: File): Promise<{ valid: boolean; dimensions: { width: number; height: number } }> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const { width, height } = img;
-        const minSize = 1920;
-        const tolerance = minSize * 0.1; // 10% tolerance
-        const isValid = width >= (minSize - tolerance) && height >= (minSize - tolerance);
-        resolve({ 
-          valid: isValid, 
-          dimensions: { width, height } 
-        });
-      };
-      img.onerror = () => resolve({ valid: false, dimensions: { width: 0, height: 0 } });
-      img.src = URL.createObjectURL(file);
-    });
+  // Resize hero images to 1920x240
+  const resizeHeroImage = (file: File): Promise<File> => {
+    return resizeImageToSize(file, 1920, 240);
+  };
+
+  // Resize background images to 1920x1920
+  const resizeBackgroundImage = (file: File): Promise<File> => {
+    return resizeImageToSize(file, 1920, 1920);
   };
 
   // Get settings for the currently selected page
@@ -246,25 +253,15 @@ export const SiteDesignModule = () => {
   };
 
   const handleHeroMediaUpload = async (file: File) => {
-    setUploadStatus({ status: 'uploading', message: 'Validating image...' });
+    setUploadStatus({ status: 'uploading', message: 'Resizing image...' });
     
     try {
-      // Validate image size for images only
+      let fileToUpload = file;
+      
+      // Resize image to exact dimensions for images only
       if (file.type.startsWith('image/')) {
-        const validation = await validateHeroImageSize(file);
-        
-        if (!validation.valid) {
-          const { width, height } = validation.dimensions;
-          const message = `Image size ${width}x${height}px is not supported. Please use exactly 1920x240px.`;
-          
-          setUploadStatus({ status: 'error', message });
-          toast({
-            title: "❌ Invalid Image Size",
-            description: message,
-            variant: "destructive"
-          });
-          return;
-        }
+        fileToUpload = await resizeHeroImage(file);
+        setUploadStatus({ status: 'uploading', message: 'Image resized to 1920x240px, uploading...' });
       }
 
       setUploadStatus({ status: 'uploading', message: 'Uploading media...' });
@@ -312,25 +309,15 @@ export const SiteDesignModule = () => {
   };
 
   const handleBackgroundImageUpload = async (file: File) => {
-    setUploadStatus({ status: 'uploading', message: 'Validating background image...' });
+    setUploadStatus({ status: 'uploading', message: 'Resizing background image...' });
     
     try {
-      // Validate image size
+      let fileToUpload = file;
+      
+      // Resize image to exact dimensions for images only
       if (file.type.startsWith('image/')) {
-        const validation = await validateBackgroundImageSize(file);
-        
-        if (!validation.valid) {
-          const { width, height } = validation.dimensions;
-          const message = `Background image size ${width}x${height}px is too small. Please use minimum 1920x1920px (±10% tolerance).`;
-          
-          setUploadStatus({ status: 'error', message });
-          toast({
-            title: "❌ Invalid Background Image Size",
-            description: message,
-            variant: "destructive"
-          });
-          return;
-        }
+        fileToUpload = await resizeBackgroundImage(file);
+        setUploadStatus({ status: 'uploading', message: 'Image resized to 1920x1920px, uploading...' });
       }
 
       setUploadStatus({ status: 'uploading', message: 'Uploading background image...' });
@@ -794,7 +781,7 @@ export const SiteDesignModule = () => {
               <div className="mt-2 space-y-3">
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-700">
-                    <strong>Required Size:</strong> exactly 1920x240px
+                    <strong>Auto-resize:</strong> Images will be stretched to 1920x240px
                   </p>
                 </div>
                 
@@ -805,7 +792,7 @@ export const SiteDesignModule = () => {
                   <Upload className="w-12 h-12 mx-auto mb-3 text-primary/60" />
                   <p className="text-sm font-medium mb-1">Click to upload hero image</p>
                   <p className="text-xs text-muted-foreground">
-                    JPG, PNG, WebP - exactly 1920x240px
+                    JPG, PNG, WebP - will be auto-resized to 1920x240px
                   </p>
                 </div>
                 
@@ -902,11 +889,11 @@ export const SiteDesignModule = () => {
             {/* Site Background Image Section */}
             <div className="space-y-4 border-t pt-6">
               <Label className="text-sm font-medium">Site Background Image</Label>
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-sm text-amber-700">
-                  <strong>Site-wide background:</strong> This background image will be displayed across all pages. Minimum size: 1920x1920px (±10% tolerance)
-                </p>
-              </div>
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-700">
+                    <strong>Site-wide background:</strong> This background image will be displayed across all pages. Images will be auto-resized to 1920x1920px.
+                  </p>
+                </div>
               
               <div 
                 onClick={() => {
@@ -924,7 +911,7 @@ export const SiteDesignModule = () => {
                 <Upload className="w-10 h-10 mx-auto mb-2 text-amber-600" />
                 <p className="text-sm font-medium mb-1">Click to upload site background</p>
                 <p className="text-xs text-muted-foreground">
-                  JPG, PNG, WebP - Minimum 1920x1920px
+                  JPG, PNG, WebP - will be auto-resized to 1920x1920px
                 </p>
               </div>
 
