@@ -32,5 +32,58 @@
     "ripple": "Activar efecto de onda (escritorio)",
     "rippleIntensity": "Intensidad de onda",
     "save": "Guardar"
+  },
+  "talentAssets": {
+    "title": "Recursos de Talento",
+    "portfolio": "Gestión de Portafolio",
+    "categories": {
+      "headshot": "Fotos de Perfil",
+      "character_image": "Imágenes de Personajes",
+      "bio": "Biografía/CV",
+      "promo_video": "Videos Promocionales"
+    },
+    "upload": "Subir Archivo",
+    "uploadVideo": "Subir Video",
+    "recordVideo": "Grabar Video",
+    "title_field": "Título",
+    "description": "Descripción",
+    "featured": "Destacado",
+    "active": "Activo",
+    "fileSize": "Tamaño de Archivo",
+    "uploadedAt": "Subido",
+    "actions": "Acciones",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "preview": "Vista Previa",
+    "download": "Descargar",
+    "watermark": "Configuración de Marca de Agua",
+    "logoSize": "Tamaño del Logo",
+    "opacity": "Opacidad",
+    "position": "Posición",
+    "defaultPosition": "Posición Predeterminada",
+    "businessPosition": "Posición de Negocio",
+    "positions": {
+      "upper-left": "Superior Izquierda",
+      "upper-right": "Superior Derecha",
+      "lower-left": "Inferior Izquierda",
+      "lower-right": "Inferior Derecha",
+      "center": "Centro"
+    },
+    "dragDrop": "Arrastra y suelta archivos aquí, o haz clic para explorar",
+    "fileTypes": "Formatos compatibles",
+    "maxSize": "Tamaño máximo de archivo",
+    "success": {
+      "uploaded": "Archivo subido exitosamente",
+      "updated": "Recurso actualizado exitosamente",
+      "deleted": "Recurso eliminado exitosamente",
+      "watermarkUpdated": "Configuración de marca de agua actualizada"
+    },
+    "errors": {
+      "invalidFileType": "Tipo de archivo inválido",
+      "fileTooLarge": "Archivo demasiado grande",
+      "uploadFailed": "Fallo al subir",
+      "updateFailed": "Fallo al actualizar",
+      "deleteFailed": "Fallo al eliminar"
+    }
   }
 }

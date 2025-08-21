@@ -32,5 +32,58 @@
     "ripple": "Enable interactive ripple (desktop)",
     "rippleIntensity": "Ripple intensity",
     "save": "Save"
+  },
+  "talentAssets": {
+    "title": "Talent Assets",
+    "portfolio": "Portfolio Management",
+    "categories": {
+      "headshot": "Headshots",
+      "character_image": "Character Images",
+      "bio": "Bio/Resume",
+      "promo_video": "Promo Videos"
+    },
+    "upload": "Upload File",
+    "uploadVideo": "Upload Video",
+    "recordVideo": "Record Video",
+    "title_field": "Title",
+    "description": "Description",
+    "featured": "Featured",
+    "active": "Active",
+    "fileSize": "File Size",
+    "uploadedAt": "Uploaded",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "preview": "Preview",
+    "download": "Download",
+    "watermark": "Watermark Settings",
+    "logoSize": "Logo Size",
+    "opacity": "Opacity",
+    "position": "Position",
+    "defaultPosition": "Default Position",
+    "businessPosition": "Business Position",
+    "positions": {
+      "upper-left": "Upper Left",
+      "upper-right": "Upper Right",
+      "lower-left": "Lower Left",
+      "lower-right": "Lower Right",
+      "center": "Center"
+    },
+    "dragDrop": "Drag and drop files here, or click to browse",
+    "fileTypes": "Supported formats",
+    "maxSize": "Max file size",
+    "success": {
+      "uploaded": "File uploaded successfully",
+      "updated": "Asset updated successfully",
+      "deleted": "Asset deleted successfully",
+      "watermarkUpdated": "Watermark settings updated"
+    },
+    "errors": {
+      "invalidFileType": "Invalid file type",
+      "fileTooLarge": "File size too large",
+      "uploadFailed": "Upload failed",
+      "updateFailed": "Update failed",
+      "deleteFailed": "Delete failed"
+    }
   }
 }

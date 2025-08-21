@@ -9,6 +9,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
+import TalentDirectoryCMS from './TalentDirectoryCMS';
+import { TalentAssetsManager } from '@/features/talent-assets/TalentAssetsManager';
 import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
@@ -395,6 +397,18 @@ const AdminDashboard = () => {
                       <Calendar className="h-4 w-4" />
                       {t.events}
                     </button>
+                     <button 
+                      onClick={() => setActiveTab('talent-assets')}
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        activeTab === 'talent-assets'
+                          ? `border-current`
+                          : 'border-transparent opacity-70 hover:opacity-100'
+                      }`}
+                      style={{ color: activeTab === 'talent-assets' ? currentTheme.accent : currentTheme.cardForeground }}
+                    >
+                      <FileText className="h-4 w-4" />
+                      Assets
+                    </button>
                     <button 
                       onClick={() => setActiveTab('settings')}
                       className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
@@ -618,6 +632,10 @@ const AdminDashboard = () => {
               <h3 className="text-lg font-semibold mb-2">Settings Module</h3>
               <p className="text-muted-foreground">Settings management functionality coming soon.</p>
             </div>
+          )}
+
+          {activeTab === 'talent-assets' && (
+            <TalentAssetsManager />
           )}
 
           {activeTab === 'system-settings' && hasFeature('appearance') && (
