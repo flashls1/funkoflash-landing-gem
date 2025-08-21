@@ -61,10 +61,14 @@ const TalentDirectoryCMS = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch talent profiles
+      // Fetch talent profiles - only include profiles where the user has 'talent' role
       const { data: talentData, error: talentError } = await supabase
         .from('talent_profiles')
-        .select('*')
+        .select(`
+          *,
+          profiles!inner(role)
+        `)
+        .eq('profiles.role', 'talent')
         .order('sort_rank', { ascending: true });
 
       if (talentError) throw talentError;
