@@ -13,7 +13,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { VideoRecorder } from '@/components/VideoRecorder';
-import { Upload, Video, Image, FileText, Edit, Trash2, Eye, Download, Settings, Star } from 'lucide-react';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { CharacterTagEditor } from '@/components/CharacterTagEditor';
+import { ImagePreviewBox } from '@/components/ImagePreviewBox';
+import { Upload, Video, Image, FileText, Edit, Trash2, Eye, Download, Settings, Star, Archive, Save, Plus, Tag } from 'lucide-react';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -50,6 +55,9 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
   const [deletingAsset, setDeletingAsset] = useState<TalentAsset | null>(null);
   const [watermarkSettings, setWatermarkSettings] = useState<WatermarkSettings | null>(null);
   const [showVideoRecorder, setShowVideoRecorder] = useState(false);
+  const [selectedAssetForPreview, setSelectedAssetForPreview] = useState<TalentAsset | null>(null);
+  const [bioContent, setBioContent] = useState('');
+  const [downloadingZip, setDownloadingZip] = useState(false);
 
   const { profile } = useAuth();
   const { hasPermission } = usePermissions();
@@ -98,6 +106,13 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
       delete: 'Delete',
       preview: 'Preview',
       download: 'Download',
+      downloadAll: 'Download All as ZIP',
+      characterTags: 'Character Tags',
+      saveBio: 'Save Bio',
+      downloadBio: 'Download Bio',
+      uploadLogo: 'Upload Logo',
+      funkoFlashLogo: 'Funko Flash Logo',
+      businessLogo: 'Business Logo',
       watermark: 'Watermark Settings',
       logoSize: 'Logo Size',
       opacity: 'Opacity',
@@ -151,6 +166,13 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
       delete: 'Eliminar',
       preview: 'Vista Previa',
       download: 'Descargar',
+      downloadAll: 'Descargar Todo como ZIP',
+      characterTags: 'Etiquetas de Personajes',
+      saveBio: 'Guardar Biografía',
+      downloadBio: 'Descargar Biografía',
+      uploadLogo: 'Subir Logo',
+      funkoFlashLogo: 'Logo Funko Flash',
+      businessLogo: 'Logo de Negocio',
       watermark: 'Configuración de Marca de Agua',
       logoSize: 'Tamaño del Logo',
       opacity: 'Opacidad',
@@ -393,6 +415,109 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
     }
   }, [toast, t]);
 
+  // Handle watermark logo upload
+  const handleLogoUpload = useCallback(async (file: File, type: 'funko' | 'business') => {
+    if (!canEdit) return;
+
+    try {
+      const bucket = 'watermark-assets';
+      const fileName = `${type}-logo-${Date.now()}.${file.name.split('.').pop()}`;
+      const filePath = fileName;
+      
+      const fileUrl = await talentAssetsApi.uploadFile(bucket, filePath, file);
+      
+      const updateKey = type === 'funko' ? 'logo_url' : 'business_logo_url';
+      await handleWatermarkUpdate({ [updateKey]: fileUrl });
+      
+      toast({
+        title: `${type === 'funko' ? 'Funko Flash' : 'Business'} logo uploaded successfully`,
+        variant: 'default'
+      });
+    } catch (error) {
+      console.error('Logo upload error:', error);
+      toast({
+        title: 'Failed to upload logo',
+        variant: 'destructive'
+      });
+    }
+  }, [canEdit, handleWatermarkUpdate, toast]);
+
+  // Handle download all images as ZIP
+  const handleDownloadAllImages = useCallback(async () => {
+    const characterImages = assets.filter(asset => asset.category === 'character_image' && asset.file_url);
+    
+    if (characterImages.length === 0) {
+      toast({
+        title: 'No character images to download',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      setDownloadingZip(true);
+      const zip = new JSZip();
+      
+      // Download each image and add to ZIP
+      for (const asset of characterImages) {
+        try {
+          const response = await fetch(asset.file_url!);
+          const blob = await response.blob();
+          const fileExtension = asset.file_url!.split('.').pop() || 'jpg';
+          const fileName = `${asset.title}.${fileExtension}`;
+          zip.file(fileName, blob);
+        } catch (error) {
+          console.warn(`Failed to download ${asset.title}:`, error);
+        }
+      }
+      
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      saveAs(zipBlob, `character-images-${new Date().toISOString().split('T')[0]}.zip`);
+      
+      toast({
+        title: 'Character images downloaded successfully',
+        variant: 'default'
+      });
+    } catch (error) {
+      console.error('ZIP creation error:', error);
+      toast({
+        title: 'Failed to create ZIP file',
+        variant: 'destructive'
+      });
+    } finally {
+      setDownloadingZip(false);
+    }
+  }, [assets, toast]);
+
+  // Handle bio content save and download
+  const handleSaveBio = useCallback(() => {
+    localStorage.setItem(`bio-content-${effectiveTalentId}`, bioContent);
+    toast({
+      title: 'Bio saved successfully',
+      variant: 'default'
+    });
+  }, [bioContent, effectiveTalentId, toast]);
+
+  const handleDownloadBio = useCallback(() => {
+    const element = document.createElement('a');
+    const file = new Blob([bioContent], { type: 'text/html' });
+    element.href = URL.createObjectURL(file);
+    element.download = `bio-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }, [bioContent]);
+
+  // Load bio content from localStorage
+  useEffect(() => {
+    if (effectiveTalentId) {
+      const savedBio = localStorage.getItem(`bio-content-${effectiveTalentId}`);
+      if (savedBio) {
+        setBioContent(savedBio);
+      }
+    }
+  }, [effectiveTalentId]);
+
   const getCategoryIcon = (category: AssetCategory) => {
     switch (category) {
       case 'headshot':
@@ -451,231 +576,375 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
 
   return (
     <div className={className}>
-      <Tabs defaultValue="assets" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="assets">{t.portfolio}</TabsTrigger>
-          <TabsTrigger value="watermark">{t.watermark}</TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
+        <div className="lg:col-span-3">
+          <Tabs defaultValue="assets" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="assets">{t.portfolio}</TabsTrigger>
+              <TabsTrigger value="watermark">{t.watermark}</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="assets" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {getCategoryIcon(selectedCategory)}
-                {t.categories[selectedCategory]}
-              </CardTitle>
-              <div className="flex gap-2">
-                {(Object.keys(t.categories) as AssetCategory[]).map(category => (
-                  <Button
-                    key={category}
-                    variant={selectedCategory === category ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedCategory(category)}
-                    className="flex items-center gap-2"
-                  >
-                    {getCategoryIcon(category)}
-                    {t.categories[category]}
-                  </Button>
-                ))}
-              </div>
-            </CardHeader>
+            <TabsContent value="assets" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    {getCategoryIcon(selectedCategory)}
+                    {t.categories[selectedCategory]}
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    {(Object.keys(t.categories) as AssetCategory[]).map(category => (
+                      <Button
+                        key={category}
+                        variant={selectedCategory === category ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedCategory(category)}
+                        className="flex items-center gap-2"
+                      >
+                        {getCategoryIcon(category)}
+                        {t.categories[category]}
+                      </Button>
+                    ))}
+                  </div>
+                </CardHeader>
 
-            {canEdit && (
-              <CardContent className="border-b">
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = selectedCategory === 'promo_video' ? 'video/*' : selectedCategory === 'bio' ? '.pdf,.doc,.docx' : 'image/*';
-                      input.onchange = (e) => {
-                        const files = (e.target as HTMLInputElement).files;
-                        if (files) handleFileUpload(files, selectedCategory);
-                      };
-                      input.click();
-                    }}
-                    disabled={uploading}
-                    className="flex items-center gap-2"
-                  >
-                    <Upload className="h-4 w-4" />
-                    {selectedCategory === 'promo_video' ? t.uploadVideo : t.upload}
-                  </Button>
-
-                  {selectedCategory === 'promo_video' && (
-                    <Dialog open={showVideoRecorder} onOpenChange={setShowVideoRecorder}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="flex items-center gap-2">
-                          <Video className="h-4 w-4" />
-                          {t.recordVideo}
+                {canEdit && (
+                  <CardContent className="border-b">
+                    <div className="flex gap-2 flex-wrap">
+                      {selectedCategory !== 'bio' && (
+                        <Button
+                          onClick={() => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = selectedCategory === 'promo_video' ? 'video/*' : 'image/*';
+                            input.onchange = (e) => {
+                              const files = (e.target as HTMLInputElement).files;
+                              if (files) handleFileUpload(files, selectedCategory);
+                            };
+                            input.click();
+                          }}
+                          disabled={uploading}
+                          className="flex items-center gap-2"
+                        >
+                          <Upload className="h-4 w-4" />
+                          {selectedCategory === 'promo_video' ? t.uploadVideo : t.upload}
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>{t.recordVideo}</DialogTitle>
-                        </DialogHeader>
-                        <VideoRecorder 
-                          onVideoRecorded={handleVideoRecorded}
-                          locale={currentLocale}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                </div>
+                      )}
 
-                <div className="mt-2 text-sm text-muted-foreground">
-                  <p>{t.fileTypes}: {getFileTypeHelp(selectedCategory)}</p>
-                  <p>{t.maxSize}: {getMaxSizeHelp(selectedCategory)}</p>
-                </div>
-              </CardContent>
-            )}
+                      {selectedCategory === 'character_image' && (
+                        <Button
+                          onClick={handleDownloadAllImages}
+                          disabled={downloadingZip || categoryAssets.length === 0}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <Archive className="h-4 w-4" />
+                          {downloadingZip ? 'Creating ZIP...' : t.downloadAll}
+                        </Button>
+                      )}
 
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : categoryAssets.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No assets in this category.</p>
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {categoryAssets.map(asset => (
-                    <Card key={asset.id} className="relative">
-                      <CardContent className="p-4">
-                        {asset.is_featured && (
-                          <Badge className="absolute -top-2 -right-2">
-                            <Star className="h-3 w-3" />
-                          </Badge>
-                        )}
+                      {selectedCategory === 'promo_video' && (
+                        <Dialog open={showVideoRecorder} onOpenChange={setShowVideoRecorder}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" className="flex items-center gap-2">
+                              <Video className="h-4 w-4" />
+                              {t.recordVideo}
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>{t.recordVideo}</DialogTitle>
+                            </DialogHeader>
+                            <VideoRecorder 
+                              onVideoRecorded={handleVideoRecorded}
+                              locale={currentLocale}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </div>
 
-                        <div className="space-y-2">
-                          <h4 className="font-medium truncate">{asset.title}</h4>
-                          {asset.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {asset.description}
-                            </p>
-                          )}
-                          
-                          <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>{formatFileSize(asset.file_size || 0)}</span>
-                            <span>{new Date(asset.created_at).toLocaleDateString()}</span>
-                          </div>
+                    {selectedCategory !== 'bio' && (
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        <p>{t.fileTypes}: {getFileTypeHelp(selectedCategory)}</p>
+                        <p>{t.maxSize}: {getMaxSizeHelp(selectedCategory)}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
 
-                          {canEdit && (
-                            <div className="flex gap-2 pt-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setEditingAsset(asset)}
-                                className="flex items-center gap-1"
-                              >
-                                <Edit className="h-3 w-3" />
-                                {t.edit}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setDeletingAsset(asset)}
-                                className="flex items-center gap-1"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                                {t.delete}
-                              </Button>
-                            </div>
-                          )}
+                <CardContent>
+                  {selectedCategory === 'bio' ? (
+                    <div className="space-y-4">
+                      <RichTextEditor
+                        value={bioContent}
+                        onChange={setBioContent}
+                        placeholder="Enter bio and resume content here..."
+                        className="min-h-[400px]"
+                      />
+                      {canEdit && (
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={handleSaveBio}
+                            className="flex items-center gap-2"
+                          >
+                            <Save className="h-4 w-4" />
+                            {t.saveBio}
+                          </Button>
+                          <Button
+                            onClick={handleDownloadBio}
+                            variant="outline"
+                            className="flex items-center gap-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            {t.downloadBio}
+                          </Button>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                      )}
+                    </div>
+                  ) : loading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  ) : categoryAssets.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No assets in this category.</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {categoryAssets.map(asset => (
+                        <Card 
+                          key={asset.id} 
+                          className={`relative cursor-pointer transition-all hover:ring-2 hover:ring-primary/50 ${
+                            selectedAssetForPreview?.id === asset.id ? 'ring-2 ring-primary' : ''
+                          }`}
+                          onClick={() => setSelectedAssetForPreview(asset)}
+                        >
+                          <CardContent className="p-4">
+                            {asset.is_featured && (
+                              <Badge className="absolute -top-2 -right-2">
+                                <Star className="h-3 w-3" />
+                              </Badge>
+                            )}
+
+                            <div className="space-y-2">
+                              <h4 className="font-medium truncate">{asset.title}</h4>
+                              {asset.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                  {asset.description}
+                                </p>
+                              )}
+                              
+                              {selectedCategory === 'character_image' && asset.content_data && typeof asset.content_data === 'object' && 'tags' in asset.content_data && Array.isArray(asset.content_data.tags) && (
+                                <div className="flex flex-wrap gap-1">
+                                   {asset.content_data.tags.map((tag, index) => (
+                                    <Badge key={index} variant="outline" className="text-xs">
+                                      <Tag className="h-2 w-2 mr-1" />
+                                      {String(tag)}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>{formatFileSize(asset.file_size || 0)}</span>
+                                <span>{new Date(asset.created_at).toLocaleDateString()}</span>
+                              </div>
+
+                              {canEdit && (
+                                <div className="flex gap-2 pt-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingAsset(asset);
+                                    }}
+                                    className="flex items-center gap-1"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                    {t.edit}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDeletingAsset(asset);
+                                    }}
+                                    className="flex items-center gap-1"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                    {t.delete}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="watermark" className="space-y-4">
+              {canEdit && watermarkSettings && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      {t.watermark}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Logo Upload Section */}
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-4">
+                        <Label className="text-base font-medium">{t.funkoFlashLogo}</Label>
+                        {watermarkSettings.logo_url && (
+                          <div className="relative w-32 h-32 bg-muted rounded border">
+                            <img
+                              src={watermarkSettings.logo_url}
+                              alt="Funko Flash Logo"
+                              className="w-full h-full object-contain rounded"
+                            />
+                          </div>
+                        )}
+                        <Button
+                          onClick={() => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = (e) => {
+                              const files = (e.target as HTMLInputElement).files;
+                              if (files?.[0]) handleLogoUpload(files[0], 'funko');
+                            };
+                            input.click();
+                          }}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <Upload className="h-4 w-4" />
+                          {t.uploadLogo}
+                        </Button>
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label className="text-base font-medium">{t.businessLogo}</Label>
+                        {watermarkSettings.business_logo_url && (
+                          <div className="relative w-32 h-32 bg-muted rounded border">
+                            <img
+                              src={watermarkSettings.business_logo_url}
+                              alt="Business Logo"
+                              className="w-full h-full object-contain rounded"
+                            />
+                          </div>
+                        )}
+                        <Button
+                          onClick={() => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = (e) => {
+                              const files = (e.target as HTMLInputElement).files;
+                              if (files?.[0]) handleLogoUpload(files[0], 'business');
+                            };
+                            input.click();
+                          }}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <Upload className="h-4 w-4" />
+                          {t.uploadLogo}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>{t.logoSize}</Label>
+                        <Slider
+                          value={[watermarkSettings.logo_size]}
+                          onValueChange={(value) => 
+                            handleWatermarkUpdate({ logo_size: value[0] })
+                          }
+                          max={300}
+                          min={50}
+                          step={10}
+                        />
+                        <p className="text-sm text-muted-foreground">{watermarkSettings.logo_size}px</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>{t.opacity}</Label>
+                        <Slider
+                          value={[Number(watermarkSettings.opacity) * 100]}
+                          onValueChange={(value) => 
+                            handleWatermarkUpdate({ opacity: value[0] / 100 })
+                          }
+                          max={100}
+                          min={10}
+                          step={5}
+                        />
+                        <p className="text-sm text-muted-foreground">{Math.round(Number(watermarkSettings.opacity) * 100)}%</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>{t.defaultPosition}</Label>
+                        <Select
+                          value={watermarkSettings.default_position}
+                          onValueChange={(value) => 
+                            handleWatermarkUpdate({ default_position: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(t.positions).map(([key, label]) => (
+                              <SelectItem key={key} value={key}>{label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>{t.businessPosition}</Label>
+                        <Select
+                          value={watermarkSettings.business_position}
+                          onValueChange={(value) => 
+                            handleWatermarkUpdate({ business_position: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(t.positions).map(([key, label]) => (
+                              <SelectItem key={key} value={key}>{label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </TabsContent>
+          </Tabs>
+        </div>
 
-        <TabsContent value="watermark" className="space-y-4">
-          {canEdit && watermarkSettings && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  {t.watermark}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>{t.logoSize}</Label>
-                    <Slider
-                      value={[watermarkSettings.logo_size]}
-                      onValueChange={(value) => 
-                        handleWatermarkUpdate({ logo_size: value[0] })
-                      }
-                      max={300}
-                      min={50}
-                      step={10}
-                    />
-                    <p className="text-sm text-muted-foreground">{watermarkSettings.logo_size}px</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>{t.opacity}</Label>
-                    <Slider
-                      value={[Number(watermarkSettings.opacity) * 100]}
-                      onValueChange={(value) => 
-                        handleWatermarkUpdate({ opacity: value[0] / 100 })
-                      }
-                      max={100}
-                      min={10}
-                      step={5}
-                    />
-                    <p className="text-sm text-muted-foreground">{Math.round(Number(watermarkSettings.opacity) * 100)}%</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>{t.defaultPosition}</Label>
-                    <Select
-                      value={watermarkSettings.default_position}
-                      onValueChange={(value) => 
-                        handleWatermarkUpdate({ default_position: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(t.positions).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>{label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>{t.businessPosition}</Label>
-                    <Select
-                      value={watermarkSettings.business_position}
-                      onValueChange={(value) => 
-                        handleWatermarkUpdate({ business_position: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(t.positions).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>{label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+        {/* Preview Box */}
+        <div className="lg:col-span-1">
+          <ImagePreviewBox 
+            selectedAsset={selectedAssetForPreview}
+            className="sticky top-4"
+          />
+        </div>
+      </div>
 
       {/* Edit Asset Dialog */}
       {editingAsset && (
@@ -699,6 +968,28 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
                   onChange={(e) => setEditingAsset({...editingAsset, description: e.target.value})}
                 />
               </div>
+              
+              {editingAsset.category === 'character_image' && (
+                <CharacterTagEditor
+                   tags={
+                    editingAsset.content_data && 
+                    typeof editingAsset.content_data === 'object' && 
+                    'tags' in editingAsset.content_data && 
+                    Array.isArray(editingAsset.content_data.tags) 
+                      ? editingAsset.content_data.tags.map(String)
+                      : []
+                  }
+                  onChange={(tags) => setEditingAsset({
+                    ...editingAsset, 
+                    content_data: { 
+                      ...(editingAsset.content_data && typeof editingAsset.content_data === 'object' ? editingAsset.content_data : {}), 
+                      tags 
+                    }
+                  })}
+                  label={t.characterTags}
+                  placeholder="Enter character name..."
+                />
+              )}
               <div className="flex items-center space-x-2">
                 <Switch
                   checked={editingAsset.is_featured || false}
