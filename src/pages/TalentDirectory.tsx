@@ -18,6 +18,7 @@ interface TalentProfile {
   headshot_url: string | null;
   bio: string | null;
   sort_rank: number;
+  has_user_account?: boolean;
 }
 
 

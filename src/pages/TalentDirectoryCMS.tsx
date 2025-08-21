@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, GripVertical, ArrowLeft, User, Users } from "lucide-react";
+import { Plus, Edit, Trash2, GripVertical, ArrowLeft, User, Users, UserPlus } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import AdminThemeProvider from '@/components/AdminThemeProvider';
@@ -26,6 +27,13 @@ interface TalentProfile {
   active: boolean;
   public_visibility: boolean;
   sort_rank: number;
+  user_id?: string | null;
+}
+
+interface AvailableUser {
+  user_id: string;
+  name: string;
+  email: string;
 }
 
 interface TalentFormData {
@@ -51,6 +59,10 @@ const TalentDirectoryCMS = () => {
   });
   const [headshotFile, setHeadshotFile] = useState<File | null>(null);
   const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const [showConnectDialog, setShowConnectDialog] = useState(false);
+  const [connectingTalent, setConnectingTalent] = useState<TalentProfile | null>(null);
+  const [availableUsers, setAvailableUsers] = useState<AvailableUser[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
   const { toast } = useToast();
 
   // Check if user has permission
@@ -64,7 +76,7 @@ const TalentDirectoryCMS = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch all active talent profiles first
+      // Fetch all active talent profiles - now including admin-created profiles without users
       const { data: talentData, error: talentError } = await supabase
         .from('talent_profiles')
         .select('*')
@@ -76,31 +88,8 @@ const TalentDirectoryCMS = () => {
         throw talentError;
       }
 
-      // If there are profiles with user_id, check their roles
-      const profilesWithUsers = talentData?.filter(t => t.user_id) || [];
-      let userRoles: { [key: string]: string } = {};
-      
-      if (profilesWithUsers.length > 0) {
-        const userIds = profilesWithUsers.map(t => t.user_id);
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('user_id, role')
-          .in('user_id', userIds);
-        
-        userRoles = (profiles || []).reduce((acc, p) => {
-          acc[p.user_id] = p.role;
-          return acc;
-        }, {} as { [key: string]: string });
-      }
-
-      // Filter out profiles where the user role is not 'talent' (for user-linked profiles)
-      // Admin-created profiles without users are still included
-      const filteredData = (talentData || []).filter(talent => 
-        !talent.user_id || userRoles[talent.user_id] === 'talent'
-      );
-
-      console.log('Fetched talent profiles:', talentData?.length || 0, 'Filtered:', filteredData.length);
-      setTalents(filteredData);
+      console.log('Fetched talent profiles:', talentData?.length || 0);
+      setTalents(talentData);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -147,6 +136,76 @@ const TalentDirectoryCMS = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const fetchAvailableUsers = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_available_talent_users');
+      
+      if (error) {
+        console.error('Error fetching available users:', error);
+        toast({
+          title: "Error",
+          description: "Error fetching available users",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setAvailableUsers(data || []);
+    } catch (err) {
+      console.error('Error in fetchAvailableUsers:', err);
+      toast({
+        title: "Error",
+        description: "Error fetching available users",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const connectTalentToUser = async () => {
+    if (!selectedUserId || !connectingTalent) return;
+
+    try {
+      const { error } = await supabase.rpc('connect_talent_to_user', {
+        p_talent_id: connectingTalent.id,
+        p_user_id: selectedUserId
+      });
+
+      if (error) {
+        console.error('Error connecting talent to user:', error);
+        toast({
+          title: "Error",
+          description: error.message || "Error connecting talent to user",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: `Successfully connected ${connectingTalent.name} to user account`,
+      });
+
+      setShowConnectDialog(false);
+      setConnectingTalent(null);
+      setSelectedUserId('');
+      fetchData(); // Refresh the list
+    } catch (err) {
+      console.error('Error in connectTalentToUser:', err);
+      toast({
+        title: "Error",
+        description: "Error connecting talent to user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openConnectDialog = async (talent: TalentProfile) => {
+    setConnectingTalent(talent);
+    setSelectedUserId('');
+    await fetchAvailableUsers();
+    setShowConnectDialog(true);
   };
 
   const generateSlug = (name: string) => {
@@ -425,13 +484,14 @@ const TalentDirectoryCMS = () => {
                         <User className="w-6 h-6 text-muted-foreground" />
                       </div>
                     )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{talent.name}</h3>
-                      <p className="text-sm text-muted-foreground">/{talent.slug}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {talent.public_visibility ? '🌐 Public' : '🔒 Private'}
-                      </p>
-                    </div>
+                     <div className="flex-1">
+                       <h3 className="font-semibold">{talent.name}</h3>
+                       <p className="text-sm text-muted-foreground">/{talent.slug}</p>
+                       <p className="text-xs text-muted-foreground">
+                         {talent.public_visibility ? '🌐 Public' : '🔒 Private'}
+                         {talent.user_id ? ' • 👤 Connected' : ' • 📋 Admin-created'}
+                       </p>
+                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col items-center gap-1">
                         <label className="text-xs text-muted-foreground">Active</label>
@@ -480,21 +540,35 @@ const TalentDirectoryCMS = () => {
                         />
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/admin/talent-buildout/${talent.id}`)}
-                      title="Build Out Sheet"
-                    >
-                      📝
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditForm(talent)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
+                     <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={() => navigate(`/admin/talent-buildout/${talent.id}`)}
+                       title="Build Out Sheet"
+                     >
+                       📝
+                     </Button>
+                     {!talent.user_id && (
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={() => openConnectDialog(talent)}
+                         title="Connect to User Account"
+                         style={{
+                           borderColor: currentTheme.accent,
+                           color: currentTheme.accent
+                         }}
+                       >
+                         <UserPlus className="w-4 h-4" />
+                       </Button>
+                     )}
+                     <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={() => openEditForm(talent)}
+                     >
+                       <Edit className="w-4 h-4" />
+                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
@@ -597,6 +671,74 @@ const TalentDirectoryCMS = () => {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Connect Talent Dialog */}
+      <Dialog open={showConnectDialog} onOpenChange={setShowConnectDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Connect Talent to User Account</DialogTitle>
+          </DialogHeader>
+          
+          {connectingTalent && (
+            <div className="space-y-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <h4 className="font-semibold">{connectingTalent.name}</h4>
+                <p className="text-sm text-muted-foreground">
+                  This talent profile will be connected to a user account, allowing them to login and manage their own profile.
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="user-select">Select User Account</Label>
+                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a user to connect..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableUsers.map((user) => (
+                      <SelectItem key={user.user_id} value={user.user_id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{user.name}</span>
+                          <span className="text-xs text-muted-foreground">{user.email}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {availableUsers.length === 0 && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    No available talent users found. Users must have the "talent" role and not be already connected to a talent profile.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  onClick={connectTalentToUser}
+                  disabled={!selectedUserId}
+                  style={{
+                    backgroundColor: currentTheme.accent,
+                    color: 'white'
+                  }}
+                >
+                  Connect Talent
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowConnectDialog(false);
+                    setConnectingTalent(null);
+                    setSelectedUserId('');
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </AdminThemeProvider>

@@ -1262,6 +1262,10 @@ export type Database = {
           user_role: Database["public"]["Enums"]["app_role"]
         }[]
       }
+      connect_talent_to_user: {
+        Args: { p_talent_id: string; p_user_id: string }
+        Returns: boolean
+      }
       create_admin_talent_profile: {
         Args: {
           p_active?: boolean
@@ -1289,6 +1293,14 @@ export type Database = {
       ensure_business_account_exists: {
         Args: { p_user_id: string }
         Returns: string
+      }
+      get_available_talent_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          email: string
+          name: string
+          user_id: string
+        }[]
       }
       get_gcal_tokens: {
         Args: { p_talent_id: string }
@@ -1319,6 +1331,7 @@ export type Database = {
       get_public_talent_showcase: {
         Args: Record<PropertyKey, never>
         Returns: {
+          has_user_account: boolean
           headshot_url: string
           id: string
           name: string
