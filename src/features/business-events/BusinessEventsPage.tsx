@@ -225,15 +225,11 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
               <p className="text-muted-foreground mb-4">
                 {searchTerm || statusFilter !== 'all'
                   ? (language === 'es' ? 'No se encontraron eventos.' : 'No events found.')
-                  : (language === 'es' ? 'No hay eventos todavía.' : 'No events yet.')
+                  : (language === 'es' 
+                    ? 'No hay eventos todavía. Usa el botón "Agregar evento" arriba para crear tu primer evento.' 
+                    : 'No events yet. Use the "Add Event" button above to create your first event.')
                 }
               </p>
-              {canEdit && !searchTerm && statusFilter === 'all' && (
-                <Button onClick={handleCreateEvent}>
-                  <PlusIcon className="h-4 w-4 mr-2" />
-                  {language === 'es' ? 'Crear evento' : 'Create Event'}
-                </Button>
-              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
