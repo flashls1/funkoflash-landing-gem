@@ -140,7 +140,7 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold">
+              <h1 className="text-3xl font-bold text-white">
                 {language === 'es' ? 'Eventos de negocio' : 'Business Events'}
               </h1>
               <p className="text-muted-foreground mt-2">
