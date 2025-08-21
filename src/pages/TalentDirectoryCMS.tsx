@@ -64,10 +64,11 @@ const TalentDirectoryCMS = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch all talent profiles - admin can see all
+      // Fetch all active talent profiles first
       const { data: talentData, error: talentError } = await supabase
         .from('talent_profiles')
         .select('*')
+        .eq('active', true)
         .order('sort_rank', { ascending: true });
 
       if (talentError) {
@@ -75,8 +76,31 @@ const TalentDirectoryCMS = () => {
         throw talentError;
       }
 
-      console.log('Fetched talent profiles:', talentData?.length || 0);
-      setTalents(talentData || []);
+      // If there are profiles with user_id, check their roles
+      const profilesWithUsers = talentData?.filter(t => t.user_id) || [];
+      let userRoles: { [key: string]: string } = {};
+      
+      if (profilesWithUsers.length > 0) {
+        const userIds = profilesWithUsers.map(t => t.user_id);
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, role')
+          .in('user_id', userIds);
+        
+        userRoles = (profiles || []).reduce((acc, p) => {
+          acc[p.user_id] = p.role;
+          return acc;
+        }, {} as { [key: string]: string });
+      }
+
+      // Filter out profiles where the user role is not 'talent' (for user-linked profiles)
+      // Admin-created profiles without users are still included
+      const filteredData = (talentData || []).filter(talent => 
+        !talent.user_id || userRoles[talent.user_id] === 'talent'
+      );
+
+      console.log('Fetched talent profiles:', talentData?.length || 0, 'Filtered:', filteredData.length);
+      setTalents(filteredData);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -86,6 +110,42 @@ const TalentDirectoryCMS = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const runCleanup = async () => {
+    try {
+      const { data, error } = await supabase.rpc('cleanup_business_talent_profiles');
+      
+      if (error) {
+        console.error('Error running cleanup:', error);
+        toast({
+          title: "Error",
+          description: "Error running cleanup",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data && data.length > 0) {
+        toast({
+          title: "Success",
+          description: `Cleaned up ${data.length} orphaned talent profiles`,
+        });
+        fetchData(); // Refresh the list
+      } else {
+        toast({
+          title: "Info",
+          description: "No orphaned talent profiles found",
+        });
+      }
+    } catch (err) {
+      console.error('Error in cleanup:', err);
+      toast({
+        title: "Error",
+        description: "Error running cleanup",
+        variant: "destructive",
+      });
     }
   };
 
@@ -307,20 +367,33 @@ const TalentDirectoryCMS = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Admin Dashboard
           </Button>
-          <Button 
-            onClick={() => {
-              resetForm();
-              setShowForm(true);
-            }}
-            style={{
-              backgroundColor: currentTheme.accent,
-              color: 'white',
-              borderColor: currentTheme.accent
-            }}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Talent
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={runCleanup}
+              style={{
+                backgroundColor: 'transparent',
+                borderColor: currentTheme.border,
+                color: currentTheme.cardForeground
+              }}
+            >
+              🧹 Cleanup Orphaned Profiles
+            </Button>
+            <Button 
+              onClick={() => {
+                resetForm();
+                setShowForm(true);
+              }}
+              style={{
+                backgroundColor: currentTheme.accent,
+                color: 'white',
+                borderColor: currentTheme.accent
+              }}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Talent
+            </Button>
+          </div>
         </div>
 
         {/* Talent List */}

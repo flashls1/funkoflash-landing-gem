@@ -1254,6 +1254,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_business_talent_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          cleaned_profile_id: string
+          profile_name: string
+          user_role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
       create_admin_talent_profile: {
         Args: {
           p_active?: boolean
