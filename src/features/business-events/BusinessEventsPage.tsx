@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { PlusIcon, SearchIcon, FilterIcon } from 'lucide-react';
 import { BusinessEvent, businessEventsApi } from './data';
 import BusinessEventCard from './BusinessEventCard';
-import BusinessEventFormDrawer from './BusinessEventFormDrawer';
+import BusinessEventFormDialog from './BusinessEventFormDrawer';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/PageLayout';
@@ -249,8 +249,8 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
             </div>
           )}
 
-          {/* Form Drawer */}
-          <BusinessEventFormDrawer
+          {/* Form Dialog */}
+          <BusinessEventFormDialog
             isOpen={isFormOpen}
             onClose={() => setIsFormOpen(false)}
             event={editingEvent}
