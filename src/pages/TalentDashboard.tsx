@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
+import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown } from 'lucide-react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -58,6 +59,7 @@ const TalentDashboard = () => {
   const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5]);
   const { user, profile } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
+  const { loading: siteDesignLoading } = useSiteDesign();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -171,6 +173,27 @@ const TalentDashboard = () => {
   };
 
   const t = content[language];
+
+  // Show loading while authentication and site design are being checked
+  if (siteDesignLoading) {
+    return (
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <p className="mt-4 text-lg text-white">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user || !profile || profile.role !== 'talent') {
     return null;

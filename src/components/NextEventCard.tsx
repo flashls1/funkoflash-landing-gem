@@ -227,7 +227,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
             <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
             <p className="text-muted-foreground mb-4">{t.none}</p>
             
-            {hasPermission('calendar:edit_own') ? (
+            {hasPermission('calendar:edit_own') && profile?.role !== 'business' ? (
               <Button 
                 variant="outline" 
                 size="sm"
