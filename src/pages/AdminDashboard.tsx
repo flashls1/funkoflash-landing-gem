@@ -11,6 +11,7 @@ import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import TalentDirectoryCMS from './TalentDirectoryCMS';
 import { AdminTalentAssetsWrapper } from '@/features/talent-assets/AdminTalentAssetsWrapper';
+import { BuildDiagnostic } from '@/components/BuildDiagnostic';
 import { useAuth } from '@/hooks/useAuth';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
@@ -256,6 +257,7 @@ const AdminDashboard = () => {
         <Navigation language={language} setLanguage={setLanguage} />
         
         <div className="container mx-auto px-4 py-8">
+          <BuildDiagnostic />
         {/* Combined Profile Header with Greeting and Date */}
         <div className="mb-6">
           <Card 
