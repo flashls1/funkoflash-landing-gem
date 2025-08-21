@@ -43,10 +43,18 @@ const BusinessEventFormDialog = ({
   const [talentProfiles, setTalentProfiles] = useState<any[]>([]);
   const [assignedTalents, setAssignedTalents] = useState<string[]>([]);
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  
+  // Day-based date and time management
+  const [day1Date, setDay1Date] = useState<Date | undefined>(undefined);
+  const [day1StartTime, setDay1StartTime] = useState('');
+  const [day1EndTime, setDay1EndTime] = useState('');
+  const [day2Date, setDay2Date] = useState<Date | undefined>(undefined);
+  const [day2StartTime, setDay2StartTime] = useState('');
+  const [day2EndTime, setDay2EndTime] = useState('');
+  const [day3Date, setDay3Date] = useState<Date | undefined>(undefined);
+  const [day3StartTime, setDay3StartTime] = useState('');
+  const [day3EndTime, setDay3EndTime] = useState('');
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -65,16 +73,36 @@ const BusinessEventFormDialog = ({
           website: event.website || ''
         });
         
-        // Set dates and times
+        // Set dates and times for Day 1 (use start_ts)
         if (event.start_ts) {
           const start = new Date(event.start_ts);
-          setStartDate(start);
-          setStartTime(start.toTimeString().slice(0, 5));
+          setDay1Date(start);
+          setDay1StartTime(start.toTimeString().slice(0, 5));
         }
+        // For editing existing events, set Day 1 end time from end_ts if available
         if (event.end_ts) {
           const end = new Date(event.end_ts);
-          setEndDate(end);
-          setEndTime(end.toTimeString().slice(0, 5));
+          setDay1EndTime(end.toTimeString().slice(0, 5));
+        }
+        
+        // Load daily schedule if available
+        const eventWithSchedule = event as any;
+        if (eventWithSchedule.daily_schedule && Array.isArray(eventWithSchedule.daily_schedule)) {
+          eventWithSchedule.daily_schedule.forEach((dayData: any) => {
+            if (dayData.day === 1) {
+              if (dayData.date) setDay1Date(new Date(dayData.date));
+              if (dayData.start_time) setDay1StartTime(dayData.start_time);
+              if (dayData.end_time) setDay1EndTime(dayData.end_time);
+            } else if (dayData.day === 2) {
+              if (dayData.date) setDay2Date(new Date(dayData.date));
+              if (dayData.start_time) setDay2StartTime(dayData.start_time);
+              if (dayData.end_time) setDay2EndTime(dayData.end_time);
+            } else if (dayData.day === 3) {
+              if (dayData.date) setDay3Date(new Date(dayData.date));
+              if (dayData.start_time) setDay3StartTime(dayData.start_time);
+              if (dayData.end_time) setDay3EndTime(dayData.end_time);
+            }
+          });
         }
         
         loadEventAssignments();
@@ -90,10 +118,16 @@ const BusinessEventFormDialog = ({
           address_line: '',
           website: ''
         });
-        setStartDate(undefined);
-        setEndDate(undefined);
-        setStartTime('');
-        setEndTime('');
+        // Reset all day dates and times for new event
+        setDay1Date(undefined);
+        setDay1StartTime('');
+        setDay1EndTime('');
+        setDay2Date(undefined);
+        setDay2StartTime('');
+        setDay2EndTime('');
+        setDay3Date(undefined);
+        setDay3StartTime('');
+        setDay3EndTime('');
         setAssignedTalents([]);
         setTeamMembers([]);
       }
@@ -165,33 +199,33 @@ const BusinessEventFormDialog = ({
       let start_ts = null;
       let end_ts = null;
       
-      // Create start timestamp (only if both date and time are provided)
-      if (startDate && startTime) {
-        const start = new Date(startDate);
-        const [hours, minutes] = startTime.split(':');
+      // Use Day 1 as the primary start date/time for compatibility
+      if (day1Date && day1StartTime) {
+        const start = new Date(day1Date);
+        const [hours, minutes] = day1StartTime.split(':');
         start.setHours(parseInt(hours), parseInt(minutes));
         start_ts = start.toISOString();
-      } else if (startDate) {
+      } else if (day1Date) {
         // Just date without time
-        const start = new Date(startDate);
+        const start = new Date(day1Date);
         start_ts = start.toISOString();
       }
       
-      // Create end timestamp (only if both date and time are provided)
-      if (endDate && endTime) {
-        const end = new Date(endDate);
-        const [endHours, endMinutes] = endTime.split(':');
+      // Use Day 1 end time or Day 3 date as overall end for compatibility
+      if (day1Date && day1EndTime) {
+        const end = new Date(day1Date);
+        const [endHours, endMinutes] = day1EndTime.split(':');
         end.setHours(parseInt(endHours), parseInt(endMinutes));
         end_ts = end.toISOString();
-      } else if (startDate && endTime) {
-        // Same day end time
-        const end = new Date(startDate);
-        const [endHours, endMinutes] = endTime.split(':');
+      } else if (day3Date && day3EndTime) {
+        // Use Day 3 as overall end if specified
+        const end = new Date(day3Date);
+        const [endHours, endMinutes] = day3EndTime.split(':');
         end.setHours(parseInt(endHours), parseInt(endMinutes));
         end_ts = end.toISOString();
-      } else if (endDate) {
-        // Just end date without time
-        const end = new Date(endDate);
+      } else if (day3Date) {
+        // Just Day 3 date without time
+        const end = new Date(day3Date);
         end_ts = end.toISOString();
       }
 
@@ -199,6 +233,27 @@ const BusinessEventFormDialog = ({
         ...formData,
         start_ts,
         end_ts,
+        // Store daily schedule with our three days
+        daily_schedule: [
+          ...(day1Date ? [{
+            day: 1,
+            date: day1Date.toISOString().split('T')[0],
+            start_time: day1StartTime || null,
+            end_time: day1EndTime || null
+          }] : []),
+          ...(day2Date ? [{
+            day: 2,
+            date: day2Date.toISOString().split('T')[0],
+            start_time: day2StartTime || null,
+            end_time: day2EndTime || null
+          }] : []),
+          ...(day3Date ? [{
+            day: 3,
+            date: day3Date.toISOString().split('T')[0],
+            start_time: day3StartTime || null,
+            end_time: day3EndTime || null
+          }] : [])
+        ],
         // Allow saving with minimal data - just require title
         title: formData.title || 'Untitled Event'
       };
@@ -330,95 +385,210 @@ const BusinessEventFormDialog = ({
               {language === 'es' ? 'Fecha y Hora' : 'Date & Time'}
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Start Date */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  {language === 'es' ? 'Fecha de inicio' : 'Start Date'}
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : 
-                        (language === 'es' ? 'Seleccionar fecha' : 'Pick a date')
-                      }
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
+            {/* Three Day Schedule */}
+            <div className="space-y-6">
+              {/* Day 1 */}
+              <div className="border rounded-lg p-4 space-y-4">
+                <h4 className="font-semibold text-md">
+                  {language === 'es' ? 'Día 1' : 'Day 1'}
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Day 1 Date */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      {language === 'es' ? 'Fecha' : 'Date'}
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !day1Date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {day1Date ? format(day1Date, "PPP") : 
+                            (language === 'es' ? 'Seleccionar fecha' : 'Pick a date')
+                          }
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={day1Date}
+                          onSelect={setDay1Date}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  {/* Day 1 Start Time */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      {language === 'es' ? 'Hora de inicio' : 'Start Time'}
+                    </Label>
+                    <Input
+                      type="time"
+                      value={day1StartTime}
+                      onChange={(e) => setDay1StartTime(e.target.value)}
+                      className="w-full"
                     />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              {/* Start Time */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  {language === 'es' ? 'Hora de inicio' : 'Start Time'}
-                </Label>
-                <Input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full"
-                />
+                  </div>
+
+                  {/* Day 1 End Time */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      {language === 'es' ? 'Hora de fin' : 'End Time'}
+                    </Label>
+                    <Input
+                      type="time"
+                      value={day1EndTime}
+                      onChange={(e) => setDay1EndTime(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* End Date */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  {language === 'es' ? 'Fecha de fin' : 'End Date'}
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !endDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : 
-                        (language === 'es' ? 'Opcional' : 'Optional')
-                      }
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
+              {/* Day 2 */}
+              <div className="border rounded-lg p-4 space-y-4">
+                <h4 className="font-semibold text-md">
+                  {language === 'es' ? 'Día 2' : 'Day 2'}
+                  <span className="text-sm text-muted-foreground font-normal ml-2">
+                    ({language === 'es' ? 'Opcional' : 'Optional'})
+                  </span>
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Day 2 Date */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      {language === 'es' ? 'Fecha' : 'Date'}
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !day2Date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {day2Date ? format(day2Date, "PPP") : 
+                            (language === 'es' ? 'Seleccionar fecha' : 'Pick a date')
+                          }
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={day2Date}
+                          onSelect={setDay2Date}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  {/* Day 2 Start Time */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      {language === 'es' ? 'Hora de inicio' : 'Start Time'}
+                    </Label>
+                    <Input
+                      type="time"
+                      value={day2StartTime}
+                      onChange={(e) => setDay2StartTime(e.target.value)}
+                      className="w-full"
                     />
-                  </PopoverContent>
-                </Popover>
+                  </div>
+
+                  {/* Day 2 End Time */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      {language === 'es' ? 'Hora de fin' : 'End Time'}
+                    </Label>
+                    <Input
+                      type="time"
+                      value={day2EndTime}
+                      onChange={(e) => setDay2EndTime(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
               </div>
-              
-              {/* End Time */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  {language === 'es' ? 'Hora de fin' : 'End Time'}
-                </Label>
-                <Input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full"
-                />
+
+              {/* Day 3 */}
+              <div className="border rounded-lg p-4 space-y-4">
+                <h4 className="font-semibold text-md">
+                  {language === 'es' ? 'Día 3' : 'Day 3'}
+                  <span className="text-sm text-muted-foreground font-normal ml-2">
+                    ({language === 'es' ? 'Opcional' : 'Optional'})
+                  </span>
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Day 3 Date */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      {language === 'es' ? 'Fecha' : 'Date'}
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !day3Date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {day3Date ? format(day3Date, "PPP") : 
+                            (language === 'es' ? 'Seleccionar fecha' : 'Pick a date')
+                          }
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={day3Date}
+                          onSelect={setDay3Date}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  {/* Day 3 Start Time */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      {language === 'es' ? 'Hora de inicio' : 'Start Time'}
+                    </Label>
+                    <Input
+                      type="time"
+                      value={day3StartTime}
+                      onChange={(e) => setDay3StartTime(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Day 3 End Time */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      {language === 'es' ? 'Hora de fin' : 'End Time'}
+                    </Label>
+                    <Input
+                      type="time"
+                      value={day3EndTime}
+                      onChange={(e) => setDay3EndTime(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
