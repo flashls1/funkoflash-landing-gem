@@ -131,7 +131,7 @@ const TalentDirectory = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="relative">
-                  <Skeleton className="aspect-square w-full rounded-lg" />
+                  <Skeleton className="aspect-[3/4] w-full rounded-lg" />
                   <Skeleton className="absolute bottom-0 left-0 right-0 h-12 rounded-none" />
                 </div>
               ))}
@@ -141,7 +141,7 @@ const TalentDirectory = () => {
               {talents.map(talent => (
                 <div key={talent.id} className="relative group">
                   {/* Talent Image */}
-                  <div className="aspect-square relative overflow-hidden rounded-lg">
+                  <div className="aspect-[3/4] relative overflow-hidden rounded-lg">
                     {talent.headshot_url ? (
                       <img 
                         src={getImageUrl(talent.headshot_url)} 
