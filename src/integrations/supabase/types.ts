@@ -1254,6 +1254,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_admin_talent_profile: {
+        Args: {
+          p_active?: boolean
+          p_bio?: string
+          p_headshot_url?: string
+          p_name: string
+          p_slug: string
+          p_sort_rank?: number
+        }
+        Returns: string
+      }
       delete_calendar_year: {
         Args: { p_talent_id: string; p_year: number }
         Returns: number

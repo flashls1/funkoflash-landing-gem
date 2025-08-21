@@ -101,17 +101,23 @@ const TalentDirectoryCMS = () => {
       throw new Error('File size too large. Please choose a file under 10MB.');
     }
 
-    const fileExt = file.name.split('.').pop();
+    console.log('Auto-resizing image to 400x400px...');
+    
+    // Auto-resize image to 400x400px for consistent display
+    const { resizeTalentHeadshot } = await import('@/utils/imageResize');
+    const resizedFile = await resizeTalentHeadshot(file);
+
+    const fileExt = resizedFile.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
-    console.log('Uploading image to:', filePath);
+    console.log('Uploading resized image to:', filePath);
 
     // If there's an existing image, try to delete it first
     if (existingPath) {
       console.log('Deleting existing image:', existingPath);
       const { error: deleteError } = await supabase.storage
-        .from('talent-images')
+        .from('talent-headshots')
         .remove([existingPath]);
       
       if (deleteError) {
@@ -120,8 +126,8 @@ const TalentDirectoryCMS = () => {
     }
 
     const { error: uploadError } = await supabase.storage
-      .from('talent-images')
-      .upload(filePath, file);
+      .from('talent-headshots')
+      .upload(filePath, resizedFile);
 
     if (uploadError) {
       console.error('Upload error:', uploadError);
@@ -163,22 +169,25 @@ const TalentDirectoryCMS = () => {
         
         if (error) throw error;
       } else {
-        // For new talent profiles, we need a user_id
-        // Since this is admin-created, we'll use the talent profile's own ID as a temporary solution
-        // The admin should link this to a real user later via the user management interface
-        const tempId = crypto.randomUUID();
-        const insertPayload = {
-          ...payload,
-          id: tempId,
-          user_id: tempId, // Temporary self-reference until linked to real user
-          public_visibility: false // Default to private for admin-created profiles
-        };
+        // Use the secure database function for creating admin talent profiles
+        console.log('Creating new talent profile using admin function...');
         
-        const { error } = await supabase
-          .from('talent_profiles')
-          .insert(insertPayload);
+        const { data: talentId, error } = await supabase
+          .rpc('create_admin_talent_profile', {
+            p_name: formData.name,
+            p_slug: slug,
+            p_bio: formData.bio,
+            p_headshot_url: headshot_url,
+            p_active: formData.active,
+            p_sort_rank: talents.length
+          });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating talent profile:', error);
+          throw error;
+        }
+        
+        console.log('Talent profile created with ID:', talentId);
       }
 
       await fetchData();
@@ -242,7 +251,7 @@ const TalentDirectoryCMS = () => {
   const getImageUrl = (url: string | null) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    const publicUrl = supabase.storage.from('talent-images').getPublicUrl(url).data.publicUrl;
+    const publicUrl = supabase.storage.from('talent-headshots').getPublicUrl(url).data.publicUrl;
     // Add timestamp for cache busting
     return `${publicUrl}?t=${Date.now()}`;
   };
@@ -420,9 +429,9 @@ const TalentDirectoryCMS = () => {
             </div>
 
             <div>
-              <Label htmlFor="headshot">Headshot Image</Label>
+              <Label htmlFor="headshot">Headshot Image (Auto-resizes to 400x400px)</Label>
               <p className="text-sm text-muted-foreground mb-2">
-                Recommended: Square format (e.g., 400x400px) for best results. Max file size: 10MB.
+                Upload any image - it will be automatically resized to 400x400px for optimal display. Max file size: 10MB.
               </p>
               <Input
                 id="headshot"
