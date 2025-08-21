@@ -20,6 +20,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import { NextEventCard } from '@/components/NextEventCard';
 import { MiniAgenda } from '@/components/MiniAgenda';
 import BusinessProfileSettings from '@/components/BusinessProfileSettings';
+import TravelManagementModule from '@/features/business-events/TravelManagementModule';
 
 // Draggable card component for business
 const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
@@ -399,7 +400,44 @@ const BusinessDashboard = () => {
             </DraggableCard>
           </div>
 
-          {/* Business Dashboard Modules */}
+          {/* Business Events and Travel Management */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Business Events Module */}
+            <Card 
+              className="border-2 hover:border-primary/50 transition-colors"
+              style={{
+                backgroundColor: currentTheme.cardBackground,
+                borderColor: currentTheme.border,
+                color: currentTheme.cardForeground
+              }}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" style={{ color: currentTheme.accent }} />
+                  {language === 'en' ? 'Business Events' : 'Eventos Empresariales'}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'en' ? 'Manage your business events and bookings' : 'Gestiona tus eventos empresariales y reservas'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  variant="outline" 
+                  className="w-full bg-background hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => navigate('/business/events')}
+                >
+                  {language === 'en' ? 'Manage Events' : 'Gestionar Eventos'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Travel Management Module */}
+            <div>
+              <TravelManagementModule language={language} />
+            </div>
+          </div>
+
+          {/* Additional Business Dashboard Modules */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Profile Settings */}
             <Card 

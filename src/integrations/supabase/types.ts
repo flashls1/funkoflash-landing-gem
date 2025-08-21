@@ -167,17 +167,29 @@ export type Database = {
       business_event_talent: {
         Row: {
           event_id: string
+          guarantee_amount: number | null
+          guarantee_currency: string | null
           id: string
+          per_diem_amount: number | null
+          per_diem_currency: string | null
           talent_id: string
         }
         Insert: {
           event_id: string
+          guarantee_amount?: number | null
+          guarantee_currency?: string | null
           id?: string
+          per_diem_amount?: number | null
+          per_diem_currency?: string | null
           talent_id: string
         }
         Update: {
           event_id?: string
+          guarantee_amount?: number | null
+          guarantee_currency?: string | null
           id?: string
+          per_diem_amount?: number | null
+          per_diem_currency?: string | null
           talent_id?: string
         }
         Relationships: [
@@ -255,6 +267,7 @@ export type Database = {
           country: string | null
           created_at: string
           created_by: string | null
+          daily_schedule: Json | null
           end_ts: string | null
           hero_logo_path: string | null
           id: string
@@ -273,6 +286,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           created_by?: string | null
+          daily_schedule?: Json | null
           end_ts?: string | null
           hero_logo_path?: string | null
           id?: string
@@ -291,6 +305,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           created_by?: string | null
+          daily_schedule?: Json | null
           end_ts?: string | null
           hero_logo_path?: string | null
           id?: string

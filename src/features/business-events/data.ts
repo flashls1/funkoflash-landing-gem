@@ -245,6 +245,23 @@ export const businessEventsApi = {
     return data as BusinessEventHotel;
   },
 
+  // Update talent financial details
+  async updateTalentFinancials(eventId: string, talentId: string, financials: {
+    per_diem_amount?: number | null;
+    guarantee_amount?: number | null;
+    per_diem_currency?: string;
+    guarantee_currency?: string;
+  }) {
+    const { data, error } = await supabase
+      .from('business_event_talent')
+      .update(financials)
+      .eq('event_id', eventId)
+      .eq('talent_id', talentId);
+    
+    if (error) throw error;
+    return data;
+  },
+
   // Helper function to ensure business account exists for business users
   async ensureBusinessAccountForUser(userId: string) {
     const { data, error } = await supabase

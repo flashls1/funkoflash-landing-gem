@@ -165,15 +165,19 @@ const BusinessEventFormDialog = ({
       let start_ts = null;
       let end_ts = null;
       
-      // Create start timestamp
+      // Create start timestamp (only if both date and time are provided)
       if (startDate && startTime) {
         const start = new Date(startDate);
         const [hours, minutes] = startTime.split(':');
         start.setHours(parseInt(hours), parseInt(minutes));
         start_ts = start.toISOString();
+      } else if (startDate) {
+        // Just date without time
+        const start = new Date(startDate);
+        start_ts = start.toISOString();
       }
       
-      // Create end timestamp  
+      // Create end timestamp (only if both date and time are provided)
       if (endDate && endTime) {
         const end = new Date(endDate);
         const [endHours, endMinutes] = endTime.split(':');
@@ -185,12 +189,18 @@ const BusinessEventFormDialog = ({
         const [endHours, endMinutes] = endTime.split(':');
         end.setHours(parseInt(endHours), parseInt(endMinutes));
         end_ts = end.toISOString();
+      } else if (endDate) {
+        // Just end date without time
+        const end = new Date(endDate);
+        end_ts = end.toISOString();
       }
 
       const eventData = {
         ...formData,
         start_ts,
         end_ts,
+        // Allow saving with minimal data - just require title
+        title: formData.title || 'Untitled Event'
       };
 
       let savedEvent: BusinessEvent;
