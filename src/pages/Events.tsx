@@ -201,7 +201,7 @@ export default function Events() {
           {/* Upcoming Events */}
           {upcomingEvents.length > 0 && (
             <div className="mb-12">
-              <h2 className="text-2xl font-semibold mb-6 text-foreground">{content[language].upcomingTitle}</h2>
+              <h2 className="text-2xl font-semibold mb-6 uppercase bg-gradient-to-r from-purple-600 via-white via-blue-500 to-black bg-clip-text text-transparent">{content[language].upcomingTitle}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {upcomingEvents.map((event) => (
                   <EventCard key={event.id} event={event} onClick={setSelectedEvent} />
