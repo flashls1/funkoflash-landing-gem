@@ -32,66 +32,6 @@ export const resizeImage = async (
     }
 
     img.onload = () => {
-      // Set canvas dimensions
-      canvas.width = width;
-      canvas.height = height;
-
-      // Calculate aspect ratios
-      const imgAspect = img.width / img.height;
-      const targetAspect = width / height;
-
-      let drawWidth = width;
-      let drawHeight = height;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      // Crop to fit (maintain aspect ratio, fill entire canvas)
-      if (imgAspect > targetAspect) {
-        // Image is wider than target - crop width
-        drawWidth = height * imgAspect;
-        offsetX = (width - drawWidth) / 2;
-      } else {
-        // Image is taller than target - crop height
-        drawHeight = width / imgAspect;
-        offsetY = (height - drawHeight) / 2;
-      }
-
-      // Fill with white background (important for transparent images)
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, width, height);
-
-      // Draw the image
-      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-
-      // Convert canvas to blob
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            // Create a new File from the blob
-            const resizedFile = new File([blob], file.name, {
-              type: format,
-              lastModified: Date.now()
-            });
-            resolve(resizedFile);
-          } else {
-            reject(new Error('Failed to create blob from canvas'));
-          }
-        },
-        format,
-        quality
-      );
-    };
-
-    img.onerror = () => {
-      reject(new Error('Failed to load image'));
-    };
-
-    // Create object URL for the image
-    const objectUrl = URL.createObjectURL(file);
-    img.src = objectUrl;
-
-    // Clean up object URL after image loads
-    img.onload = () => {
       URL.revokeObjectURL(objectUrl);
       
       // Set canvas dimensions
@@ -146,18 +86,26 @@ export const resizeImage = async (
         quality
       );
     };
+
+    img.onerror = () => {
+      reject(new Error('Failed to load image'));
+    };
+
+    // Create object URL for the image
+    const objectUrl = URL.createObjectURL(file);
+    img.src = objectUrl;
   });
 };
 
 /**
- * Resize image for talent headshots (400x400px)
+ * Resize image for talent headshots (327x436px - 3:4 aspect ratio)
  * @param file - The image file to resize
  * @returns Promise<File> - The resized image optimized for talent headshots
  */
 export const resizeTalentHeadshot = (file: File): Promise<File> => {
   return resizeImage(file, {
-    width: 400,
-    height: 400,
+    width: 327,
+    height: 436,
     quality: 0.9,
     format: 'image/jpeg'
   });

@@ -146,7 +146,8 @@ const TalentDirectory = () => {
                       <img 
                         src={getImageUrl(talent.headshot_url)} 
                         alt={`${talent.name} headshot`} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover" 
+                        style={{ objectPosition: '50% 20%' }}
                       />
                     ) : (
                       <div className="w-full h-full bg-muted flex items-center justify-center">
