@@ -139,16 +139,27 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-white">
-                {language === 'es' ? 'Eventos de negocio' : 'Business Events'}
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                {language === 'es' 
-                  ? 'Gestiona y organiza los eventos de negocio' 
-                  : 'Manage and organize business events'
-                }
-              </p>
+            <div className="flex flex-col gap-3">
+              {/* Back Button */}
+              <Button 
+                variant="outline" 
+                onClick={() => window.history.back()}
+                className="w-fit"
+              >
+                ← {language === 'es' ? 'Volver al Panel de Administración' : 'Back to Admin Dashboard'}
+              </Button>
+              
+              <div>
+                <h1 className="text-3xl font-bold text-white">
+                  {language === 'es' ? 'Eventos de negocio' : 'Business Events'}
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  {language === 'es' 
+                    ? 'Gestiona y organiza los eventos de negocio' 
+                    : 'Manage and organize business events'
+                  }
+                </p>
+              </div>
             </div>
             
             {canEdit && (
