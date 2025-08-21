@@ -204,13 +204,6 @@ export type Database = {
             foreignKeyName: "business_event_talent_talent_id_fkey"
             columns: ["talent_id"]
             isOneToOne: false
-            referencedRelation: "public_talent_showcase"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_event_talent_talent_id_fkey"
-            columns: ["talent_id"]
-            isOneToOne: false
             referencedRelation: "talent_profiles"
             referencedColumns: ["id"]
           },
@@ -361,13 +354,6 @@ export type Database = {
             foreignKeyName: "fk_business_talent_access_talent_id"
             columns: ["talent_id"]
             isOneToOne: false
-            referencedRelation: "public_talent_showcase"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_business_talent_access_talent_id"
-            columns: ["talent_id"]
-            isOneToOne: false
             referencedRelation: "talent_profiles"
             referencedColumns: ["id"]
           },
@@ -481,13 +467,6 @@ export type Database = {
             foreignKeyName: "calendar_event_talent_id_fkey"
             columns: ["talent_id"]
             isOneToOne: false
-            referencedRelation: "public_talent_showcase"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "calendar_event_talent_id_fkey"
-            columns: ["talent_id"]
-            isOneToOne: false
             referencedRelation: "talent_profiles"
             referencedColumns: ["id"]
           },
@@ -523,13 +502,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "directory_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       event_talent_assignments: {
@@ -560,13 +532,6 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_talent_assignments_talent_id_fkey"
-            columns: ["talent_id"]
-            isOneToOne: false
-            referencedRelation: "public_talent_showcase"
             referencedColumns: ["id"]
           },
           {
@@ -1065,13 +1030,6 @@ export type Database = {
             foreignKeyName: "fk_talent_assets_talent_id"
             columns: ["talent_id"]
             isOneToOne: false
-            referencedRelation: "public_talent_showcase"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_talent_assets_talent_id"
-            columns: ["talent_id"]
-            isOneToOne: false
             referencedRelation: "talent_profiles"
             referencedColumns: ["id"]
           },
@@ -1286,75 +1244,7 @@ export type Database = {
       }
     }
     Views: {
-      public_profiles: {
-        Row: {
-          active: boolean | null
-          avatar_url: string | null
-          background_image_url: string | null
-          business_name: string | null
-          first_name: string | null
-          id: string | null
-          last_name: string | null
-          name_color: string | null
-          role: Database["public"]["Enums"]["app_role"] | null
-          status: string | null
-          user_id: string | null
-        }
-        Insert: {
-          active?: boolean | null
-          avatar_url?: string | null
-          background_image_url?: string | null
-          business_name?: string | null
-          first_name?: string | null
-          id?: string | null
-          last_name?: string | null
-          name_color?: string | null
-          role?: Database["public"]["Enums"]["app_role"] | null
-          status?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          active?: boolean | null
-          avatar_url?: string | null
-          background_image_url?: string | null
-          business_name?: string | null
-          first_name?: string | null
-          id?: string | null
-          last_name?: string | null
-          name_color?: string | null
-          role?: Database["public"]["Enums"]["app_role"] | null
-          status?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      public_talent_showcase: {
-        Row: {
-          headshot_url: string | null
-          id: string | null
-          name: string | null
-          preview_bio: string | null
-          slug: string | null
-          sort_rank: number | null
-        }
-        Insert: {
-          headshot_url?: string | null
-          id?: string | null
-          name?: string | null
-          preview_bio?: never
-          slug?: string | null
-          sort_rank?: number | null
-        }
-        Update: {
-          headshot_url?: string | null
-          id?: string | null
-          name?: string | null
-          preview_bio?: never
-          slug?: string | null
-          sort_rank?: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       can_modify_user_role: {
@@ -1388,6 +1278,33 @@ export type Database = {
           google_email: string
           refresh_token: string
           token_expiry: string
+        }[]
+      }
+      get_public_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active: boolean
+          avatar_url: string
+          background_image_url: string
+          business_name: string
+          first_name: string
+          id: string
+          last_name: string
+          name_color: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          user_id: string
+        }[]
+      }
+      get_public_talent_showcase: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          headshot_url: string
+          id: string
+          name: string
+          preview_bio: string
+          slug: string
+          sort_rank: number
         }[]
       }
       get_user_profiles_for_management: {
