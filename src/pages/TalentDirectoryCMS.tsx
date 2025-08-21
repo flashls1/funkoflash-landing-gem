@@ -208,13 +208,36 @@ const TalentDirectoryCMS = () => {
     setShowConnectDialog(true);
   };
 
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
+  // Utility functions - Use the improved server-side slug generation
+  const generateSlug = async (name: string, excludeId?: string) => {
+    try {
+      const { data, error } = await supabase.rpc('generate_unique_talent_slug', {
+        p_name: name,
+        p_exclude_id: excludeId || null
+      });
+      
+      if (error) {
+        console.error('Error generating slug:', error);
+        // Fallback to basic client-side generation
+        return name
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim();
+      }
+      
+      return data;
+    } catch (err) {
+      console.error('Error in generateSlug:', err);
+      // Fallback to basic client-side generation
+      return name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+    }
   };
 
   const uploadImage = async (file: File, folder: string, existingPath?: string) => {
@@ -272,7 +295,7 @@ const TalentDirectoryCMS = () => {
         console.log('New headshot URL:', headshot_url);
       }
 
-      const slug = generateSlug(formData.name);
+      const slug = await generateSlug(formData.name, editingTalent?.id);
       
       const payload = {
         name: formData.name,

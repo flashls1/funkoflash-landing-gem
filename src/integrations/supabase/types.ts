@@ -1258,6 +1258,7 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           cleaned_profile_id: string
+          cleanup_type: string
           profile_name: string
           user_role: Database["public"]["Enums"]["app_role"]
         }[]
@@ -1282,6 +1283,10 @@ export type Database = {
         Args: { p_talent_id: string; p_year: number }
         Returns: number
       }
+      delete_corrupted_talent_profile: {
+        Args: { p_profile_id: string }
+        Returns: boolean
+      }
       delete_user_and_files_completely: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -1292,6 +1297,10 @@ export type Database = {
       }
       ensure_business_account_exists: {
         Args: { p_user_id: string }
+        Returns: string
+      }
+      generate_unique_talent_slug: {
+        Args: { p_exclude_id?: string; p_name: string }
         Returns: string
       }
       get_available_talent_users: {
