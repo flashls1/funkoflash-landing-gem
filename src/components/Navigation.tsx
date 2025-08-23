@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import funkoFlashLogo from "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png";
 import flagUs from "@/assets/flag-us.png";
 import flagMx from "@/assets/flag-mx.png";
@@ -77,9 +77,9 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
               {navigationItems.map((item, index) => (
-                <a
+                <Link
                   key={index}
-                  href={navigationLinks[index]}
+                  to={navigationLinks[index]}
                   style={{ 
                     color: customStyles?.titleColor || navStyles.color,
                     fontSize: navStyles.fontSize 
@@ -87,7 +87,7 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
                   className="hover:text-funko-orange font-medium tracking-wide transition-colors duration-300 hover:scale-105 transform"
                 >
                   {item}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -176,17 +176,18 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navigationItems.map((item, index) => (
-              <a
+              <Link
                 key={index}
-                href={navigationLinks[index]}
+                to={navigationLinks[index]}
                 style={{ 
                   color: customStyles?.titleColor || navStyles.color,
                   fontSize: navStyles.fontSize 
                 }}
                 className="hover:text-funko-orange block px-3 py-2 font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item}
-              </a>
+              </Link>
             ))}
             
             {/* Mobile Language Toggle */}

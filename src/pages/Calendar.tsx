@@ -36,11 +36,12 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 
 // Add custom CSS for calendar styling
 const calendarStyles = `
-  .fc {
-    background-image: url('/lovable-uploads/d0f4637c-55b5-42eb-af08-29eabb28b253.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+  .fc, .fc-view-harness, .fc-view-harness-active {
+    background-image: url('/lovable-uploads/d0f4637c-55b5-42eb-af08-29eabb28b253.png') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
   }
   
   .fc-day-today-custom {
