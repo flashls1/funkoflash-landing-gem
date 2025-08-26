@@ -301,9 +301,8 @@ const Calendar = () => {
     return (localStorage.getItem('calendar-density') as 'comfortable' | 'compact') || 'comfortable';
   });
   
-  // Unified initialization state to prevent scrambled rendering
+  // Simple loading state
   const [isInitializing, setIsInitializing] = useState(true);
-  const [navigationInProgress, setNavigationInProgress] = useState(false);
   
   // Hybrid calendar state - ALWAYS DEFAULT TO SIMPLE VIEW
   const [calendarMode, setCalendarMode] = useState<'simple' | 'detailed'>('simple');
@@ -318,19 +317,12 @@ const Calendar = () => {
 
   // Check if we should start with a specific date from navigation state
   useEffect(() => {
-    if (location.state?.selectedDate && !navigationInProgress) {
-      setNavigationInProgress(true);
+    if (location.state?.selectedDate) {
       const navDate = new Date(location.state.selectedDate);
       setCurrentDate(navDate);
       setSelectedYear(navDate.getFullYear());
-      // Keep simple view as default, don't auto-switch to detailed
-      
-      // Reset navigation state after a brief delay
-      setTimeout(() => {
-        setNavigationInProgress(false);
-      }, 100);
     }
-  }, [location.state, navigationInProgress]);
+  }, [location.state]);
 
   // Simple calendar navigation functions
   const handlePrevMonth = () => {
@@ -469,40 +461,23 @@ const Calendar = () => {
 
   const t = content[language];
 
-  // Unified initialization effect to prevent scrambled rendering
+  // Initialize calendar data
   useEffect(() => {
     const initializeCalendar = async () => {
-      setIsInitializing(true);
-      
-      // Check feature flag first
-      if (!hasFeature('calendar')) {
-        navigate('/');
-        return;
-      }
-
       // Wait for auth and permissions to load
       if (authLoading || permissionsLoading) {
         return;
       }
 
-      // Check authentication
-      if (!user) {
-        navigate('/auth');
-        return;
-      }
-
-      // Check calendar:view permission
-      if (!hasPermission('calendar:view')) {
-        navigate('/');
+      // Check authentication and permissions
+      if (!user || !hasPermission('calendar:view') || !hasFeature('calendar')) {
+        setIsInitializing(false);
         return;
       }
 
       try {
         // Sequential data loading to prevent conflicts
         await loadTalents();
-        
-        // Add minimum loading time to prevent flashing
-        await new Promise(resolve => setTimeout(resolve, 300));
         
       } catch (error) {
         console.error('Error initializing calendar:', error);
@@ -520,8 +495,8 @@ const Calendar = () => {
   }, [hasFeature, navigate, authLoading, permissionsLoading, user, hasPermission]);
 
   const loadEvents = useCallback(async () => {
-    // Prevent loading if not ready or still initializing
-    if (!user || !hasPermission('calendar:view') || authLoading || permissionsLoading || isInitializing || navigationInProgress) {
+    // Prevent loading if not ready
+    if (!user || !hasPermission('calendar:view') || authLoading || permissionsLoading) {
       return;
     }
 
@@ -634,23 +609,17 @@ const Calendar = () => {
     toast
   ]);
 
-  // Consolidated effect for events loading - prevents ghost calendar rendering
+  // Load events when data is ready
   useEffect(() => {
-    // Only load events if we have basic setup ready and user has loaded talents
-    if (user && hasPermission('calendar:view') && !authLoading && !permissionsLoading && talents.length >= 0) {
-      // Add debounced delay to prevent rapid re-renders from dashboard navigation
-      const timer = setTimeout(() => {
-        loadEvents();
-      }, 200);
-      return () => clearTimeout(timer);
+    if (user && hasPermission('calendar:view') && !authLoading && !permissionsLoading) {
+      loadEvents();
     }
   }, [
-    loadEvents, // Now using the memoized function
+    loadEvents,
     user?.id,
     authLoading,
     permissionsLoading,
-    hasPermission('calendar:view'),
-    talents.length // Only load events after talents are loaded
+    hasPermission('calendar:view')
   ]);
 
 
@@ -1434,8 +1403,8 @@ const Calendar = () => {
                        </div>
                      </div>
 
-                     {/* Delay FullCalendar rendering until initialization is complete */}
-                     {!isInitializing && !navigationInProgress && (
+                      {/* Render FullCalendar once data is ready */}
+                      {!isInitializing && (
                    <div className="calendar-container">
                      <FullCalendar
                        plugins={[dayGridPlugin, timeGridPlugin]}
