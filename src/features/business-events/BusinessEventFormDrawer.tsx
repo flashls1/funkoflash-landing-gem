@@ -197,6 +197,10 @@ const BusinessEventFormDialog = ({
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
+      console.log('=== Starting event save process ===');
+      console.log('Form data:', formData);
+      console.log('Is editing existing event:', !!event);
+      
       let start_ts = null;
       let end_ts = null;
       
@@ -259,16 +263,35 @@ const BusinessEventFormDialog = ({
         title: formData.title || 'Untitled Event'
       };
 
+      console.log('Prepared event data for save:', eventData);
+
       let savedEvent: BusinessEvent;
-      if (event) {
-        savedEvent = await businessEventsApi.updateEvent(event.id, eventData);
-      } else {
-        savedEvent = await businessEventsApi.createEvent(eventData);
+      try {
+        if (event) {
+          console.log('Updating existing event with ID:', event.id);
+          savedEvent = await businessEventsApi.updateEvent(event.id, eventData);
+          console.log('Event updated successfully:', savedEvent);
+        } else {
+          console.log('Creating new event');
+          savedEvent = await businessEventsApi.createEvent(eventData);
+          console.log('Event created successfully:', savedEvent);
+        }
+      } catch (eventSaveError) {
+        console.error('Error during event save/update:', eventSaveError);
+        throw new Error(`Failed to ${event ? 'update' : 'create'} event: ${eventSaveError.message}`);
       }
 
       // Handle assignments
-      await handleAssignments(savedEvent.id);
+      try {
+        console.log('Starting assignment process for event:', savedEvent.id);
+        await handleAssignments(savedEvent.id);
+        console.log('Assignments completed successfully');
+      } catch (assignmentError) {
+        console.error('Error during assignments:', assignmentError);
+        throw new Error(`Event saved but failed to assign talent: ${assignmentError.message}`);
+      }
 
+      console.log('=== Event save process completed successfully ===');
       onSave(savedEvent);
       onClose();
       
@@ -279,12 +302,18 @@ const BusinessEventFormDialog = ({
           : 'Event saved successfully.',
       });
     } catch (error) {
-      console.error('Error saving event:', error);
+      console.error('=== FULL ERROR DETAILS ===');
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      console.error('Full error object:', error);
+      console.error('=== END ERROR DETAILS ===');
+      
       toast({
         title: language === 'es' ? 'Error' : 'Error',
         description: language === 'es' 
-          ? 'Error al guardar el evento.' 
-          : 'Failed to save event.',
+          ? `Error al guardar el evento: ${error.message}` 
+          : `Failed to save event: ${error.message}`,
         variant: 'destructive',
       });
     } finally {
