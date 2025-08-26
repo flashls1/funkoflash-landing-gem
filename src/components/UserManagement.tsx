@@ -1038,7 +1038,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
             <ArrowLeft className="h-4 w-4" />
             Return to Admin Dashboard
           </Button>
-          <h2 className="text-2xl font-bold">{t.userManagement}</h2>
+          <h2 className="text-2xl font-bold text-white">{t.userManagement}</h2>
         </div>
         
         <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
