@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { businessEventsApi, BusinessEventTravel, BusinessEventHotel, TalentProfile } from './data';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,8 +10,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Download, Upload } from 'lucide-react';
+import { Download, Upload, User, Plane, Hotel, Car } from 'lucide-react';
 import FileUpload from '@/components/FileUpload';
+
+interface TalentProfile {
+  id: string;
+  name: string;
+  user_id?: string;
+}
 
 interface TravelHotelSectionProps {
   eventId: string;
@@ -22,14 +28,20 @@ interface TravelHotelSectionProps {
 export default function TravelHotelSection({ eventId, assignedTalents, language }: TravelHotelSectionProps) {
   const { profile } = useAuth();
   const { toast } = useToast();
-  const [travelDetails, setTravelDetails] = useState<BusinessEventTravel[]>([]);
-  const [hotelDetails, setHotelDetails] = useState<BusinessEventHotel[]>([]);
+  const [eventContact, setEventContact] = useState({ contact_name: '', phone_number: '' });
+  const [travelDetails, setTravelDetails] = useState<any[]>([]);
+  const [hotelDetails, setHotelDetails] = useState<any[]>([]);
+  const [transportDetails, setTransportDetails] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const t = {
     en: {
+      contact: "Event Point of Contact",
+      contactName: "Contact Name",
+      phone: "Phone Number",
       travel: "Travel Details",
       hotel: "Hotel Details",
+      transport: "Ground Transportation",
       airline: "Airline",
       flightCode: "Flight confirmation",
       status: "Status",
@@ -45,8 +57,21 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
       hotelConf: "Reservation confirmation",
       checkin: "Check-in (local)",
       checkout: "Check-out (local)",
+      provider: "Provider/Service",
+      providerOther: "Other (enter provider)",
+      pickup: "Pickup",
+      dropoff: "Dropoff",
       save: "Save",
-      saved: "Saved successfully"
+      saved: "Saved successfully",
+      max25: "Maximum 25 characters",
+      providers: {
+        uber: "Uber",
+        lyft: "Lyft", 
+        taxi: "Taxi",
+        carService: "Car Service",
+        shuttle: "Shuttle",
+        rental: "Rental Car"
+      }
     },
     es: {
       travel: "Detalles de viaje",
@@ -100,21 +125,31 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
     try {
       setLoading(true);
       
-      const talentFilter = profile?.role === 'talent' 
-        ? assignedTalents.find(t => isOwnTalent(t.id))?.id 
-        : undefined;
+      // Load contact data
+      const { data: contactData } = await supabase
+        .from('business_event_contact')
+        .select('*')
+        .eq('event_id', eventId)
+        .maybeSingle();
 
-      const [travel, hotel] = await Promise.all([
-        businessEventsApi.getTravelDetails(eventId, talentFilter),
-        businessEventsApi.getHotelDetails(eventId, talentFilter)
+      if (contactData) {
+        setEventContact(contactData);
+      }
+
+      // Load travel and hotel data
+      const [{ data: travel }, { data: hotel }, { data: transport }] = await Promise.all([
+        supabase.from('business_event_travel').select('*').eq('event_id', eventId),
+        supabase.from('business_event_hotel').select('*').eq('event_id', eventId),
+        supabase.from('business_event_transport').select('*').eq('event_id', eventId)
       ]);
 
-      setTravelDetails(travel);
-      setHotelDetails(hotel);
+      setTravelDetails(travel || []);
+      setHotelDetails(hotel || []);
+      setTransportDetails(transport || []);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to load travel and hotel details",
+        description: "Failed to load logistics data",
         variant: "destructive"
       });
     } finally {
@@ -122,7 +157,7 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
     }
   };
 
-  const updateTravelDetail = (talentId: string, field: keyof BusinessEventTravel, value: any) => {
+  const updateTravelDetail = (talentId: string, field: string, value: any) => {
     setTravelDetails(prev => {
       const existing = prev.find(t => t.talent_id === talentId);
       if (existing) {
@@ -131,19 +166,16 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
         );
       } else {
         return [...prev, {
-          id: '', // Will be set by upsert
           event_id: eventId,
           talent_id: talentId,
-          status: 'Not Booked' as const,
-          created_at: '',
-          updated_at: '',
+          status: 'Not Booked',
           [field]: value
         }];
       }
     });
   };
 
-  const updateHotelDetail = (talentId: string, field: keyof BusinessEventHotel, value: any) => {
+  const updateHotelDetail = (talentId: string, field: string, value: any) => {
     setHotelDetails(prev => {
       const existing = prev.find(h => h.talent_id === talentId);
       if (existing) {
@@ -152,11 +184,8 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
         );
       } else {
         return [...prev, {
-          id: '', // Will be set by upsert
           event_id: eventId,
           talent_id: talentId,
-          created_at: '',
-          updated_at: '',
           [field]: value
         }];
       }
@@ -168,11 +197,11 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
       const detail = travelDetails.find(t => t.talent_id === talentId);
       if (!detail) return;
 
-      await businessEventsApi.upsertTravelDetails({
-        ...detail,
-        event_id: eventId,
-        talent_id: talentId
-      });
+      const { error } = await supabase
+        .from('business_event_travel')
+        .upsert({ ...detail, updated_at: new Date().toISOString() });
+
+      if (error) throw error;
 
       toast({
         title: t[language].saved,
@@ -194,11 +223,11 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
       const detail = hotelDetails.find(h => h.talent_id === talentId);
       if (!detail) return;
 
-      await businessEventsApi.upsertHotelDetails({
-        ...detail,
-        event_id: eventId,
-        talent_id: talentId
-      });
+      const { error } = await supabase
+        .from('business_event_hotel')
+        .upsert({ ...detail, updated_at: new Date().toISOString() });
+
+      if (error) throw error;
 
       toast({
         title: t[language].saved,

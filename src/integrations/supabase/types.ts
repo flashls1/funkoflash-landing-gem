@@ -116,6 +116,39 @@ export type Database = {
           },
         ]
       }
+      business_event_contact: {
+        Row: {
+          contact_name: string | null
+          created_at: string
+          created_by: string | null
+          event_id: string
+          id: string
+          phone_number: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          id?: string
+          phone_number?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          id?: string
+          phone_number?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       business_event_hotel: {
         Row: {
           checkin_date: string | null
@@ -208,6 +241,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      business_event_transport: {
+        Row: {
+          confirmation_code: string | null
+          created_at: string
+          created_by: string | null
+          dropoff_datetime: string | null
+          dropoff_location: string | null
+          event_id: string
+          id: string
+          notes: string | null
+          pickup_datetime: string | null
+          pickup_location: string | null
+          provider_other: string | null
+          provider_type: string | null
+          talent_id: string
+          transport_documents_url: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          confirmation_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          dropoff_datetime?: string | null
+          dropoff_location?: string | null
+          event_id: string
+          id?: string
+          notes?: string | null
+          pickup_datetime?: string | null
+          pickup_location?: string | null
+          provider_other?: string | null
+          provider_type?: string | null
+          talent_id: string
+          transport_documents_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          confirmation_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          dropoff_datetime?: string | null
+          dropoff_location?: string | null
+          event_id?: string
+          id?: string
+          notes?: string | null
+          pickup_datetime?: string | null
+          pickup_location?: string | null
+          provider_other?: string | null
+          provider_type?: string | null
+          talent_id?: string
+          transport_documents_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       business_event_travel: {
         Row: {
