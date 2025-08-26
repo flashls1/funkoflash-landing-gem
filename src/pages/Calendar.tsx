@@ -567,7 +567,7 @@ const Calendar = () => {
       // Show read-only event details
       toast({
         title: event.event_title,
-        description: `${event.talent_profiles?.name || 'No talent assigned'} - ${event.status}`,
+        description: `${event.talent_profiles?.name || talents.find(t => t.id === event.talent_id)?.name || 'No talent assigned'} - ${event.status}`,
       });
     }
   };
@@ -1227,25 +1227,6 @@ const Calendar = () => {
                         info.el.classList.add('fc-event-today');
                       }
                     }}
-                    dayCellDidMount={(info) => {
-                      const today = new Date().toISOString().split('T')[0];
-                      const cellDate = info.date.toISOString().split('T')[0];
-                      
-                      // Add today styling
-                      if (cellDate === today) {
-                        info.el.classList.add('fc-day-today-custom');
-                        const todayPill = document.createElement('div');
-                        todayPill.className = 'fc-today-pill';
-                        todayPill.textContent = t.calendarUi.today;
-                        info.el.appendChild(todayPill);
-                      }
-                      
-                      // Add weekend shading
-                      const dayOfWeek = info.date.getDay();
-                      if (dayOfWeek === 0 || dayOfWeek === 6) {
-                        info.el.classList.add('fc-day-weekend');
-                      }
-                    }}
                     datesSet={(dateInfo) => {
                       const newYear = dateInfo.start.getFullYear();
                       if (newYear !== selectedYear) {
@@ -1267,12 +1248,33 @@ const Calendar = () => {
                         setDetailedView('day');
                       }
                     }}
-                    dayHeaderClick={(info) => {
-                      // When clicking a date in week view, switch to day view
+                    dayCellDidMount={(info) => {
+                      const today = new Date().toISOString().split('T')[0];
+                      const cellDate = info.date.toISOString().split('T')[0];
+                      
+                      // Add today styling
+                      if (cellDate === today) {
+                        info.el.classList.add('fc-day-today-custom');
+                        const todayPill = document.createElement('div');
+                        todayPill.className = 'fc-today-pill';
+                        todayPill.textContent = t.calendarUi.today;
+                        info.el.appendChild(todayPill);
+                      }
+                      
+                      // Add weekend shading
+                      const dayOfWeek = info.date.getDay();
+                      if (dayOfWeek === 0 || dayOfWeek === 6) {
+                        info.el.classList.add('fc-day-weekend');
+                      }
+                      
+                      // Add click handler for week view to switch to day view
                       if (detailedView === 'week') {
-                        setCurrentDate(new Date(info.date));
-                        setSelectedDate(new Date(info.date));
-                        setDetailedView('day');
+                        info.el.style.cursor = 'pointer';
+                        info.el.addEventListener('click', () => {
+                          setCurrentDate(new Date(info.date));
+                          setSelectedDate(new Date(info.date));
+                          setDetailedView('day');
+                        });
                       }
                     }}
                   />
