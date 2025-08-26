@@ -281,12 +281,7 @@ const Calendar = () => {
     setLoading(true);
     setShowTransition(true);
     try {
-      // For edit_own users, we need at least one talent to be loaded
-      if (hasPermission('calendar:edit_own') && !hasPermission('calendar:edit') && talents.length === 0) {
-        setEvents([]);
-        setLoading(false);
-        return;
-      }
+      // Calendar should always be viewable for all roles
       let startDate: Date;
       let endDate: Date;
 
@@ -325,34 +320,37 @@ const Calendar = () => {
         query = query.neq('status', 'not_available');
       }
 
-        // Apply talent filter (Admin/Staff can filter by specific talent, Talent/Business limited to own)
+        // Apply talent filter - always include unassigned events (talent_id IS NULL)
         if (hasPermission('calendar:edit')) {
-          // Admin/Staff: apply selected talent filter if one is selected
+          // Admin/Staff: show all events by default, filter by talent if selected
           if (selectedTalent) {
-            query = query.eq('talent_id', selectedTalent);
+            // Show selected talent's events + unassigned events
+            query = query.or(`talent_id.eq.${selectedTalent},talent_id.is.null`);
           }
           if (filters.talent.length > 0) {
-            query = query.in('talent_id', filters.talent);
+            // Show filtered talents' events + unassigned events
+            const talentFilter = filters.talent.map(id => `talent_id.eq.${id}`).join(',');
+            query = query.or(`${talentFilter},talent_id.is.null`);
           }
-      } else if (hasPermission('calendar:edit_own')) {
-        // Talent/Business: only show their own events
-        // Get talents owned by current user and filter to those
-        const userTalentsQuery = await supabase
-          .from('talent_profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('active', true);
-        
-        if (userTalentsQuery.data && userTalentsQuery.data.length > 0) {
-          const userTalentIds = userTalentsQuery.data.map(t => t.id);
-          query = query.in('talent_id', userTalentIds);
-        } else {
-          // User has no talents, show no events
-          setEvents([]);
-          setLoading(false);
-          return;
+          // If no talent filter applied, show all events (including unassigned)
+        } else if (hasPermission('calendar:edit_own')) {
+          // Talent/Business: show their own events + unassigned events
+          const userTalentsQuery = await supabase
+            .from('talent_profiles')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('active', true);
+          
+          if (userTalentsQuery.data && userTalentsQuery.data.length > 0) {
+            const userTalentIds = userTalentsQuery.data.map(t => t.id);
+            const talentFilter = userTalentIds.map(id => `talent_id.eq.${id}`).join(',');
+            // Show user's talent events + unassigned events
+            query = query.or(`${talentFilter},talent_id.is.null`);
+          } else {
+            // User has no talents, but still show unassigned events
+            query = query.is('talent_id', null);
+          }
         }
-      }
 
       const { data, error } = await query.order('start_date');
 
