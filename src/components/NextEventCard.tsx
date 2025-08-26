@@ -79,16 +79,26 @@ export const NextEventCard = ({ language }: NextEventProps) => {
       if (fullProfile?.role === 'business') {
         const now = new Date().toISOString();
         
+        // Get business account ID for this user
+        const { data: businessAccount } = await supabase
+          .from('business_account')
+          .select('id')
+          .or(`name.eq.${fullProfile.business_name || fullProfile.first_name + ' ' + (fullProfile.last_name || '')},contact_email.eq.${fullProfile.email}`)
+          .single();
+          
+        if (!businessAccount) {
+          setNextEvent(null);
+          return;
+        }
+        
         const { data, error } = await supabase
           .from('business_events')
           .select(`
             *,
-            business_event_account!inner(
-              business_account!inner(name, contact_email)
-            )
+            business_event_account!inner(business_account_id)
           `)
+          .eq('business_event_account.business_account_id', businessAccount.id)
           .gte('start_ts', now)
-          .or(`business_event_account.business_account.name.eq.${fullProfile.business_name || fullProfile.first_name + ' ' + (fullProfile.last_name || '')},business_event_account.business_account.contact_email.eq.${fullProfile.email}`)
           .order('start_ts', { ascending: true })
           .limit(1);
 

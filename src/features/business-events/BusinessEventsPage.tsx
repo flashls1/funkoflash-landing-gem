@@ -57,7 +57,16 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
         // Ensure business account exists for this user
         await businessEventsApi.ensureBusinessAccountForUser(fullProfile.user_id);
         
-        // Get events assigned to this business user
+        // Get business account ID for this user
+        const { data: businessAccount } = await supabase
+          .from('business_account')
+          .select('id')
+          .or(`name.eq.${fullProfile.business_name || (fullProfile.first_name || '') + ' ' + (fullProfile.last_name || '')},contact_email.eq.${fullProfile.email}`)
+          .single();
+          
+        if (!businessAccount) throw new Error('Business account not found');
+        
+        // Get events assigned to this business account using proper join
         const { data, error } = await supabase
           .from('business_events')
           .select(`
@@ -65,11 +74,9 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
             business_event_talent(
               talent_profiles(*)
             ),
-            business_event_account!inner(
-              business_account!inner(name, contact_email)
-            )
+            business_event_account!inner(business_account_id)
           `)
-          .or(`business_event_account.business_account.name.eq.${fullProfile.business_name || (fullProfile.first_name || '') + ' ' + (fullProfile.last_name || '')},business_event_account.business_account.contact_email.eq.${fullProfile.email}`);
+          .eq('business_event_account.business_account_id', businessAccount.id);
           
         if (error) throw error;
         setEvents(data || []);
