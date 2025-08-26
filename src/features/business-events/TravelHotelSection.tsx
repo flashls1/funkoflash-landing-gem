@@ -74,8 +74,12 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
       }
     },
     es: {
+      contact: "Punto de contacto del evento",
+      contactName: "Nombre del contacto", 
+      phone: "Número de teléfono",
       travel: "Detalles de viaje",
       hotel: "Detalles del hotel",
+      transport: "Transporte terrestre",
       airline: "Aerolínea",
       flightCode: "Código de confirmación",
       status: "Estado",
@@ -91,8 +95,21 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
       hotelConf: "Confirmación de reserva",
       checkin: "Check-in (hora local)",
       checkout: "Check-out (hora local)",
+      provider: "Proveedor/Servicio",
+      providerOther: "Otro (ingresar proveedor)",
+      pickup: "Recogida",
+      dropoff: "Destino",
       save: "Guardar",
-      saved: "Guardado exitosamente"
+      saved: "Guardado exitosamente",
+      max25: "Máximo 25 caracteres",
+      providers: {
+        uber: "Uber",
+        lyft: "Lyft",
+        taxi: "Taxi",
+        carService: "Servicio de auto",
+        shuttle: "Transporte compartido",
+        rental: "Auto de alquiler"
+      }
     }
   };
 
@@ -244,8 +261,126 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
     }
   };
 
-  const handleFileUpload = (talentId: string, url: string) => {
-    updateTravelDetail(talentId, 'flight_tickets_url', url);
+  const updateTransportDetail = (talentId: string, field: string, value: any) => {
+    setTransportDetails(prev => {
+      const existing = prev.find(t => t.talent_id === talentId);
+      if (existing) {
+        return prev.map(t => 
+          t.talent_id === talentId ? { ...t, [field]: value } : t
+        );
+      } else {
+        return [...prev, {
+          event_id: eventId,
+          talent_id: talentId,
+          [field]: value
+        }];
+      }
+    });
+  };
+
+  const saveTransportDetails = async (talentId: string) => {
+    try {
+      const detail = transportDetails.find(t => t.talent_id === talentId);
+      if (!detail) return;
+
+      const { error } = await supabase
+        .from('business_event_transport')
+        .upsert({ ...detail, updated_at: new Date().toISOString() });
+
+      if (error) throw error;
+
+      toast({
+        title: t[language].saved,
+        description: t[language].transport
+      });
+      
+      await loadTravelHotelData();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save transport details",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const saveEventContact = async () => {
+    try {
+      if (!eventContact.contact_name.trim() || !eventContact.phone_number.trim()) {
+        toast({
+          title: "Error",
+          description: "Contact name and phone number are required",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (eventContact.contact_name.length > 25) {
+        toast({
+          title: "Error",
+          description: t[language].max25,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('business_event_contact')
+        .upsert({
+          event_id: eventId,
+          ...eventContact,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: t[language].saved,
+        description: t[language].contact
+      });
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to save contact information",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleFileUpload = async (talentId: string, file: File, section: 'travel' | 'transport') => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `business-events/${eventId}/${section}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('business-events')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('business-events')
+        .getPublicUrl(filePath);
+
+      if (section === 'travel') {
+        updateTravelDetail(talentId, 'flight_tickets_url', publicUrl);
+      } else {
+        updateTransportDetail(talentId, 'transport_documents_url', publicUrl);
+      }
+
+      toast({
+        title: "Success",
+        description: "File uploaded successfully"
+      });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload file",
+        variant: "destructive"
+      });
+    }
   };
 
   const downloadFile = async (url: string) => {
@@ -255,7 +390,7 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = url.split('/').pop() || 'flight_tickets';
+      link.download = url.split('/').pop() || 'document';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -273,11 +408,65 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
     return <div className="animate-pulse">Loading...</div>;
   }
 
+  const providerOptions = [
+    { value: 'uber', label: t[language].providers.uber },
+    { value: 'lyft', label: t[language].providers.lyft },
+    { value: 'taxi', label: t[language].providers.taxi },
+    { value: 'carService', label: t[language].providers.carService },
+    { value: 'shuttle', label: t[language].providers.shuttle },
+    { value: 'rental', label: t[language].providers.rental }
+  ];
+
   return (
     <div className="space-y-6">
+      {/* Event Point of Contact - only show for non-talent users */}
+      {profile?.role !== 'talent' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              {t[language].contact}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="contact-name">{t[language].contactName}</Label>
+                <Input
+                  id="contact-name"
+                  value={eventContact.contact_name}
+                  onChange={(e) => setEventContact(prev => ({ ...prev, contact_name: e.target.value }))}
+                  maxLength={25}
+                  disabled={!canEdit('')}
+                  placeholder={t[language].contactName}
+                />
+                <p className="text-xs text-muted-foreground mt-1">{t[language].max25}</p>
+              </div>
+              <div>
+                <Label htmlFor="contact-phone">{t[language].phone}</Label>
+                <Input
+                  id="contact-phone"
+                  value={eventContact.phone_number}
+                  onChange={(e) => setEventContact(prev => ({ ...prev, phone_number: e.target.value }))}
+                  disabled={!canEdit('')}
+                  placeholder={t[language].phone}
+                />
+              </div>
+            </div>
+            {canEdit('') && (
+              <Button onClick={saveEventContact} className="w-fit">
+                {t[language].save}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Talent Logistics */}
       {assignedTalents.filter(talent => shouldShowTalent(talent.id)).map(talent => {
         const travelDetail = travelDetails.find(t => t.talent_id === talent.id);
         const hotelDetail = hotelDetails.find(h => h.talent_id === talent.id);
+        const transportDetail = transportDetails.find(tr => tr.talent_id === talent.id);
         const editable = canEdit(talent.id);
 
         return (
@@ -290,9 +479,19 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="travel">
-                <TabsList>
-                  <TabsTrigger value="travel">{t[language].travel}</TabsTrigger>
-                  <TabsTrigger value="hotel">{t[language].hotel}</TabsTrigger>
+                <TabsList className="grid grid-cols-3 w-full">
+                  <TabsTrigger value="travel" className="flex items-center gap-2">
+                    <Plane className="h-4 w-4" />
+                    {t[language].travel}
+                  </TabsTrigger>
+                  <TabsTrigger value="hotel" className="flex items-center gap-2">
+                    <Hotel className="h-4 w-4" />
+                    {t[language].hotel}
+                  </TabsTrigger>
+                  <TabsTrigger value="transport" className="flex items-center gap-2">
+                    <Car className="h-4 w-4" />
+                    {t[language].transport}
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="travel" className="space-y-4">
@@ -375,7 +574,7 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
                     <div className="space-y-2">
                       <Label>{t[language].ticketsUpload}</Label>
                       <FileUpload
-                        onFileUploaded={(url) => handleFileUpload(talent.id, url)}
+                        onFileUploaded={(url) => updateTravelDetail(talent.id, 'flight_tickets_url', url)}
                         acceptedTypes={['pdf', 'txt', 'jpg', 'png', 'webp', 'html']}
                         bucket="business-events"
                       />
@@ -429,8 +628,8 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
                     <div>
                       <Label>{t[language].checkin}</Label>
                       <Input
-                        type="date"
-                        value={hotelDetail?.checkin_date || ''}
+                        type="datetime-local"
+                        value={hotelDetail?.checkin_date?.slice(0, 16) || ''}
                         onChange={(e) => updateHotelDetail(talent.id, 'checkin_date', e.target.value)}
                         disabled={!editable}
                       />
@@ -438,8 +637,8 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
                     <div>
                       <Label>{t[language].checkout}</Label>
                       <Input
-                        type="date"
-                        value={hotelDetail?.checkout_date || ''}
+                        type="datetime-local"
+                        value={hotelDetail?.checkout_date?.slice(0, 16) || ''}
                         onChange={(e) => updateHotelDetail(talent.id, 'checkout_date', e.target.value)}
                         disabled={!editable}
                       />
@@ -466,6 +665,139 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
 
                   {editable && (
                     <Button onClick={() => saveHotelDetails(talent.id)}>
+                      {t[language].save}
+                    </Button>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="transport" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>{t[language].provider}</Label>
+                      <Select
+                        value={transportDetail?.provider_type || ''}
+                        onValueChange={(value) => updateTransportDetail(talent.id, 'provider_type', value)}
+                        disabled={!editable}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t[language].provider} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {providerOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="other">{t[language].providerOther}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {transportDetail?.provider_type === 'other' && (
+                      <div>
+                        <Label>{t[language].providerOther}</Label>
+                        <Input
+                          value={transportDetail?.provider_other || ''}
+                          onChange={(e) => updateTransportDetail(talent.id, 'provider_other', e.target.value)}
+                          disabled={!editable}
+                          placeholder={t[language].providerOther}
+                        />
+                      </div>
+                    )}
+                    
+                    <div>
+                      <Label>{t[language].flightCode}</Label>
+                      <Input
+                        value={transportDetail?.confirmation_code || ''}
+                        onChange={(e) => updateTransportDetail(talent.id, 'confirmation_code', e.target.value)}
+                        disabled={!editable}
+                        placeholder="Confirmation code"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>{t[language].pickup}</Label>
+                      <Input
+                        type="datetime-local"
+                        value={transportDetail?.pickup_datetime?.slice(0, 16) || ''}
+                        onChange={(e) => updateTransportDetail(talent.id, 'pickup_datetime', e.target.value)}
+                        disabled={!editable}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>{t[language].dropoff}</Label>
+                      <Input
+                        type="datetime-local"
+                        value={transportDetail?.dropoff_datetime?.slice(0, 16) || ''}
+                        onChange={(e) => updateTransportDetail(talent.id, 'dropoff_datetime', e.target.value)}
+                        disabled={!editable}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Pickup Location</Label>
+                      <Input
+                        value={transportDetail?.pickup_location || ''}
+                        onChange={(e) => updateTransportDetail(talent.id, 'pickup_location', e.target.value)}
+                        disabled={!editable}
+                        placeholder="Pickup location"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Dropoff Location</Label>
+                      <Input
+                        value={transportDetail?.dropoff_location || ''}
+                        onChange={(e) => updateTransportDetail(talent.id, 'dropoff_location', e.target.value)}
+                        disabled={!editable}
+                        placeholder="Dropoff location"
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <Label>{t[language].notes}</Label>
+                      <Textarea
+                        value={transportDetail?.notes || ''}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 50) {
+                            updateTransportDetail(talent.id, 'notes', e.target.value);
+                          }
+                        }}
+                        maxLength={50}
+                        disabled={!editable}
+                        className="resize-none"
+                      />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {(transportDetail?.notes || '').length}/50
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {editable && (
+                    <div className="space-y-2">
+                      <Label>Upload Documents</Label>
+                      <FileUpload
+                        onFileUploaded={(url) => updateTransportDetail(talent.id, 'transport_documents_url', url)}
+                        acceptedTypes={['pdf', 'txt', 'jpg', 'png', 'webp', 'html']}
+                        bucket="business-events"
+                      />
+                    </div>
+                  )}
+                  
+                  {transportDetail?.transport_documents_url && (
+                    <Button
+                      onClick={() => downloadFile(transportDetail.transport_documents_url!)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Documents
+                    </Button>
+                  )}
+                  
+                  {editable && (
+                    <Button onClick={() => saveTransportDetails(talent.id)}>
                       {t[language].save}
                     </Button>
                   )}
