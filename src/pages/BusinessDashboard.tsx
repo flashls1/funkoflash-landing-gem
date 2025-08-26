@@ -587,7 +587,10 @@ const BusinessDashboard = () => {
           onClose={() => setProfileSettingsOpen(false)}
         />
 
-        <RealtimeMessageCenter language={language} />
+        {/* Message Center with proper spacing */}
+        <div className="mt-8">
+          <RealtimeMessageCenter language={language} />
+        </div>
         </div>
         
         <Footer language={language} />

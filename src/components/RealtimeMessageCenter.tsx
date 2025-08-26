@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { MessageSquare, Send, Search, Plus, Circle, Loader2, Bell, BellOff, Filter, Paperclip, X } from 'lucide-react';
 import { useRealtimeMessaging } from '@/hooks/useRealtimeMessaging';
 import { useAuth } from '@/hooks/useAuth';
+import { useColorTheme } from '@/hooks/useColorTheme';
 import { useNotifications } from '@/hooks/useNotifications';
 import { supabase } from '@/integrations/supabase/client';
 import FileUpload from './FileUpload';
@@ -36,6 +37,7 @@ interface RealtimeMessageCenterProps {
 
 const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language }) => {
   const { user } = useAuth();
+  const { currentTheme } = useColorTheme();
   const { 
     messages, 
     isConnected, 
@@ -360,11 +362,18 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
   };
 
   return (
-    <Card className="w-full h-[600px]">
+    <Card 
+      className="w-full h-[600px] border-2 hover:border-primary/50 transition-colors"
+      style={{
+        backgroundColor: currentTheme.cardBackground,
+        borderColor: currentTheme.border,
+        color: currentTheme.cardForeground
+      }}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
+            <MessageSquare className="h-5 w-5" style={{ color: currentTheme.accent }} />
             {t.messageCenter}
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -376,7 +385,7 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
             </div>
             <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
               <DialogTrigger asChild>
-                <Button size="sm">
+                <Button variant="business" size="sm">
                   <Plus className="h-4 w-4 mr-1" />
                   {t.compose}
                 </Button>
@@ -488,7 +497,7 @@ const RealtimeMessageCenter: React.FC<RealtimeMessageCenterProps> = ({ language 
                     <Button variant="outline" onClick={() => setIsComposeOpen(false)}>
                       {t.cancel}
                     </Button>
-                    <Button onClick={handleSendMessage}>
+                    <Button variant="business" onClick={handleSendMessage}>
                       <Send className="h-4 w-4 mr-1" />
                       {t.send}
                     </Button>
