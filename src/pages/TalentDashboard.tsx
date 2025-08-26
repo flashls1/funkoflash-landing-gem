@@ -481,7 +481,12 @@ const TalentDashboard = () => {
                     isDragEnabled={isDragEnabled}
                   >
                     <Card 
-                      className="border-2 transition-transform hover:scale-105"
+                      className="border-2 transition-transform hover:scale-105 cursor-pointer"
+                      onClick={() => {
+                        if (card.id === 'availability-calendar') {
+                          navigate('/calendar');
+                        }
+                      }}
                       style={{
                         backgroundColor: currentTheme.cardBackground,
                         borderColor: currentTheme.border,
@@ -498,6 +503,11 @@ const TalentDashboard = () => {
                       <CardContent>
                         <Button 
                           className="w-full"
+                          onClick={() => {
+                            if (card.id === 'availability-calendar') {
+                              navigate('/calendar');
+                            }
+                          }}
                           style={{
                             backgroundColor: currentTheme.accent,
                             color: currentTheme.background,
