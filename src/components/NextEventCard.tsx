@@ -6,6 +6,7 @@ import { Calendar, MapPin, Plus, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useColorTheme } from '@/hooks/useColorTheme';
 import { useNavigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -35,6 +36,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
   const [loading, setLoading] = useState(true);
   const { user, profile } = useAuth();
   const { hasPermission } = usePermissions();
+  const { currentTheme } = useColorTheme();
   const navigate = useNavigate();
 
   const content = {
@@ -161,10 +163,17 @@ export const NextEventCard = ({ language }: NextEventProps) => {
 
   if (loading) {
     return (
-      <Card>
+      <Card 
+        className="border-2 hover:border-primary/50 transition-colors"
+        style={{
+          backgroundColor: currentTheme.cardBackground,
+          borderColor: currentTheme.border,
+          color: currentTheme.cardForeground
+        }}
+      >
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
+            <Calendar className="h-5 w-5" style={{ color: currentTheme.accent }} />
             {t.title}
           </CardTitle>
         </CardHeader>
@@ -179,10 +188,17 @@ export const NextEventCard = ({ language }: NextEventProps) => {
   }
 
   return (
-    <Card>
+    <Card 
+      className="border-2 hover:border-primary/50 transition-colors"
+      style={{
+        backgroundColor: currentTheme.cardBackground,
+        borderColor: currentTheme.border,
+        color: currentTheme.cardForeground
+      }}
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
+          <Calendar className="h-5 w-5" style={{ color: currentTheme.accent }} />
           {t.title}
         </CardTitle>
       </CardHeader>
@@ -214,7 +230,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
               </Badge>
               
               <Button 
-                variant="outline" 
+                variant="business" 
                 size="sm"
                 onClick={handleOpenCalendar}
               >
@@ -229,7 +245,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
             
             {hasPermission('calendar:edit_own') && profile?.role !== 'business' ? (
               <Button 
-                variant="outline" 
+                variant="business" 
                 size="sm"
                 onClick={handleAddEvent}
                 className="flex items-center gap-2"
@@ -239,7 +255,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
               </Button>
             ) : (
               <Button 
-                variant="outline" 
+                variant="business" 
                 size="sm"
                 className="flex items-center gap-2"
               >

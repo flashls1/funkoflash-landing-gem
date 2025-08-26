@@ -5,6 +5,7 @@ import { Calendar, Plus, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-
 import { useNavigate } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameDay, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useColorTheme } from '@/hooks/useColorTheme';
 
 interface CalendarWidgetProps {
   language: 'en' | 'es';
@@ -12,6 +13,7 @@ interface CalendarWidgetProps {
 
 export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const { currentTheme } = useColorTheme();
   const navigate = useNavigate();
 
   const content = {
@@ -61,16 +63,23 @@ export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
   const days = eachDayOfInterval({ start: startDate, end: endDate });
 
   return (
-    <Card className="h-full">
+    <Card 
+      className="h-full border-2 hover:border-primary/50 transition-colors"
+      style={{
+        backgroundColor: currentTheme.cardBackground,
+        borderColor: currentTheme.border,
+        color: currentTheme.cardForeground
+      }}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-4 w-4" style={{ color: currentTheme.accent }} />
             {t.calendar}
           </CardTitle>
           <div className="flex gap-1">
             <Button
-              variant="outline"
+              variant="business"
               size="sm"
               onClick={handleAddEvent}
               className="h-7 px-2"
@@ -82,6 +91,7 @@ export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
               size="sm"
               onClick={handleViewFull}
               className="h-7 px-2"
+              style={{ color: currentTheme.accent }}
             >
               <ExternalLink className="h-3 w-3" />
             </Button>

@@ -12,6 +12,7 @@ import { Plane, Hotel, DollarSign, Users } from 'lucide-react';
 import { businessEventsApi, BusinessEvent, TalentProfile } from './data';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useColorTheme } from '@/hooks/useColorTheme';
 import FileUpload from '@/components/FileUpload';
 
 interface TalentFinancialData {
@@ -28,6 +29,7 @@ interface TravelManagementModuleProps {
 
 export default function TravelManagementModule({ language }: TravelManagementModuleProps) {
   const { profile } = useAuth();
+  const { currentTheme } = useColorTheme();
   const { toast } = useToast();
   const [events, setEvents] = useState<BusinessEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<BusinessEvent | null>(null);
@@ -203,7 +205,14 @@ export default function TravelManagementModule({ language }: TravelManagementMod
 
   if (loading) {
     return (
-      <Card className="border-2">
+      <Card 
+        className="border-2 hover:border-primary/50 transition-colors"
+        style={{
+          backgroundColor: currentTheme.cardBackground,
+          borderColor: currentTheme.border,
+          color: currentTheme.cardForeground
+        }}
+      >
         <CardContent className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-4 bg-muted rounded w-1/4"></div>
@@ -216,10 +225,17 @@ export default function TravelManagementModule({ language }: TravelManagementMod
   }
 
   return (
-    <Card className="border-2">
+    <Card 
+      className="border-2 hover:border-primary/50 transition-colors"
+      style={{
+        backgroundColor: currentTheme.cardBackground,
+        borderColor: currentTheme.border,
+        color: currentTheme.cardForeground
+      }}
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Plane className="h-5 w-5" />
+          <Plane className="h-5 w-5" style={{ color: currentTheme.accent }} />
           {t[language].title}
         </CardTitle>
         <CardDescription>
@@ -263,7 +279,7 @@ export default function TravelManagementModule({ language }: TravelManagementMod
             {/* Talents Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
+                <Users className="h-4 w-4" style={{ color: currentTheme.accent }} />
                 <h3 className="text-lg font-medium">{t[language].assignedTalents}</h3>
                 <Badge variant="secondary">{assignedTalents.length}</Badge>
               </div>
@@ -357,7 +373,10 @@ export default function TravelManagementModule({ language }: TravelManagementMod
                                 </div>
                               </div>
                               
-                              <Button onClick={() => saveFinancialData(talent.id)}>
+                              <Button 
+                                variant="business"
+                                onClick={() => saveFinancialData(talent.id)}
+                              >
                                 {t[language].save}
                               </Button>
                             </TabsContent>
@@ -386,7 +405,7 @@ export default function TravelManagementModule({ language }: TravelManagementMod
                                 <Label>{t[language].notes}</Label>
                                 <Textarea placeholder="Flight notes..." maxLength={50} />
                               </div>
-                              <Button>{t[language].save}</Button>
+                              <Button variant="business">{t[language].save}</Button>
                             </TabsContent>
 
                             {/* Hotel Tab - Simplified version for display */}
@@ -413,7 +432,7 @@ export default function TravelManagementModule({ language }: TravelManagementMod
                                 <Label>{t[language].notes}</Label>
                                 <Textarea placeholder="Hotel notes..." maxLength={50} />
                               </div>
-                              <Button>{t[language].save}</Button>
+                              <Button variant="business">{t[language].save}</Button>
                             </TabsContent>
                           </Tabs>
                         </CardContent>
