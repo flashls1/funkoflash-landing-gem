@@ -1,33 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Plus, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameDay, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
 import { cn } from '@/lib/utils';
-
-interface CalendarEvent {
-  id: string;
-  event_title: string;
-  start_date: string;
-  end_date: string;
-  status: 'available' | 'hold' | 'tentative' | 'booked' | 'cancelled' | 'not_available';
-  talent_id?: string;
-  talent_profiles?: {
-    name: string;
-  };
-}
 
 interface CalendarWidgetProps {
   language: 'en' | 'es';
 }
 
 export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const { user, profile } = useAuth();
   const navigate = useNavigate();
 
   const content = {
@@ -49,68 +33,6 @@ export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
 
   const t = content[language];
 
-  useEffect(() => {
-    if (user && profile) {
-      loadEvents();
-    }
-  }, [user, profile, currentDate]);
-
-  const loadEvents = async () => {
-    if (!user || !profile) return;
-    
-    try {
-      const startDate = startOfMonth(currentDate);
-      const endDate = endOfMonth(currentDate);
-
-      let query = supabase
-        .from('calendar_event')
-        .select(`
-          id,
-          event_title,
-          start_date,
-          end_date,
-          status,
-          talent_id
-        `)
-        .gte('start_date', format(startDate, 'yyyy-MM-dd'))
-        .lte('end_date', format(endDate, 'yyyy-MM-dd'));
-
-      // Apply role-based filtering
-      if (profile.role === 'talent') {
-        const { data: talentProfiles } = await supabase
-          .from('talent_profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('active', true);
-        
-        if (talentProfiles && talentProfiles.length > 0) {
-          const talentIds = talentProfiles.map(tp => tp.id);
-          const talentFilter = talentIds.map(id => `talent_id.eq.${id}`).join(',');
-          query = query.or(`${talentFilter},talent_id.is.null`);
-        } else {
-          query = query.is('talent_id', null);
-        }
-      } else if (profile.role === 'admin' || profile.role === 'staff') {
-        // Admin/Staff see all events
-      } else if (profile.role === 'business') {
-        query = query.is('talent_id', null);
-      }
-
-      const { data, error } = await query.order('start_date');
-
-      if (error) {
-        console.error('Error loading calendar events:', error);
-      } else {
-        setEvents((data || []).map(event => ({
-          ...event,
-          status: event.status as 'available' | 'hold' | 'tentative' | 'booked' | 'cancelled' | 'not_available'
-        })));
-      }
-    } catch (err) {
-      console.error('Error in loadEvents:', err);
-    }
-  };
-
   const handleAddEvent = () => {
     navigate('/calendar?action=add');
   };
@@ -131,19 +53,12 @@ export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
     setCurrentDate(new Date());
   };
 
-  // Generate calendar days
+  // Generate calendar days - NO dependency on events
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const startDate = startOfWeek(monthStart);
   const endDate = endOfWeek(monthEnd);
   const days = eachDayOfInterval({ start: startDate, end: endDate });
-
-  // Get events for each day
-  const getEventsForDay = (day: Date) => {
-    return events.filter(event => 
-      isSameDay(new Date(event.start_date), day)
-    );
-  };
 
   return (
     <Card className="h-full">
@@ -214,7 +129,6 @@ export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
           {/* Calendar Days */}
           <div className="grid grid-cols-7 gap-1">
             {days.map((day, index) => {
-              const dayEvents = getEventsForDay(day);
               const isCurrentMonth = isSameMonth(day, currentDate);
               const isTodayDate = isToday(day);
               
@@ -225,18 +139,11 @@ export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
                     "relative h-8 text-xs text-center flex items-center justify-center rounded",
                     "hover:bg-accent cursor-pointer transition-colors",
                     isTodayDate && "bg-primary text-primary-foreground font-medium",
-                    !isCurrentMonth && "text-muted-foreground/50",
-                    dayEvents.length > 0 && !isTodayDate && "bg-muted font-medium"
+                    !isCurrentMonth && "text-muted-foreground/50"
                   )}
                   onClick={() => navigate('/calendar', { state: { selectedDate: day } })}
                 >
                   <span>{format(day, 'd')}</span>
-                  {dayEvents.length > 0 && (
-                    <div className={cn(
-                      "absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full",
-                      isTodayDate ? "bg-primary-foreground" : "bg-primary"
-                    )} />
-                  )}
                 </div>
               );
             })}
