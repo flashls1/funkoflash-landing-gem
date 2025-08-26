@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Plus, ExternalLink } from 'lucide-react';
+import { Calendar, Plus, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { CalendarStatusBadge } from './CalendarStatusBadge';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameDay, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface CalendarEvent {
   id: string;
@@ -26,43 +26,38 @@ interface CalendarWidgetProps {
 
 export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
   const { user, profile } = useAuth();
   const navigate = useNavigate();
 
   const content = {
     en: {
-      calendar: 'Calendar Overview',
+      calendar: 'Calendar',
       addEvent: 'Add Event',
       viewFull: 'View Full Calendar',
-      noEvents: 'No events this month',
-      loadingEvents: 'Loading events...',
-      today: 'Today',
-      thisMonth: 'This Month'
+      monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+      dayNames: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
     },
     es: {
-      calendar: 'Vista del Calendario',
+      calendar: 'Calendario',
       addEvent: 'Agregar Evento',
       viewFull: 'Ver Calendario Completo',
-      noEvents: 'No hay eventos este mes',
-      loadingEvents: 'Cargando eventos...',
-      today: 'Hoy',
-      thisMonth: 'Este Mes'
+      monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+      dayNames: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa']
     }
   };
 
   const t = content[language];
 
   useEffect(() => {
-    if (!user || !profile) return;
-    loadEvents();
-  }, [user, profile]);
+    if (user && profile) {
+      loadEvents();
+    }
+  }, [user, profile, currentDate]);
 
   const loadEvents = async () => {
     if (!user || !profile) return;
     
-    setLoading(true);
     try {
       const startDate = startOfMonth(currentDate);
       const endDate = endOfMonth(currentDate);
@@ -75,15 +70,13 @@ export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
           start_date,
           end_date,
           status,
-          talent_id,
-          talent_profiles(name)
+          talent_id
         `)
         .gte('start_date', format(startDate, 'yyyy-MM-dd'))
         .lte('end_date', format(endDate, 'yyyy-MM-dd'));
 
-      // Apply role-based filtering similar to main calendar
+      // Apply role-based filtering
       if (profile.role === 'talent') {
-        // For talent, get their talent profile and show their events + unassigned
         const { data: talentProfiles } = await supabase
           .from('talent_profiles')
           .select('id')
@@ -95,19 +88,15 @@ export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
           const talentFilter = talentIds.map(id => `talent_id.eq.${id}`).join(',');
           query = query.or(`${talentFilter},talent_id.is.null`);
         } else {
-          // If no talent profile, only show unassigned events
           query = query.is('talent_id', null);
         }
       } else if (profile.role === 'admin' || profile.role === 'staff') {
-        // Admin/Staff see all events (no additional filter needed)
+        // Admin/Staff see all events
       } else if (profile.role === 'business') {
-        // Business users see unassigned events (limited view)
         query = query.is('talent_id', null);
       }
 
-      const { data, error } = await query
-        .order('start_date')
-        .limit(10); // Limit for widget display
+      const { data, error } = await query.order('start_date');
 
       if (error) {
         console.error('Error loading calendar events:', error);
@@ -119,8 +108,6 @@ export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
       }
     } catch (err) {
       console.error('Error in loadEvents:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -132,112 +119,141 @@ export const CalendarWidget = ({ language }: CalendarWidgetProps) => {
     navigate('/calendar');
   };
 
-  // Get today's events
-  const todayEvents = events.filter(event => 
-    isSameDay(new Date(event.start_date), new Date())
-  );
+  const handlePrevMonth = () => {
+    setCurrentDate(prev => subMonths(prev, 1));
+  };
 
-  // Get this month's events (excluding today)
-  const monthEvents = events.filter(event => 
-    !isSameDay(new Date(event.start_date), new Date())
-  ).slice(0, 5); // Show max 5 upcoming events
+  const handleNextMonth = () => {
+    setCurrentDate(prev => addMonths(prev, 1));
+  };
+
+  const handleToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  // Generate calendar days
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const startDate = startOfWeek(monthStart);
+  const endDate = endOfWeek(monthEnd);
+  const days = eachDayOfInterval({ start: startDate, end: endDate });
+
+  // Get events for each day
+  const getEventsForDay = (day: Date) => {
+    return events.filter(event => 
+      isSameDay(new Date(event.start_date), day)
+    );
+  };
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
+            <Calendar className="h-4 w-4" />
             {t.calendar}
           </CardTitle>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <Button
               variant="outline"
               size="sm"
               onClick={handleAddEvent}
-              className="flex items-center gap-1"
+              className="h-7 px-2"
             >
-              <Plus className="h-4 w-4" />
-              {t.addEvent}
+              <Plus className="h-3 w-3" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleViewFull}
-              className="flex items-center gap-1"
+              className="h-7 px-2"
             >
-              <ExternalLink className="h-4 w-4" />
-              {t.viewFull}
+              <ExternalLink className="h-3 w-3" />
             </Button>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        {loading ? (
-          <div className="text-center text-muted-foreground py-8">
-            {t.loadingEvents}
-          </div>
-        ) : events.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            {t.noEvents}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Today's Events */}
-            {todayEvents.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-2 text-primary">{t.today}</h4>
-                <div className="space-y-2">
-                  {todayEvents.map((event) => (
-                    <div key={event.id} className="flex items-center justify-between p-2 rounded border bg-muted/50">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {event.event_title}
-                        </p>
-                        {event.talent_profiles?.name && (
-                          <p className="text-xs text-muted-foreground">
-                            {event.talent_profiles.name}
-                          </p>
-                        )}
-                      </div>
-                      <CalendarStatusBadge status={event.status} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+      <CardContent className="space-y-3">
+        {/* Month Navigation */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handlePrevMonth}
+            className="h-6 w-6 p-0"
+          >
+            <ChevronLeft className="h-3 w-3" />
+          </Button>
+          
+          <h3 className="text-sm font-medium">
+            {t.monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+          </h3>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleNextMonth}
+            className="h-6 w-6 p-0"
+          >
+            <ChevronRight className="h-3 w-3" />
+          </Button>
+        </div>
 
-            {/* This Month's Upcoming Events */}
-            {monthEvents.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-2">{t.thisMonth}</h4>
-                <div className="space-y-2">
-                  {monthEvents.map((event) => (
-                    <div key={event.id} className="flex items-center justify-between p-2 rounded border">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {event.event_title}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(event.start_date), 'MMM d')}
-                          </p>
-                          {event.talent_profiles?.name && (
-                            <p className="text-xs text-muted-foreground">
-                              • {event.talent_profiles.name}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <CalendarStatusBadge status={event.status} />
-                    </div>
-                  ))}
-                </div>
+        {/* Calendar Grid */}
+        <div className="space-y-1">
+          {/* Day Headers */}
+          <div className="grid grid-cols-7 gap-1">
+            {t.dayNames.map((day) => (
+              <div key={day} className="text-xs text-muted-foreground text-center py-1">
+                {day}
               </div>
-            )}
+            ))}
           </div>
-        )}
+          
+          {/* Calendar Days */}
+          <div className="grid grid-cols-7 gap-1">
+            {days.map((day, index) => {
+              const dayEvents = getEventsForDay(day);
+              const isCurrentMonth = isSameMonth(day, currentDate);
+              const isTodayDate = isToday(day);
+              
+              return (
+                <div
+                  key={index}
+                  className={cn(
+                    "relative h-8 text-xs text-center flex items-center justify-center rounded",
+                    "hover:bg-accent cursor-pointer transition-colors",
+                    isTodayDate && "bg-primary text-primary-foreground font-medium",
+                    !isCurrentMonth && "text-muted-foreground/50",
+                    dayEvents.length > 0 && !isTodayDate && "bg-muted font-medium"
+                  )}
+                  onClick={() => navigate('/calendar', { state: { selectedDate: day } })}
+                >
+                  <span>{format(day, 'd')}</span>
+                  {dayEvents.length > 0 && (
+                    <div className={cn(
+                      "absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full",
+                      isTodayDate ? "bg-primary-foreground" : "bg-primary"
+                    )} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Today Button */}
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleToday}
+            className="h-6 text-xs"
+          >
+            Today
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
