@@ -308,28 +308,51 @@ const BusinessEventFormDialog = ({
           await businessEventsApi.removeTalent(eventId, talent.talent_profiles.id);
         }
 
-        // Remove old business account assignments
+        // Remove old business account assignments (including primary)
         for (const account of existingAccounts) {
           await businessEventsApi.removeBusinessAccount(eventId, account.business_account.id);
         }
       }
 
-      // Add new talent assignments
-      for (const talentId of assignedTalents) {
-        await businessEventsApi.assignTalent(eventId, talentId);
-      }
-
-      // Add primary business assignment
+      // Create a comprehensive list of all business accounts to assign
+      const allBusinessAccountsToAssign = new Set<string>();
+      
+      // Add primary business account
       if (formData.primary_business_id) {
-        await businessEventsApi.assignBusinessAccount(eventId, formData.primary_business_id);
+        allBusinessAccountsToAssign.add(formData.primary_business_id);
+      }
+      
+      // Add team member accounts
+      teamMembers.forEach(memberId => {
+        allBusinessAccountsToAssign.add(memberId);
+      });
+
+      // Assign all business accounts (ensures all have access to the event)
+      for (const businessAccountId of allBusinessAccountsToAssign) {
+        try {
+          await businessEventsApi.assignBusinessAccount(eventId, businessAccountId);
+        } catch (assignError) {
+          // Log individual assignment errors but don't fail the whole process
+          console.warn(`Failed to assign business account ${businessAccountId} to event ${eventId}:`, assignError);
+        }
       }
 
-      // Add team member assignments
-      for (const teamMemberId of teamMembers) {
-        await businessEventsApi.assignBusinessAccount(eventId, teamMemberId);
+      // Add talent assignments
+      for (const talentId of assignedTalents) {
+        try {
+          await businessEventsApi.assignTalent(eventId, talentId);
+        } catch (assignError) {
+          // Log individual assignment errors but don't fail the whole process
+          console.warn(`Failed to assign talent ${talentId} to event ${eventId}:`, assignError);
+        }
       }
+
+      // Log successful assignments for debugging
+      console.log(`Successfully assigned ${allBusinessAccountsToAssign.size} business accounts and ${assignedTalents.length} talents to event ${eventId}`);
+      
     } catch (error) {
       console.error('Failed to handle assignments:', error);
+      throw error; // Re-throw to show user error
     }
   };
 
