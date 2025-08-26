@@ -1069,19 +1069,19 @@ const Calendar = () => {
               variant={calendarMode === 'simple' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setCalendarMode('simple')}
-              className="px-4"
+              className="px-4 flex items-center justify-center min-w-0"
             >
-              <Grid className="h-4 w-4 mr-2" />
-              {t.simpleView}
+              <Grid className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="whitespace-nowrap">{t.simpleView}</span>
             </Button>
             <Button
               variant={calendarMode === 'detailed' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setCalendarMode('detailed')}
-              className="px-4"
+              className="px-4 flex items-center justify-center min-w-0"
             >
-              <CalendarIconView className="h-4 w-4 mr-2" />
-              {t.detailView}
+              <CalendarIconView className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="whitespace-nowrap">{t.detailView}</span>
             </Button>
           </div>
         </div>
