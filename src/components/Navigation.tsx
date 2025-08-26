@@ -27,10 +27,10 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
   const { hasPermission } = usePermissions();
   const navigate = useNavigate();
 
-  // Apply custom styles with fallbacks - FORCE SOLID BACKGROUND
+  // Apply FunkoFlash brand styling for public-facing navigation
   const navStyles = {
-    backgroundColor: customStyles?.backgroundColor || 'hsl(var(--background))',
-    color: customStyles?.textColor || 'hsl(var(--foreground))',
+    backgroundColor: customStyles?.backgroundColor || 'hsl(var(--funko-blue-dark))',
+    color: customStyles?.textColor || 'hsl(0 0% 100%)',
     fontSize: customStyles?.fontSize || '14px',
     fontFamily: customStyles?.fontFamily || 'inherit'
   };
@@ -56,10 +56,11 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
 
   return (
     <nav 
-      className="border-b border-border sticky top-0 z-50 shadow-sm"
+      className="border-b border-funko-blue/20 sticky top-0 z-50 shadow-lg"
       style={{ 
         backgroundColor: navStyles.backgroundColor,
-        fontFamily: navStyles.fontFamily 
+        fontFamily: navStyles.fontFamily,
+        borderBottom: '2px solid hsl(var(--funko-orange))'
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
