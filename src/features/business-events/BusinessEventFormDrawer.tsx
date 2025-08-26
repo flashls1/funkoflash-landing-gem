@@ -85,24 +85,64 @@ const BusinessEventFormDialog = ({
           setDay1EndTime(end.toTimeString().slice(0, 5));
         }
         
-        // Load daily schedule if available
+        // Load daily schedule if available - this takes priority over start_ts/end_ts
         const eventWithSchedule = event as any;
+        console.log('🔍 Loading event data for editing:', event);
+        console.log('🗓️ Daily schedule data:', eventWithSchedule.daily_schedule);
+        
         if (eventWithSchedule.daily_schedule && Array.isArray(eventWithSchedule.daily_schedule)) {
+          // Reset all day states first
+          setDay1Date(undefined);
+          setDay1StartTime('');
+          setDay1EndTime('');
+          setDay2Date(undefined);
+          setDay2StartTime('');
+          setDay2EndTime('');
+          setDay3Date(undefined);
+          setDay3StartTime('');
+          setDay3EndTime('');
+          
           eventWithSchedule.daily_schedule.forEach((dayData: any) => {
+            console.log(`📅 Processing day ${dayData.day}:`, dayData);
             if (dayData.day === 1) {
-              if (dayData.date) setDay1Date(new Date(dayData.date));
+              if (dayData.date) {
+                const day1 = new Date(dayData.date + 'T00:00:00');
+                setDay1Date(day1);
+                console.log('✅ Set Day 1 date:', day1);
+              }
               if (dayData.start_time) setDay1StartTime(dayData.start_time);
               if (dayData.end_time) setDay1EndTime(dayData.end_time);
             } else if (dayData.day === 2) {
-              if (dayData.date) setDay2Date(new Date(dayData.date));
+              if (dayData.date) {
+                const day2 = new Date(dayData.date + 'T00:00:00');
+                setDay2Date(day2);
+                console.log('✅ Set Day 2 date:', day2);
+              }
               if (dayData.start_time) setDay2StartTime(dayData.start_time);
               if (dayData.end_time) setDay2EndTime(dayData.end_time);
             } else if (dayData.day === 3) {
-              if (dayData.date) setDay3Date(new Date(dayData.date));
+              if (dayData.date) {
+                const day3 = new Date(dayData.date + 'T00:00:00');
+                setDay3Date(day3);
+                console.log('✅ Set Day 3 date:', day3);
+              }
               if (dayData.start_time) setDay3StartTime(dayData.start_time);
               if (dayData.end_time) setDay3EndTime(dayData.end_time);
             }
           });
+        } else {
+          // Fallback to start_ts/end_ts if no daily_schedule
+          console.log('📝 No daily schedule found, using start_ts/end_ts as fallback');
+          if (event.start_ts) {
+            const start = new Date(event.start_ts);
+            setDay1Date(start);
+            setDay1StartTime(start.toTimeString().slice(0, 5));
+            console.log('📅 Fallback Day 1 from start_ts:', start);
+          }
+          if (event.end_ts) {
+            const end = new Date(event.end_ts);
+            setDay1EndTime(end.toTimeString().slice(0, 5));
+          }
         }
         
         loadEventAssignments();

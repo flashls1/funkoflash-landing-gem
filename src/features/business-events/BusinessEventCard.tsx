@@ -82,25 +82,53 @@ const BusinessEventCard = ({
       </CardHeader>
 
       <CardContent className="pt-0 space-y-2">
-        {/* Date and Time */}
-        {(event.start_ts || event.end_ts) && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CalendarIcon className="h-4 w-4" />
-            <span>
-              {formatDate(event.start_ts)}
-              {event.start_ts && formatTime(event.start_ts) && (
-                <span className="ml-1">at {formatTime(event.start_ts)}</span>
-              )}
-              {event.end_ts && event.end_ts !== event.start_ts && (
-                <span> - {formatDate(event.end_ts)}
-                {formatTime(event.end_ts) && (
-                  <span className="ml-1">at {formatTime(event.end_ts)}</span>
-                )}
+        {/* Date and Time - Show daily schedule if available */}
+        {(() => {
+          const eventWithSchedule = event as any;
+          const hasSchedule = eventWithSchedule.daily_schedule && Array.isArray(eventWithSchedule.daily_schedule) && eventWithSchedule.daily_schedule.length > 0;
+          
+          if (hasSchedule) {
+            return (
+              <div className="space-y-1">
+                {eventWithSchedule.daily_schedule.map((dayData: any, index: number) => (
+                  <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CalendarIcon className="h-4 w-4" />
+                    <span>
+                      <strong>Day {dayData.day}:</strong> {formatDate(dayData.date)}
+                      {dayData.start_time && dayData.end_time && (
+                        <span className="ml-1">({dayData.start_time} - {dayData.end_time})</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            );
+          }
+          
+          // Fallback to start_ts/end_ts if no daily schedule
+          if (event.start_ts || event.end_ts) {
+            return (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CalendarIcon className="h-4 w-4" />
+                <span>
+                  {formatDate(event.start_ts)}
+                  {event.start_ts && formatTime(event.start_ts) && (
+                    <span className="ml-1">at {formatTime(event.start_ts)}</span>
+                  )}
+                  {event.end_ts && event.end_ts !== event.start_ts && (
+                    <span> - {formatDate(event.end_ts)}
+                    {formatTime(event.end_ts) && (
+                      <span className="ml-1">at {formatTime(event.end_ts)}</span>
+                    )}
+                    </span>
+                  )}
                 </span>
-              )}
-            </span>
-          </div>
-        )}
+              </div>
+            );
+          }
+          
+          return null;
+        })()}
 
         {/* Location */}
         {(event.city || event.state || event.address_line) && (
