@@ -67,7 +67,7 @@ const calendarStyles = `
     padding: 12px 8px;
   }
   .fc-col-header-cell .fc-col-header-cell-cushion {
-    color: #374151 !important;
+    color: hsl(var(--funko-orange)) !important;
     font-weight: 600 !important;
     font-size: 13px !important;
     text-transform: uppercase;
@@ -185,12 +185,12 @@ const calendarStyles = `
     border-color: #1d4ed8;
   }
 
-  /* Toolbar styling with HIGH CONTRAST text */
+  /* Toolbar styling with ORANGE text for month/headers */
   .fc-toolbar {
     margin-bottom: 16px;
   }
   .fc-toolbar-title {
-    color: #1f2937 !important;
+    color: hsl(var(--funko-orange)) !important;
     font-weight: 700 !important;
     font-size: 24px !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -298,7 +298,7 @@ const Calendar = () => {
   });
   const [showTransition, setShowTransition] = useState(false);
   
-  // Hybrid calendar state - FORCE DEFAULT TO SIMPLE VIEW
+  // Hybrid calendar state - ALWAYS DEFAULT TO SIMPLE VIEW
   const [calendarMode, setCalendarMode] = useState<'simple' | 'detailed'>('simple');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [detailedView, setDetailedView] = useState<'week' | 'day'>('week');
@@ -315,8 +315,7 @@ const Calendar = () => {
       const navDate = new Date(location.state.selectedDate);
       setCurrentDate(navDate);
       setSelectedYear(navDate.getFullYear());
-      setCalendarMode('detailed'); // Switch to detailed view when navigating from date
-      setDetailedView('week'); // Default to week view when navigating to specific date
+      // Keep simple view as default, don't auto-switch to detailed
     }
   }, [location.state]);
 
@@ -490,7 +489,8 @@ const Calendar = () => {
     }
 
     setLoading(true);
-    setShowTransition(true);
+    // Reduce transition effects that cause ghost calendars
+    setShowTransition(false);
     try {
       // Calendar should always be viewable for all roles
       let startDate: Date;
@@ -582,7 +582,7 @@ const Calendar = () => {
       });
     } finally {
       setLoading(false);
-      setTimeout(() => setShowTransition(false), 300);
+      // Remove transition timer that causes rendering glitches
     }
   }, [
     user?.id,
@@ -599,14 +599,14 @@ const Calendar = () => {
     toast
   ]);
 
-  // Separate effect for events loading with proper dependencies
+  // Consolidated effect for events loading - prevents ghost calendar rendering
   useEffect(() => {
-    // Only load events if we have basic setup ready
-    if (user && hasPermission('calendar:view') && !authLoading && !permissionsLoading) {
-      // Add small delay to prevent rapid calls during initialization
+    // Only load events if we have basic setup ready and user has loaded talents
+    if (user && hasPermission('calendar:view') && !authLoading && !permissionsLoading && talents.length >= 0) {
+      // Add debounced delay to prevent rapid re-renders from dashboard navigation
       const timer = setTimeout(() => {
         loadEvents();
-      }, 100);
+      }, 200);
       return () => clearTimeout(timer);
     }
   }, [
@@ -614,7 +614,8 @@ const Calendar = () => {
     user?.id,
     authLoading,
     permissionsLoading,
-    hasPermission('calendar:view')
+    hasPermission('calendar:view'),
+    talents.length // Only load events after talents are loaded
   ]);
 
 
@@ -1234,7 +1235,7 @@ const Calendar = () => {
           {loading ? (
             <CalendarSkeleton view={view} />
           ) : (
-            <Card>
+            <Card className="border-funko-blue border-2">
               <CardContent className="p-6">
                 {/* Calendar Mode Toggle - Moved inside calendar box and centered */}
                 <div className="flex justify-center mb-6">
@@ -1285,9 +1286,9 @@ const Calendar = () => {
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                      {t.monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                    </h3>
+                     <h3 className="text-xl font-bold text-funko-orange">
+                       {t.monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                     </h3>
                   
                   <Button
                     variant="ghost"
@@ -1303,11 +1304,11 @@ const Calendar = () => {
                 <div className="space-y-2">
                   {/* Day Headers */}
                   <div className="grid grid-cols-7 gap-1">
-                    {t.dayNames.map((day) => (
-                      <div key={day} className="text-sm font-medium text-muted-foreground text-center py-2">
-                        {day}
-                      </div>
-                    ))}
+                     {t.dayNames.map((day) => (
+                       <div key={day} className="text-sm font-medium text-funko-orange text-center py-2">
+                         {day}
+                       </div>
+                     ))}
                   </div>
                   
                   {/* Calendar Days */}
