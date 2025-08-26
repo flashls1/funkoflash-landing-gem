@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid, Plus, Trash2, CheckCircle, PauseCircle, Clock3, CircleDashed, XCircle, MinusCircle, ToggleLeft, ToggleRight } from 'lucide-react';
+import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid, Plus, Trash2, CheckCircle, PauseCircle, Clock3, CircleDashed, XCircle, MinusCircle, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -29,13 +29,14 @@ import { CalendarViewSelector } from '@/components/CalendarViewSelector';
 import { CalendarStatusBadge } from '@/components/CalendarStatusBadge';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, startOfYear, endOfYear } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, startOfYear, endOfYear, eachDayOfInterval, isSameDay, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import { ArrowLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Add custom CSS for calendar styling - Remove background override to let AdminThemeProvider handle it
 const calendarStyles = `
@@ -148,11 +149,62 @@ const Calendar = () => {
     return (localStorage.getItem('calendar-density') as 'comfortable' | 'compact') || 'comfortable';
   });
   const [showTransition, setShowTransition] = useState(false);
+  
+  // Hybrid calendar state
+  const [calendarMode, setCalendarMode] = useState<'simple' | 'detailed'>('simple');
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   const { user, profile, loading: authLoading } = useAuth();
   const { hasPermission, loading: permissionsLoading } = usePermissions();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Check if we should start with a specific date from navigation state
+  useEffect(() => {
+    if (location.state?.selectedDate) {
+      const navDate = new Date(location.state.selectedDate);
+      setCurrentDate(navDate);
+      setSelectedYear(navDate.getFullYear());
+      setCalendarMode('detailed'); // Switch to detailed view when navigating from date
+    }
+  }, [location.state]);
+
+  // Simple calendar navigation functions
+  const handlePrevMonth = () => {
+    setCurrentDate(prev => subMonths(prev, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(prev => addMonths(prev, 1));
+  };
+
+  const handleToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  // Function to handle date clicks in simple view
+  const handleSimpleDateClick = (date: Date) => {
+    setCurrentDate(date);
+    setSelectedDate(date);
+    setCalendarMode('detailed');
+  };
+
+  // Function to get the dynamic initial date for FullCalendar
+  const getInitialDate = () => {
+    // If we have date range filters applied, use appropriate date
+    if (filters.dateRange === 'next7' || filters.dateRange === 'next30' || filters.dateRange === 'next90') {
+      return new Date(); // Current date for future range filters
+    }
+    
+    // If we have a selected date, use that
+    if (selectedDate) {
+      return selectedDate;
+    }
+    
+    // Default to current date instead of January 1st
+    return new Date();
+  };
 
   // Save view mode and year to localStorage
   useEffect(() => {
@@ -196,6 +248,10 @@ const Calendar = () => {
       blockWeekend: 'Block this weekend as Not Available',
       blockRange: 'Block date range...',
       backTalent: 'Back to Talent Dashboard',
+      simpleView: 'Simple View',
+      detailView: 'Detail View',
+      monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+      dayNames: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
       calendarUi: {
         density: { comfortable: 'Comfortable', compact: 'Compact' },
         quickRanges: { next7: 'Next 7 days', next30: 'Next 30 days', next90: 'Next 90 days' },
@@ -235,6 +291,10 @@ const Calendar = () => {
       blockWeekend: 'Bloquear este fin de semana como No disponible',
       blockRange: 'Bloquear rango de fechas...',
       backTalent: 'Volver al panel de Talento',
+      simpleView: 'Vista Simple',
+      detailView: 'Vista Detallada',
+      monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+      dayNames: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
       calendarUi: {
         density: { comfortable: 'Cómodo', compact: 'Compacto' },
         quickRanges: { next7: 'Próximos 7 días', next30: 'Próximos 30 días', next90: 'Próximos 90 días' },
@@ -1002,11 +1062,121 @@ const Calendar = () => {
 
         </div>
 
+        {/* Calendar Mode Toggle */}
+        <div className="mb-4 flex justify-center">
+          <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
+            <Button
+              variant={calendarMode === 'simple' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCalendarMode('simple')}
+              className="px-4"
+            >
+              <Grid className="h-4 w-4 mr-2" />
+              {t.simpleView}
+            </Button>
+            <Button
+              variant={calendarMode === 'detailed' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setCalendarMode('detailed')}
+              className="px-4"
+            >
+              <CalendarIconView className="h-4 w-4 mr-2" />
+              {t.detailView}
+            </Button>
+          </div>
+        </div>
+
         {/* Calendar View */}
         <div className={`transition-opacity duration-300 ${showTransition ? 'opacity-50' : 'opacity-100'}`}>
           {loading ? (
             <CalendarSkeleton view={view} />
+          ) : calendarMode === 'simple' ? (
+            /* Simple Calendar Grid */
+            <Card>
+              <CardContent className="p-6">
+                {/* Month Navigation */}
+                <div className="flex items-center justify-between mb-6">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePrevMonth}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  <h3 className="text-lg font-semibold">
+                    {t.monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  </h3>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleNextMonth}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="space-y-2">
+                  {/* Day Headers */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {t.dayNames.map((day) => (
+                      <div key={day} className="text-sm font-medium text-muted-foreground text-center py-2">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Calendar Days */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {(() => {
+                      const monthStart = startOfMonth(currentDate);
+                      const monthEnd = endOfMonth(currentDate);
+                      const startDate = startOfWeek(monthStart);
+                      const endDate = endOfWeek(monthEnd);
+                      const days = eachDayOfInterval({ start: startDate, end: endDate });
+                      
+                      return days.map((day, index) => {
+                        const isCurrentMonth = isSameMonth(day, currentDate);
+                        const isTodayDate = isToday(day);
+                        
+                        return (
+                          <div
+                            key={index}
+                            className={cn(
+                              "relative h-12 text-sm text-center flex items-center justify-center rounded border border-border/50",
+                              "hover:bg-accent cursor-pointer transition-colors",
+                              isTodayDate && "bg-primary text-primary-foreground font-medium border-primary",
+                              !isCurrentMonth && "text-muted-foreground/50 bg-muted/30"
+                            )}
+                            onClick={() => handleSimpleDateClick(day)}
+                          >
+                            <span>{format(day, 'd')}</span>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                {/* Today Button */}
+                <div className="flex justify-center mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleToday}
+                    className="text-sm"
+                  >
+                    {t.calendarUi.today}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
+            /* Detailed FullCalendar View */
             <Card className={density === 'compact' ? 'text-sm' : ''}>
               <CardContent className={`p-6 ${density === 'compact' ? 'p-4' : ''}`}>
                 <div className="calendar-container">
@@ -1017,7 +1187,7 @@ const Calendar = () => {
                       : view === 'weekend' ? 'timeGridWeek'
                       : 'timeGridWeek'
                     }
-                    initialDate={new Date(selectedYear, 0, 1)}
+                    initialDate={getInitialDate()}
                     headerToolbar={{
                       left: 'prev,next today',
                       center: 'title',
