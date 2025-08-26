@@ -273,16 +273,8 @@ const Calendar = () => {
   }, [hasFeature, navigate, authLoading, permissionsLoading, user, hasPermission]);
 
   const loadEvents = useCallback(async () => {
-    console.log('=== CALENDAR DEBUG START ===');
-    console.log('User:', user?.id);
-    console.log('Profile role:', profile?.role);
-    console.log('Auth loading:', authLoading);
-    console.log('Permissions loading:', permissionsLoading);
-    console.log('Has calendar:view permission:', hasPermission('calendar:view'));
-    
     // Prevent loading if not ready
     if (!user || !hasPermission('calendar:view') || authLoading || permissionsLoading) {
-      console.log('❌ Calendar load blocked - missing requirements');
       return;
     }
 
