@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/PageLayout';
 import funkoFlashLogo from '@/assets/funko-flash-logo.png';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BusinessEventsPageProps {
   language?: 'en' | 'es';
@@ -41,8 +42,33 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
   const loadEvents = async () => {
     try {
       setLoading(true);
-      const data = await businessEventsApi.getEvents();
-      setEvents(data);
+      
+      // For business users, only load their assigned events
+      if (profile?.role === 'business') {
+        // Ensure business account exists for this user
+        await businessEventsApi.ensureBusinessAccountForUser(profile.user_id);
+        
+        // Get events assigned to this business user
+        const { data, error } = await supabase
+          .from('business_events')
+          .select(`
+            *,
+            business_event_talent(
+              talent_profiles(*)
+            ),
+            business_event_account!inner(
+              business_account!inner(user_id)
+            )
+          `)
+          .eq('business_event_account.business_account.user_id', profile.user_id);
+          
+        if (error) throw error;
+        setEvents(data || []);
+      } else {
+        // For admin/staff, load all events
+        const data = await businessEventsApi.getEvents();
+        setEvents(data);
+      }
     } catch (error) {
       toast({
         title: language === 'es' ? 'Error' : 'Error',

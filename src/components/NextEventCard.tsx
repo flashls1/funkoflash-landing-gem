@@ -68,7 +68,58 @@ export const NextEventCard = ({ language }: NextEventProps) => {
     try {
       setLoading(true);
       
-      // Get user's talent profile
+      // Get user's profile to check role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      // For business users, get next business event
+      if (profile?.role === 'business') {
+        const now = new Date().toISOString();
+        
+        const { data, error } = await supabase
+          .from('business_events')
+          .select(`
+            *,
+            business_event_account!inner(
+              business_account!inner(user_id)
+            )
+          `)
+          .gte('start_ts', now)
+          .eq('business_event_account.business_account.user_id', user.id)
+          .order('start_ts', { ascending: true })
+          .limit(1);
+
+        if (error) throw error;
+        
+        // Convert business event to calendar event format for display
+        if (data && data.length > 0) {
+          const businessEvent = data[0];
+          const convertedEvent: CalendarEvent = {
+            id: businessEvent.id,
+            start_date: businessEvent.start_ts ? businessEvent.start_ts.split('T')[0] : '',
+            end_date: businessEvent.end_ts ? businessEvent.end_ts.split('T')[0] : '',
+            start_time: businessEvent.start_ts ? businessEvent.start_ts.split('T')[1]?.split('.')[0] : null,
+            end_time: businessEvent.end_ts ? businessEvent.end_ts.split('T')[1]?.split('.')[0] : null,
+            all_day: !businessEvent.start_ts?.includes('T'),
+            event_title: businessEvent.title || 'Business Event',
+            status: businessEvent.status === 'published' ? 'booked' : 'tentative',
+            venue_name: businessEvent.venue,
+            location_city: businessEvent.city,
+            location_state: businessEvent.state,
+            location_country: businessEvent.country,
+            talent_profiles: null
+          };
+          setNextEvent(convertedEvent);
+        } else {
+          setNextEvent(null);
+        }
+        return;
+      }
+      
+      // For talent users, get next calendar event
       const { data: talentProfile } = await supabase
         .from('talent_profiles')
         .select('id')
