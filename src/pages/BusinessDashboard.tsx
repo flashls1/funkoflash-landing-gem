@@ -502,7 +502,7 @@ const BusinessDashboard = () => {
                 borderColor: currentTheme.border,
                 color: currentTheme.cardForeground
               }}
-              onClick={() => showComingSoon(t.bookingManagement)}
+              onClick={() => navigate('/business/booking-management')}
             >
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -510,13 +510,16 @@ const BusinessDashboard = () => {
                   {t.bookingManagement}
                 </CardTitle>
                 <CardDescription>
-                  {language === 'en' ? 'Manage your talent bookings and events' : 'Gestiona tus reservas de talento y eventos'}
+                  {language === 'en' ? 'Manage your business events and bookings' : 'Gestiona tus eventos empresariales y reservas'}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="text-center py-8">
-                <p className="text-muted-foreground text-sm">
-                  {language === 'en' ? 'Feature Coming Soon' : 'Función Próximamente'}
-                </p>
+              <CardContent>
+                <Button 
+                  variant="business" 
+                  className="w-full"
+                >
+                  {language === 'en' ? 'Manage Bookings' : 'Gestionar Reservas'}
+                </Button>
               </CardContent>
             </Card>
 

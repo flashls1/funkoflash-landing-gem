@@ -192,6 +192,9 @@ export const businessEventsApi = {
       .insert([{ event_id: eventId, business_account_id: businessAccountId }]);
 
     if (error) throw error;
+
+    // Create corresponding calendar events for the business user
+    await this.createCalendarEventsForBusinessUser(eventId, businessAccountId);
   },
 
   // Remove business account from event
@@ -203,6 +206,9 @@ export const businessEventsApi = {
       .eq('business_account_id', businessAccountId);
 
     if (error) throw error;
+
+    // Remove corresponding calendar events for the business user
+    await this.removeCalendarEventsForBusinessUser(eventId, businessAccountId);
   },
 
   // Travel details API
@@ -385,6 +391,191 @@ export const businessEventsApi = {
 
     if (error) {
       console.error('Error removing calendar events:', error);
+    }
+  },
+
+  // Create calendar events for business user when assigned to business event
+  async createCalendarEventsForBusinessUser(eventId: string, businessAccountId: string) {
+    // Get the business event details
+    const { data: businessEvent, error: eventError } = await supabase
+      .from('business_events')
+      .select('*')
+      .eq('id', eventId)
+      .single();
+
+    if (eventError || !businessEvent) {
+      console.error('Error fetching business event:', eventError);
+      return;
+    }
+
+    // Get the business account details to find the user
+    const { data: businessAccount, error: accountError } = await supabase
+      .from('business_account')
+      .select('contact_email, name')
+      .eq('id', businessAccountId)
+      .single();
+
+    if (accountError || !businessAccount) {
+      console.error('Error fetching business account:', accountError);
+      return;
+    }
+
+    // Find the user profile for this business account
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .or(`email.eq.${businessAccount.contact_email},business_name.eq.${businessAccount.name}`)
+      .eq('role', 'business')
+      .single();
+
+    if (!profile) {
+      console.log('No business user profile found for this account');
+      return;
+    }
+
+    // Find or create a talent profile for this business user (for calendar integration)
+    let { data: talentProfile } = await supabase
+      .from('talent_profiles')
+      .select('id')
+      .eq('user_id', profile.user_id)
+      .single();
+
+    // If no talent profile exists, create one for calendar purposes
+    if (!talentProfile) {
+      const { data: newTalentProfile, error: createError } = await supabase
+        .from('talent_profiles')
+        .insert([{
+          user_id: profile.user_id,
+          name: businessAccount.name || 'Business User',
+          slug: `business-${profile.user_id}`,
+          active: true,
+          public_visibility: false
+        }])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating talent profile for business user:', createError);
+        return;
+      }
+      talentProfile = newTalentProfile;
+    }
+
+    // Create calendar events similar to talent assignment
+    const dailySchedule = businessEvent.daily_schedule;
+    
+    if (Array.isArray(dailySchedule) && dailySchedule.length > 0) {
+      // Create calendar events for each day in the schedule
+      for (const dayItem of dailySchedule) {
+        const day = dayItem as unknown as DailyScheduleItem;
+        if (day.date) {
+          const calendarEvent = {
+            talent_id: talentProfile.id,
+            start_date: day.date,
+            end_date: day.date,
+            start_time: day.start_time || null,
+            end_time: day.end_time || null,
+            all_day: !day.start_time && !day.end_time,
+            event_title: `[BUSINESS] ${businessEvent.title || 'Business Event'}`,
+            status: 'booked',
+            venue_name: businessEvent.venue,
+            location_city: businessEvent.city,
+            location_state: businessEvent.state,
+            location_country: businessEvent.country,
+            address_line: businessEvent.address_line,
+            url: businessEvent.website,
+            notes_internal: `Business Event Management: ${businessEvent.title}`,
+            notes_public: `Day ${day.day} of ${businessEvent.title} (Business Management)`,
+            source_file: 'business_event_management',
+            source_row_id: eventId
+          };
+
+          const { error } = await supabase
+            .from('calendar_event')
+            .insert([calendarEvent]);
+
+          if (error) {
+            console.error('Error creating business calendar event:', error);
+          }
+        }
+      }
+    } else {
+      // If no daily schedule, create a single event based on start/end timestamps
+      if (businessEvent.start_ts) {
+        const startDate = businessEvent.start_ts.split('T')[0];
+        const endDate = businessEvent.end_ts ? businessEvent.end_ts.split('T')[0] : startDate;
+        
+        const calendarEvent = {
+          talent_id: talentProfile.id,
+          start_date: startDate,
+          end_date: endDate,
+          start_time: businessEvent.start_ts.includes('T') ? businessEvent.start_ts.split('T')[1]?.split('.')[0] : null,
+          end_time: businessEvent.end_ts?.includes('T') ? businessEvent.end_ts.split('T')[1]?.split('.')[0] : null,
+          all_day: !businessEvent.start_ts.includes('T'),
+          event_title: `[BUSINESS] ${businessEvent.title || 'Business Event'}`,
+          status: 'booked',
+          venue_name: businessEvent.venue,
+          location_city: businessEvent.city,
+          location_state: businessEvent.state,
+          location_country: businessEvent.country,
+          address_line: businessEvent.address_line,
+          url: businessEvent.website,
+          notes_internal: `Business Event Management: ${businessEvent.title}`,
+          source_file: 'business_event_management',
+          source_row_id: eventId
+        };
+
+        const { error } = await supabase
+          .from('calendar_event')
+          .insert([calendarEvent]);
+
+        if (error) {
+          console.error('Error creating business calendar event:', error);
+        }
+      }
+    }
+  },
+
+  // Remove calendar events for business user when removed from business event
+  async removeCalendarEventsForBusinessUser(eventId: string, businessAccountId: string) {
+    // Get the business account details to find the user
+    const { data: businessAccount } = await supabase
+      .from('business_account')
+      .select('contact_email, name')
+      .eq('id', businessAccountId)
+      .single();
+
+    if (!businessAccount) return;
+
+    // Find the user profile for this business account
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .or(`email.eq.${businessAccount.contact_email},business_name.eq.${businessAccount.name}`)
+      .eq('role', 'business')
+      .single();
+
+    if (!profile) return;
+
+    // Find the talent profile for this business user
+    const { data: talentProfile } = await supabase
+      .from('talent_profiles')
+      .select('id')
+      .eq('user_id', profile.user_id)
+      .single();
+
+    if (!talentProfile) return;
+
+    // Remove the calendar events
+    const { error } = await supabase
+      .from('calendar_event')
+      .delete()
+      .eq('talent_id', talentProfile.id)
+      .eq('source_file', 'business_event_management')
+      .eq('source_row_id', eventId);
+
+    if (error) {
+      console.error('Error removing business calendar events:', error);
     }
   }
 };

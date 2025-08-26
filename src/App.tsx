@@ -28,6 +28,7 @@ import BusinessEventsPage from "./features/business-events/BusinessEventsPage";
 import BusinessEventDetail from "./features/business-events/BusinessEventDetail";
 import TalentBookingManagement from "./pages/TalentBookingManagement";
 import TalentPortfolioManagement from "./pages/TalentPortfolioManagement";
+import BusinessBookingManagement from "./pages/BusinessBookingManagement";
 import BackgroundManager from "./features/appearance/BackgroundManager";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const App = () => (
             <Route path="/admin/business-events/:id" element={<BusinessEventDetail />} />
             <Route path="/business/events" element={<BusinessEventsPage />} />
             <Route path="/business/events/:id" element={<BusinessEventDetail />} />
+            <Route path="/business/booking-management" element={<BusinessBookingManagement />} />
           <Route path="/talent/booking-management" element={<TalentBookingManagement />} />
           <Route path="/talent/portfolio-management" element={<TalentPortfolioManagement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
