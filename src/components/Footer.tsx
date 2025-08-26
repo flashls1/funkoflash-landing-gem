@@ -19,7 +19,7 @@ const Footer = ({ language }: FooterProps) => {
       email: "flash@funkoflash.com",
       newsletter: "Subscribe to our newsletter for exclusive updates and offers",
       subscribe: "Subscribe",
-      copyright: "© 2024 Funko Flash. All rights reserved.",
+      copyright: "© 2025 Funko Flash. All rights reserved.",
       followUs: "Follow Us"
     },
     es: {
@@ -33,7 +33,7 @@ const Footer = ({ language }: FooterProps) => {
       email: "flash@funkoflash.com",
       newsletter: "Suscríbete a nuestro boletín para actualizaciones exclusivas y ofertas",
       subscribe: "Suscribirse",
-      copyright: "© 2024 Funko Flash. Todos los derechos reservados.",
+      copyright: "© 2025 Funko Flash. Todos los derechos reservados.",
       followUs: "Síguenos"
     }
   };
@@ -44,7 +44,7 @@ const Footer = ({ language }: FooterProps) => {
     <footer className="bg-foreground text-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
-        <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Logo and Description */}
           <div className="space-y-4">
             <img src={funkoFlashLogo} alt="Funko Flash" className="h-12 w-auto" />
@@ -123,7 +123,7 @@ const Footer = ({ language }: FooterProps) => {
 
 
         {/* Copyright */}
-        <div className="border-t border-background/20 py-6 text-center">
+        <div className="border-t border-background/20 py-3 text-center">
           <p className="text-background/60 text-sm">{currentContent.copyright}</p>
         </div>
       </div>
