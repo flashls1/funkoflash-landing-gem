@@ -66,17 +66,28 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
           
         if (!businessAccount) throw new Error('Business account not found');
         
-        // Get events assigned to this business account using proper join
+        // Get events assigned to this business account
+        // First get event IDs from business_event_account table
+        const { data: eventIds } = await supabase
+          .from('business_event_account')
+          .select('event_id')
+          .eq('business_account_id', businessAccount.id);
+          
+        if (!eventIds || eventIds.length === 0) {
+          setEvents([]);
+          return;
+        }
+        
+        // Then get the full event details
         const { data, error } = await supabase
           .from('business_events')
           .select(`
             *,
             business_event_talent(
               talent_profiles(*)
-            ),
-            business_event_account!inner(business_account_id)
+            )
           `)
-          .eq('business_event_account.business_account_id', businessAccount.id);
+          .in('id', eventIds.map(item => item.event_id));
           
         if (error) throw error;
         setEvents(data || []);

@@ -91,13 +91,21 @@ export const NextEventCard = ({ language }: NextEventProps) => {
           return;
         }
         
+        // Get event IDs from business_event_account table first
+        const { data: eventIds } = await supabase
+          .from('business_event_account')
+          .select('event_id')
+          .eq('business_account_id', businessAccount.id);
+          
+        if (!eventIds || eventIds.length === 0) {
+          setNextEvent(null);
+          return;
+        }
+        
         const { data, error } = await supabase
           .from('business_events')
-          .select(`
-            *,
-            business_event_account!inner(business_account_id)
-          `)
-          .eq('business_event_account.business_account_id', businessAccount.id)
+          .select('*')
+          .in('id', eventIds.map(item => item.event_id))
           .gte('start_ts', now)
           .order('start_ts', { ascending: true })
           .limit(1);
