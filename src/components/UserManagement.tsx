@@ -732,7 +732,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
               <ArrowLeft className="h-4 w-4" />
               {t.exitDashboard}
             </Button>
-            <h2 className="text-2xl font-bold">{t.userDashboard}</h2>
+            <h2 className="text-2xl font-bold text-white">{t.userDashboard}</h2>
             <Badge className={getRoleBadgeColor(selectedUser.role)}>
               {getRoleIcon(selectedUser.role)}
               <span className="ml-1">{t[selectedUser.role as keyof typeof t]}</span>
