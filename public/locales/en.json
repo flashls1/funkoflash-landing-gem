@@ -1,4 +1,13 @@
 {
+  "calendar": {
+    "backTalent": "Back to Talent Dashboard",
+    "conflict": "This event was updated elsewhere. Reload to continue or overwrite with your changes.",
+    "views": {
+      "month": "Month",
+      "week": "Week", 
+      "weekend": "Weekend"
+    }
+  },
   "bizEvent": {
     "primaryBusiness": "Primary Business",
     "teamMembers": "Team Members",

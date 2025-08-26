@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface CalendarSkeletonProps {
-  view: 'month' | 'week';
+  view: 'month' | 'week' | 'weekend';
 }
 
 export const CalendarSkeleton = ({ view }: CalendarSkeletonProps) => {
@@ -44,7 +44,8 @@ export const CalendarSkeleton = ({ view }: CalendarSkeletonProps) => {
     );
   }
 
-  // Week view skeleton
+  // Week/Weekend view skeleton
+  const cols = view === 'weekend' ? 3 : 7;
   return (
     <Card>
       <CardContent className="p-6">
@@ -64,8 +65,8 @@ export const CalendarSkeleton = ({ view }: CalendarSkeletonProps) => {
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="flex gap-2">
                 <Skeleton className="h-12 w-16" />
-                <div className="flex-1 grid grid-cols-7 gap-1">
-                  {Array.from({ length: 7 }).map((_, j) => (
+                <div className={`flex-1 grid gap-1 ${view === 'weekend' ? 'grid-cols-3' : 'grid-cols-7'}`}>
+                  {Array.from({ length: cols }).map((_, j) => (
                     <div key={j} className="min-h-12 space-y-1">
                       {Math.random() > 0.7 && <Skeleton className="h-3 w-full" />}
                       {Math.random() > 0.9 && <Skeleton className="h-3 w-2/3" />}

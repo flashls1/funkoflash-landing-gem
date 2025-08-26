@@ -25,6 +25,8 @@ import { CalendarEventTooltip } from '@/components/CalendarEventTooltip';
 import { CalendarSkeleton } from '@/components/CalendarSkeleton';
 import { CalendarKeyboardHelp } from '@/components/CalendarKeyboardHelp';
 import { CalendarFilterChips } from '@/components/CalendarFilterChips';
+import { CalendarViewSelector } from '@/components/CalendarViewSelector';
+import { CalendarStatusBadge } from '@/components/CalendarStatusBadge';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +35,7 @@ import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, star
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import { ArrowLeft } from 'lucide-react';
 
 // Add custom CSS for calendar styling - Remove background override to let AdminThemeProvider handle it
 const calendarStyles = `
@@ -116,7 +119,9 @@ interface CalendarFilters {
 
 const Calendar = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
-  const [view, setView] = useState<'month' | 'week'>('month');
+  const [view, setView] = useState<'month' | 'week' | 'weekend'>(() => {
+    return (localStorage.getItem('ffCal.viewMode') as 'month' | 'week' | 'weekend') || 'month';
+  });
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [talents, setTalents] = useState<{ id: string; name: string; user_id?: string }[]>([]);
   const [selectedTalent, setSelectedTalent] = useState<string | null>(null);
@@ -132,7 +137,10 @@ const Calendar = () => {
     hideNotAvailable: false
   });
   const [selectedYear, setSelectedYear] = useState(() => {
-    return 2028; // Set to 2028 since that's where the imported events are
+    const saved = localStorage.getItem('ffCal.year');
+    const year = saved ? parseInt(saved) : new Date().getFullYear();
+    // Clamp to bounds 2025-2030
+    return Math.max(2025, Math.min(2030, year));
   });
   const [talentSearch, setTalentSearch] = useState('');
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
@@ -145,6 +153,15 @@ const Calendar = () => {
   const { hasPermission, loading: permissionsLoading } = usePermissions();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Save view mode and year to localStorage
+  useEffect(() => {
+    localStorage.setItem('ffCal.viewMode', view);
+  }, [view]);
+
+  useEffect(() => {
+    localStorage.setItem('ffCal.year', selectedYear.toString());
+  }, [selectedYear]);
 
   const content = {
     en: {
@@ -178,6 +195,7 @@ const Calendar = () => {
       blockDay: 'Block this day as Not Available',
       blockWeekend: 'Block this weekend as Not Available',
       blockRange: 'Block date range...',
+      backTalent: 'Back to Talent Dashboard',
       calendarUi: {
         density: { comfortable: 'Comfortable', compact: 'Compact' },
         quickRanges: { next7: 'Next 7 days', next30: 'Next 30 days', next90: 'Next 90 days' },
@@ -216,6 +234,7 @@ const Calendar = () => {
       blockDay: 'Bloquear este día como No disponible',
       blockWeekend: 'Bloquear este fin de semana como No disponible',
       blockRange: 'Bloquear rango de fechas...',
+      backTalent: 'Volver al panel de Talento',
       calendarUi: {
         density: { comfortable: 'Cómodo', compact: 'Compacto' },
         quickRanges: { next7: 'Próximos 7 días', next30: 'Próximos 30 días', next90: 'Próximos 90 días' },
@@ -721,6 +740,23 @@ const Calendar = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
+              {/* Back to Talent Dashboard - Only for Talent Role */}
+              {profile?.role === 'talent' && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    if (window.history.length > 1) {
+                      navigate(-1);
+                    } else {
+                      navigate('/dashboard/talent');
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  {t.backTalent}
+                </Button>
+              )}
               <CalendarIcon className="h-8 w-8 text-primary" />
               <div>
                 <h1 className="text-3xl font-bold text-foreground">{t.title}</h1>
@@ -807,18 +843,11 @@ const Calendar = () => {
             {/* View Toggle */}
             <div>
               <Label className="text-sm font-medium mb-2 block">View</Label>
-              <Tabs value={view} onValueChange={(value: any) => setView(value)}>
-                <TabsList>
-                  <TabsTrigger value="month" className="flex items-center gap-2">
-                    <Grid className="h-4 w-4" />
-                    {t.monthView}
-                  </TabsTrigger>
-                  <TabsTrigger value="week" className="flex items-center gap-2">
-                    <CalendarIconView className="h-4 w-4" />
-                    {t.weekView}
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+              <CalendarViewSelector
+                view={view}
+                onViewChange={setView}
+                language={language}
+              />
             </div>
 
             <div className="ml-auto flex items-center gap-4">
@@ -994,13 +1023,19 @@ const Calendar = () => {
                 <div className="calendar-container">
                   <FullCalendar
                     plugins={[dayGridPlugin, timeGridPlugin]}
-                    initialView={view === 'month' ? 'dayGridMonth' : 'timeGridWeek'}
+                    initialView={
+                      view === 'month' ? 'dayGridMonth' 
+                      : view === 'weekend' ? 'timeGridWeek'
+                      : 'timeGridWeek'
+                    }
                     initialDate={new Date(selectedYear, 0, 1)}
                     headerToolbar={{
                       left: 'prev,next today',
                       center: 'title',
                       right: view === 'month' ? 'dayGridMonth' : 'timeGridWeek'
                     }}
+                    weekends={view !== 'weekend'}
+                    hiddenDays={view === 'weekend' ? [0, 1, 2, 3, 4] : []}
                     events={formatEventsForFullCalendar(events)}
                     eventClick={handleEventClick}
                     selectable={true}
@@ -1008,7 +1043,6 @@ const Calendar = () => {
                     height="auto"
                     eventDisplay="block"
                     dayMaxEvents={density === 'compact' ? 2 : 3}
-                    weekends={true}
                     editable={false}
                     selectMirror={false}
                     dayHeaders={true}

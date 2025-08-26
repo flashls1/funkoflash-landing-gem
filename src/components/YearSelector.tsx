@@ -9,7 +9,7 @@ interface YearSelectorProps {
   language: 'en' | 'es';
 }
 
-const AVAILABLE_YEARS = [2025, 2026, 2027, 2028, 2029, 2030, 2031];
+const AVAILABLE_YEARS = [2025, 2026, 2027, 2028, 2029, 2030];
 
 export const YearSelector = ({ selectedYear, onYearChange, language }: YearSelectorProps) => {
   const content = {
@@ -54,7 +54,7 @@ export const YearSelector = ({ selectedYear, onYearChange, language }: YearSelec
       </Button>
       
       <Tabs value={selectedYear.toString()} onValueChange={(value) => onYearChange(parseInt(value))}>
-        <TabsList className="grid w-full grid-cols-7 min-w-fit">
+        <TabsList className="grid w-full grid-cols-6 min-w-fit">
           {AVAILABLE_YEARS.map((year) => (
             <TabsTrigger
               key={year}

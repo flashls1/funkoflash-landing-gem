@@ -7,11 +7,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, X, Plus } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Calendar, X, Plus, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useOptimisticConcurrency } from '@/hooks/useOptimisticConcurrency';
 import { format } from 'date-fns';
 
 interface CalendarEventFormProps {
@@ -49,6 +51,7 @@ interface CalendarEvent {
   travel_in?: string;
   travel_out?: string;
   timezone?: string;
+  updated_at?: string;
 }
 
 export const CalendarEventForm = ({ 
@@ -112,9 +115,11 @@ export const CalendarEventForm = ({
   });
   const [talents, setTalents] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [originalUpdatedAt, setOriginalUpdatedAt] = useState<string>('');
   const { user, profile } = useAuth();
   const { hasPermission } = usePermissions();
   const { toast } = useToast();
+  const { checkConcurrency, handleConflict, conflictData, showConflictDialog, resolveConflict } = useOptimisticConcurrency<CalendarEvent>();
 
   const content = {
     en: {
@@ -210,6 +215,8 @@ export const CalendarEventForm = ({
           timezone: editEvent.timezone || 'America/Chicago',
           is_not_available: editEvent.status === 'not_available'
         });
+        // Store original updated_at for concurrency check
+        setOriginalUpdatedAt(editEvent.updated_at || '');
       } else {
         // Set defaults for new event
         setFormData(prev => ({
@@ -326,6 +333,23 @@ export const CalendarEventForm = ({
       };
 
       if (editEvent) {
+        // Check for concurrent modifications before updating
+        if (originalUpdatedAt) {
+          const { data: currentEvent, error: fetchError } = await supabase
+            .from('calendar_event')
+            .select('*')
+            .eq('id', editEvent.id)
+            .single();
+            
+          if (fetchError) throw fetchError;
+          
+          if (!checkConcurrency({ data: editEvent, updatedAt: originalUpdatedAt }, currentEvent as CalendarEvent)) {
+            handleConflict(currentEvent as CalendarEvent, language);
+            setLoading(false);
+            return;
+          }
+        }
+        
         // Update existing event
         const { error } = await supabase
           .from('calendar_event')

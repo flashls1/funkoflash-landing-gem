@@ -1,4 +1,13 @@
 {
+  "calendar": {
+    "backTalent": "Volver al panel de Talento",
+    "conflict": "Este evento fue actualizado en otro lugar. Recarga para continuar o sobrescribe con tus cambios.",
+    "views": {
+      "month": "Mes",
+      "week": "Semana",
+      "weekend": "Fin de semana"
+    }
+  },
   "bizEvent": {
     "primaryBusiness": "Empresa principal",
     "teamMembers": "Miembros del equipo",
