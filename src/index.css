@@ -62,7 +62,7 @@ All colors MUST be HSL.
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     
     /* Default Site Background - Black background with logo for Business/Talent dashboards */
-    --site-background: url('https://gytjgmeoepglbrjrbfie.supabase.co/storage/v1/object/public/design-assets/0aae1285-c95b-4818-bd0a-05feba50e724/1755732650367.png');
+    --site-background: url('/lovable-uploads/d0f4637c-55b5-42eb-af08-29eabb28b253.png');
 
     /* Extended Design System for Site Designer */
     --design-purple: 280 70% 50%;

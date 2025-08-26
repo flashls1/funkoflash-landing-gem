@@ -34,14 +34,10 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 
-// Add custom CSS for calendar styling
+// Add custom CSS for calendar styling - Remove background override to let AdminThemeProvider handle it
 const calendarStyles = `
   .fc, .fc-view-harness, .fc-view-harness-active {
-    background-image: var(--site-background) !important;
-    background-size: cover !important;
-    background-position: center !important;
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
+    background: transparent !important;
   }
   
   .fc-day-today-custom {
