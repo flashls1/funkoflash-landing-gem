@@ -21,6 +21,7 @@ const buttonVariants = cva(
         funko: "bg-[hsl(25,100%,60%)] text-white hover:bg-[hsl(25,100%,45%)] shadow-lg transition-all duration-300 transform hover:scale-105",
         "funko-blue": "bg-[hsl(220,90%,45%)] text-white hover:bg-[hsl(220,90%,30%)] shadow-lg transition-all duration-300 transform hover:scale-105",
         "funko-outline": "border-2 border-[hsl(25,100%,60%)] text-[hsl(25,100%,60%)] bg-transparent hover:bg-[hsl(25,100%,60%)] hover:text-white transition-all duration-300",
+        business: "border border-input bg-funko-orange text-white hover:bg-funko-orange/90 hover:text-white",
       },
       size: {
         default: "h-10 px-4 py-2",

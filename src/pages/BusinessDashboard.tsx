@@ -428,8 +428,8 @@ const BusinessDashboard = () => {
               </CardHeader>
               <CardContent>
                 <Button 
-                  variant="outline" 
-                  className="w-full bg-funko-orange hover:bg-funko-orange/90 hover:text-white"
+                  variant="business" 
+                  className="w-full"
                   onClick={() => navigate('/business/events')}
                 >
                   {language === 'en' ? 'Manage Events' : 'Gestionar Eventos'}
@@ -466,24 +466,24 @@ const BusinessDashboard = () => {
               <CardContent>
                 <div className="space-y-2">
                   <Button 
-                    variant="outline" 
-                    className="w-full justify-start h-8 text-sm bg-funko-orange hover:bg-funko-orange/90 hover:text-white"
+                    variant="business" 
+                    className="w-full justify-start h-8 text-sm"
                     onClick={() => setProfileSettingsOpen(true)}
                   >
                     <Upload className="h-3 w-3 mr-2" />
                     {t.uploadBusinessImage}
                   </Button>
                   <Button 
-                    variant="outline" 
-                    className="w-full justify-start h-8 text-sm bg-funko-orange hover:bg-funko-orange/90 hover:text-white"
+                    variant="business" 
+                    className="w-full justify-start h-8 text-sm"
                     onClick={() => setProfileSettingsOpen(true)}
                   >
                     <FileText className="h-3 w-3 mr-2" />
                     {t.changeHeroImage}
                   </Button>
                   <Button 
-                    variant="outline" 
-                    className="w-full justify-start h-8 text-sm bg-funko-orange hover:bg-funko-orange/90 hover:text-white"
+                    variant="business" 
+                    className="w-full justify-start h-8 text-sm"
                     onClick={() => setProfileSettingsOpen(true)}
                   >
                     <Building2 className="h-3 w-3 mr-2" />
