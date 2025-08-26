@@ -2,22 +2,34 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, MapPin, Clock, DollarSign } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plane, Hotel, Car, Phone, User, FileText, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import PageLayout from '@/components/PageLayout';
 import { BusinessEvent, businessEventsApi } from '@/features/business-events/data';
 import { supabase } from '@/integrations/supabase/client';
 
+interface EventWithDetails extends BusinessEvent {
+  business_event_talent?: any[];
+  business_event_travel?: any[];
+  business_event_hotel?: any[];
+  business_event_transport?: any[];
+  business_event_contact?: any[];
+}
+
 const TalentBookingManagement = () => {
-  const [events, setEvents] = useState<BusinessEvent[]>([]);
+  const [events, setEvents] = useState<EventWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const { profile } = useAuth();
   const { language, setLanguage } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     loadEvents();
@@ -39,8 +51,8 @@ const TalentBookingManagement = () => {
         return;
       }
 
-      // Get business events directly from the talent assignments
-      const { data, error } = await supabase
+      // Get business events assigned to the talent
+      const { data: eventsData, error } = await supabase
         .from('business_events')
         .select(`
           *,
@@ -57,7 +69,42 @@ const TalentBookingManagement = () => {
 
       if (error) throw error;
 
-      setEvents(data || []);
+      // Get related logistics data for each event
+      const eventsWithDetails = await Promise.all(
+        (eventsData || []).map(async (event) => {
+          const [travelData, hotelData, transportData, contactData] = await Promise.all([
+            supabase
+              .from('business_event_travel')
+              .select('*')
+              .eq('event_id', event.id)
+              .eq('talent_id', talentProfile.id),
+            supabase
+              .from('business_event_hotel')
+              .select('*')
+              .eq('event_id', event.id)
+              .eq('talent_id', talentProfile.id),
+            supabase
+              .from('business_event_transport')
+              .select('*')
+              .eq('event_id', event.id)
+              .eq('talent_id', talentProfile.id),
+            supabase
+              .from('business_event_contact')
+              .select('*')
+              .eq('event_id', event.id)
+          ]);
+
+          return {
+            ...event,
+            business_event_travel: travelData.data || [],
+            business_event_hotel: hotelData.data || [],
+            business_event_transport: transportData.data || [],
+            business_event_contact: contactData.data || []
+          };
+        })
+      );
+
+      setEvents(eventsWithDetails as EventWithDetails[]);
     } catch (error) {
       console.error('Error loading talent bookings:', error);
       toast({
@@ -82,7 +129,32 @@ const TalentBookingManagement = () => {
       status: "Status",
       location: "Location",
       date: "Date",
-      earnings: "Earnings"
+      earnings: "Earnings",
+      travel: "Travel",
+      hotel: "Hotel",
+      transport: "Transport",
+      contact: "Contact",
+      overview: "Overview",
+      logistics: "Logistics",
+      airline: "Airline",
+      flightConfirmation: "Flight Confirmation",
+      arrival: "Arrival",
+      departure: "Departure",
+      hotelName: "Hotel",
+      hotelAddress: "Address",
+      checkin: "Check-in",
+      checkout: "Check-out",
+      provider: "Provider",
+      pickup: "Pickup",
+      dropoff: "Drop-off",
+      confirmation: "Confirmation",
+      contactPerson: "Contact Person",
+      phone: "Phone",
+      guarantee: "Guarantee",
+      perDiem: "Per Diem",
+      venue: "Venue",
+      notAvailable: "Not available",
+      viewDetails: "View Details"
     },
     es: {
       title: "Gestión de Reservas",
@@ -93,7 +165,32 @@ const TalentBookingManagement = () => {
       status: "Estado",
       location: "Ubicación",
       date: "Fecha",
-      earnings: "Ganancias"
+      earnings: "Ganancias",
+      travel: "Viaje",
+      hotel: "Hotel",
+      transport: "Transporte",
+      contact: "Contacto",
+      overview: "Resumen",
+      logistics: "Logística",
+      airline: "Aerolínea",
+      flightConfirmation: "Confirmación de vuelo",
+      arrival: "Llegada",
+      departure: "Salida",
+      hotelName: "Hotel",
+      hotelAddress: "Dirección",
+      checkin: "Check-in",
+      checkout: "Check-out",
+      provider: "Proveedor",
+      pickup: "Recogida",
+      dropoff: "Destino",
+      confirmation: "Confirmación",
+      contactPerson: "Persona de contacto",
+      phone: "Teléfono",
+      guarantee: "Garantía",
+      perDiem: "Viáticos",
+      venue: "Lugar",
+      notAvailable: "No disponible",
+      viewDetails: "Ver detalles"
     }
   };
 
@@ -123,11 +220,262 @@ const TalentBookingManagement = () => {
   };
 
   const formatCurrency = (amount: number | null, currency: string = 'USD') => {
-    if (!amount) return 'TBD';
+    if (!amount) return t.notAvailable;
     return new Intl.NumberFormat(language === 'es' ? 'es-ES' : 'en-US', {
       style: 'currency',
       currency: currency
     }).format(amount);
+  };
+
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return t.notAvailable;
+    return new Date(dateString).toLocaleString(language === 'es' ? 'es-ES' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const renderEventCard = (event: EventWithDetails) => {
+    const talentAssignment = event.business_event_talent?.[0];
+    const travelDetails = event.business_event_travel?.[0];
+    const hotelDetails = event.business_event_hotel?.[0];
+    const transportDetails = event.business_event_transport?.[0];
+    const contactDetails = event.business_event_contact?.[0];
+
+    return (
+      <Card key={event.id} className="w-full hover:shadow-lg transition-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start gap-2">
+            <CardTitle className="text-lg font-bold leading-tight">
+              {event.title || t.notAvailable}
+            </CardTitle>
+            <Badge className={`${getStatusColor(event.status || 'draft')} text-white shrink-0`}>
+              {event.status === 'published' 
+                ? (language === 'es' ? 'Publicado' : 'Published')
+                : event.status === 'draft'
+                ? (language === 'es' ? 'Borrador' : 'Draft')
+                : event.status === 'cancelled'
+                ? (language === 'es' ? 'Cancelado' : 'Cancelled')
+                : event.status
+              }
+            </Badge>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              <TabsTrigger value="overview" className="text-xs">
+                <FileText className="h-3 w-3 mr-1" />
+                {t.overview}
+              </TabsTrigger>
+              <TabsTrigger value="logistics" className="text-xs">
+                <Car className="h-3 w-3 mr-1" />
+                {t.logistics}
+              </TabsTrigger>
+              {!isMobile && (
+                <TabsTrigger value="contact" className="text-xs">
+                  <User className="h-3 w-3 mr-1" />
+                  {t.contact}
+                </TabsTrigger>
+              )}
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-3 mt-3">
+              {/* Date */}
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span>{formatDate(event.start_ts)}</span>
+              </div>
+
+              {/* Location */}
+              {(event.city || event.state) && (
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span>{[event.city, event.state].filter(Boolean).join(', ')}</span>
+                </div>
+              )}
+
+              {/* Venue */}
+              {event.venue && (
+                <div className="text-sm">
+                  <span className="font-medium">{t.venue}:</span> {event.venue}
+                </div>
+              )}
+
+              {/* Earnings */}
+              {talentAssignment && (
+                <div className="space-y-2 border-t pt-3">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    {t.earnings}
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 text-xs">
+                    {talentAssignment.guarantee_amount && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t.guarantee}:</span>
+                        <span className="font-medium">
+                          {formatCurrency(talentAssignment.guarantee_amount, talentAssignment.guarantee_currency)}
+                        </span>
+                      </div>
+                    )}
+                    {talentAssignment.per_diem_amount && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t.perDiem}:</span>
+                        <span className="font-medium">
+                          {formatCurrency(talentAssignment.per_diem_amount, talentAssignment.per_diem_currency)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="logistics" className="space-y-4 mt-3">
+              {/* Travel */}
+              {travelDetails && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <Plane className="h-4 w-4" />
+                    {t.travel}
+                  </h4>
+                  <div className="text-xs space-y-1 pl-6">
+                    {travelDetails.airline_name && (
+                      <div><span className="text-muted-foreground">{t.airline}:</span> {travelDetails.airline_name}</div>
+                    )}
+                    {travelDetails.confirmation_codes && (
+                      <div><span className="text-muted-foreground">{t.confirmation}:</span> {travelDetails.confirmation_codes}</div>
+                    )}
+                    {travelDetails.arrival_datetime && (
+                      <div><span className="text-muted-foreground">{t.arrival}:</span> {formatDateTime(travelDetails.arrival_datetime)}</div>
+                    )}
+                    {travelDetails.departure_datetime && (
+                      <div><span className="text-muted-foreground">{t.departure}:</span> {formatDateTime(travelDetails.departure_datetime)}</div>
+                    )}
+                    {travelDetails.flight_tickets_url && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(travelDetails.flight_tickets_url, '_blank')}
+                        className="h-6 text-xs"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        {t.viewDetails}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Hotel */}
+              {hotelDetails && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <Hotel className="h-4 w-4" />
+                    {t.hotel}
+                  </h4>
+                  <div className="text-xs space-y-1 pl-6">
+                    {hotelDetails.hotel_name && (
+                      <div><span className="text-muted-foreground">{t.hotelName}:</span> {hotelDetails.hotel_name}</div>
+                    )}
+                    {hotelDetails.hotel_address && (
+                      <div><span className="text-muted-foreground">{t.hotelAddress}:</span> {hotelDetails.hotel_address}</div>
+                    )}
+                    {hotelDetails.checkin_date && (
+                      <div><span className="text-muted-foreground">{t.checkin}:</span> {formatDate(hotelDetails.checkin_date)}</div>
+                    )}
+                    {hotelDetails.checkout_date && (
+                      <div><span className="text-muted-foreground">{t.checkout}:</span> {formatDate(hotelDetails.checkout_date)}</div>
+                    )}
+                    {hotelDetails.confirmation_number && (
+                      <div><span className="text-muted-foreground">{t.confirmation}:</span> {hotelDetails.confirmation_number}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Transport */}
+              {transportDetails && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <Car className="h-4 w-4" />
+                    {t.transport}
+                  </h4>
+                  <div className="text-xs space-y-1 pl-6">
+                    {transportDetails.provider_type && (
+                      <div><span className="text-muted-foreground">{t.provider}:</span> {transportDetails.provider_type}</div>
+                    )}
+                    {transportDetails.pickup_location && (
+                      <div><span className="text-muted-foreground">{t.pickup}:</span> {transportDetails.pickup_location}</div>
+                    )}
+                    {transportDetails.dropoff_location && (
+                      <div><span className="text-muted-foreground">{t.dropoff}:</span> {transportDetails.dropoff_location}</div>
+                    )}
+                    {transportDetails.confirmation_code && (
+                      <div><span className="text-muted-foreground">{t.confirmation}:</span> {transportDetails.confirmation_code}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {!isMobile && (
+              <TabsContent value="contact" className="space-y-3 mt-3">
+                {contactDetails ? (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      {t.contact}
+                    </h4>
+                    <div className="text-xs space-y-1 pl-6">
+                      {contactDetails.contact_name && (
+                        <div><span className="text-muted-foreground">{t.contactPerson}:</span> {contactDetails.contact_name}</div>
+                      )}
+                      {contactDetails.phone_number && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">{t.phone}:</span>
+                          <a href={`tel:${contactDetails.phone_number}`} className="text-primary hover:underline">
+                            {contactDetails.phone_number}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">{t.notAvailable}</div>
+                )}
+              </TabsContent>
+            )}
+
+            {/* Mobile contact info */}
+            {isMobile && contactDetails && (
+              <div className="mt-3 pt-3 border-t space-y-2">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  {t.contact}
+                </h4>
+                <div className="text-xs space-y-1">
+                  {contactDetails.contact_name && (
+                    <div><span className="text-muted-foreground">{t.contactPerson}:</span> {contactDetails.contact_name}</div>
+                  )}
+                  {contactDetails.phone_number && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-3 w-3 text-muted-foreground" />
+                      <a href={`tel:${contactDetails.phone_number}`} className="text-primary hover:underline">
+                        {contactDetails.phone_number}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </Tabs>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
@@ -169,84 +517,8 @@ const TalentBookingManagement = () => {
             <p className="text-muted-foreground">{t.noBookingsDesc}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => {
-              const talentAssignment = (event as any).business_event_talent?.[0];
-              
-              return (
-                <Card key={event.id} className="border-2 hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg font-bold">
-                        {event.title || 'Untitled Event'}
-                      </CardTitle>
-                      <Badge className={`${getStatusColor(event.status || 'draft')} text-white`}>
-                        {event.status === 'published' 
-                          ? (language === 'es' ? 'Publicado' : 'Published')
-                          : event.status === 'draft'
-                          ? (language === 'es' ? 'Borrador' : 'Draft')
-                          : event.status === 'cancelled'
-                          ? (language === 'es' ? 'Cancelado' : 'Cancelled')
-                          : event.status
-                        }
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    {/* Date */}
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {formatDate(event.start_ts)}
-                      </span>
-                    </div>
-
-                    {/* Location */}
-                    {(event.city || event.state) && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          {[event.city, event.state].filter(Boolean).join(', ')}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Venue */}
-                    {event.venue && (
-                      <div className="text-sm text-muted-foreground">
-                        <strong>Venue:</strong> {event.venue}
-                      </div>
-                    )}
-
-                    {/* Earnings */}
-                    {talentAssignment && (
-                      <div className="space-y-2 border-t pt-4">
-                        <h4 className="font-semibold text-sm">{t.earnings}</h4>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          {talentAssignment.guarantee_amount && (
-                            <div>
-                              <span className="text-muted-foreground">Guarantee:</span>
-                              <div className="font-medium">
-                                {formatCurrency(talentAssignment.guarantee_amount, talentAssignment.guarantee_currency)}
-                              </div>
-                            </div>
-                          )}
-                          {talentAssignment.per_diem_amount && (
-                            <div>
-                              <span className="text-muted-foreground">Per Diem:</span>
-                              <div className="font-medium">
-                                {formatCurrency(talentAssignment.per_diem_amount, talentAssignment.per_diem_currency)}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'}`}>
+            {events.map(renderEventCard)}
           </div>
         )}
       </div>
