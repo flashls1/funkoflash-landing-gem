@@ -429,7 +429,7 @@ const BusinessDashboard = () => {
               <CardContent>
                 <Button 
                   variant="outline" 
-                  className="w-full bg-background hover:bg-accent hover:text-accent-foreground"
+                  className="w-full bg-funko-orange hover:bg-funko-orange/90 hover:text-white"
                   onClick={() => navigate('/business/events')}
                 >
                   {language === 'en' ? 'Manage Events' : 'Gestionar Eventos'}
