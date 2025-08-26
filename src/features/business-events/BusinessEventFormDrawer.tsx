@@ -294,23 +294,41 @@ const BusinessEventFormDialog = ({
 
   const handleAssignments = async (eventId: string) => {
     try {
-      // Clear existing assignments
-      const existingEvent = await businessEventsApi.getEvents().then(events => 
-        events.find(e => e.id === eventId)
-      );
+      console.log('Starting assignments for event:', eventId);
+      console.log('Assigned talents:', assignedTalents);
+      console.log('Primary business ID:', formData.primary_business_id);
+      console.log('Team members:', teamMembers);
 
-      if (existingEvent) {
-        const existingTalents = (existingEvent as any).business_event_talent || [];
-        const existingAccounts = (existingEvent as any).business_event_account || [];
+      // Clear existing assignments only if event exists and we need to update
+      if (event) {
+        console.log('Clearing existing assignments for event update');
+        const existingEvent = await businessEventsApi.getEvents().then(events => 
+          events.find(e => e.id === eventId)
+        );
 
-        // Remove old talent assignments
-        for (const talent of existingTalents) {
-          await businessEventsApi.removeTalent(eventId, talent.talent_profiles.id);
-        }
+        if (existingEvent) {
+          const existingTalents = (existingEvent as any).business_event_talent || [];
+          const existingAccounts = (existingEvent as any).business_event_account || [];
 
-        // Remove old business account assignments (including primary)
-        for (const account of existingAccounts) {
-          await businessEventsApi.removeBusinessAccount(eventId, account.business_account.id);
+          // Remove old talent assignments
+          for (const talent of existingTalents) {
+            try {
+              await businessEventsApi.removeTalent(eventId, talent.talent_profiles.id);
+              console.log('Removed talent assignment:', talent.talent_profiles.id);
+            } catch (removeError) {
+              console.warn('Failed to remove talent assignment:', removeError);
+            }
+          }
+
+          // Remove old business account assignments (including primary)
+          for (const account of existingAccounts) {
+            try {
+              await businessEventsApi.removeBusinessAccount(eventId, account.business_account.id);
+              console.log('Removed business account assignment:', account.business_account.id);
+            } catch (removeError) {
+              console.warn('Failed to remove business account assignment:', removeError);
+            }
+          }
         }
       }
 
@@ -327,23 +345,30 @@ const BusinessEventFormDialog = ({
         allBusinessAccountsToAssign.add(memberId);
       });
 
+      console.log('Business accounts to assign:', Array.from(allBusinessAccountsToAssign));
+
       // Assign all business accounts (ensures all have access to the event)
       for (const businessAccountId of allBusinessAccountsToAssign) {
         try {
           await businessEventsApi.assignBusinessAccount(eventId, businessAccountId);
+          console.log('Successfully assigned business account:', businessAccountId);
         } catch (assignError) {
           // Log individual assignment errors but don't fail the whole process
-          console.warn(`Failed to assign business account ${businessAccountId} to event ${eventId}:`, assignError);
+          console.error(`Failed to assign business account ${businessAccountId} to event ${eventId}:`, assignError);
         }
       }
 
       // Add talent assignments
+      console.log('Assigning talents:', assignedTalents);
       for (const talentId of assignedTalents) {
         try {
           await businessEventsApi.assignTalent(eventId, talentId);
+          console.log('Successfully assigned talent:', talentId);
         } catch (assignError) {
           // Log individual assignment errors but don't fail the whole process
-          console.warn(`Failed to assign talent ${talentId} to event ${eventId}:`, assignError);
+          console.error(`Failed to assign talent ${talentId} to event ${eventId}:`, assignError);
+          // Re-throw talent assignment errors so user knows about them
+          throw new Error(`Failed to assign talent: ${assignError.message}`);
         }
       }
 
