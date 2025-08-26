@@ -79,13 +79,34 @@ export const NextEventCard = ({ language }: NextEventProps) => {
       if (fullProfile?.role === 'business') {
         const now = new Date().toISOString();
         
-        // Get business account ID for this user
+        // Get business account ID for this user  
         const businessName = fullProfile.business_name || fullProfile.first_name + ' ' + (fullProfile.last_name || '');
-        const { data: businessAccount } = await supabase
-          .from('business_account')
-          .select('id')
-          .or(`name.eq."${businessName}",contact_email.eq."${fullProfile.email}"`)
-          .single();
+        console.log('NextEventCard: Looking for business account with name:', businessName, 'or email:', fullProfile.email);
+        
+        // Try to find business account by name first, then by email
+        let businessAccount = null;
+        
+        // First try by name
+        if (businessName.trim()) {
+          const { data: accountByName } = await supabase
+            .from('business_account')
+            .select('id, name, contact_email')
+            .eq('name', businessName)
+            .maybeSingle();
+          businessAccount = accountByName;
+        }
+        
+        // If not found by name, try by email
+        if (!businessAccount && fullProfile.email) {
+          const { data: accountByEmail } = await supabase
+            .from('business_account')
+            .select('id, name, contact_email')
+            .eq('contact_email', fullProfile.email)
+            .maybeSingle();
+          businessAccount = accountByEmail;
+        }
+        
+        console.log('NextEventCard: Business account query result:', businessAccount);
           
         if (!businessAccount) {
           setNextEvent(null);

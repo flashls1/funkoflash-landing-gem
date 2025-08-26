@@ -59,12 +59,32 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
         
         // Get business account ID for this user
         const businessName = fullProfile.business_name || (fullProfile.first_name || '') + ' ' + (fullProfile.last_name || '');
-        const { data: businessAccount } = await supabase
-          .from('business_account')
-          .select('id')
-          .or(`name.eq."${businessName}",contact_email.eq."${fullProfile.email}"`)
-          .single();
-          
+        console.log('Looking for business account with name:', businessName, 'or email:', fullProfile.email);
+        
+        // Try to find business account by name first, then by email
+        let businessAccount = null;
+        
+        // First try by name
+        if (businessName.trim()) {
+          const { data: accountByName } = await supabase
+            .from('business_account')
+            .select('id, name, contact_email')
+            .eq('name', businessName)
+            .maybeSingle();
+          businessAccount = accountByName;
+        }
+        
+        // If not found by name, try by email
+        if (!businessAccount && fullProfile.email) {
+          const { data: accountByEmail } = await supabase
+            .from('business_account')
+            .select('id, name, contact_email')
+            .eq('contact_email', fullProfile.email)
+            .maybeSingle();
+          businessAccount = accountByEmail;
+        }
+        
+        console.log('Business account query result:', businessAccount);
         if (!businessAccount) throw new Error('Business account not found');
         
         // Get events assigned to this business account
@@ -200,7 +220,7 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
                 onClick={() => window.history.back()}
                 className="w-fit"
               >
-                ← {language === 'es' ? 'Volver al Panel de Administración' : 'Back to Admin Dashboard'}
+                ← {language === 'es' ? 'Volver al Panel' : profile?.role === 'admin' ? 'Back to Admin Dashboard' : 'Back to Dashboard'}
               </Button>
               
               <div>
