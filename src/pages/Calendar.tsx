@@ -121,7 +121,7 @@ interface CalendarFilters {
 const Calendar = () => {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [view, setView] = useState<'month' | 'week' | 'weekend'>(() => {
-    return (localStorage.getItem('ffCal.viewMode') as 'month' | 'week' | 'weekend') || 'month';
+    return (localStorage.getItem('ffCal.viewMode') as 'month' | 'week' | 'weekend') || 'week';
   });
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [talents, setTalents] = useState<{ id: string; name: string; user_id?: string }[]>([]);
@@ -153,6 +153,7 @@ const Calendar = () => {
   // Hybrid calendar state
   const [calendarMode, setCalendarMode] = useState<'simple' | 'detailed'>('simple');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [detailedView, setDetailedView] = useState<'week' | 'day'>('week');
 
   const { user, profile, loading: authLoading } = useAuth();
   const { hasPermission, loading: permissionsLoading } = usePermissions();
@@ -167,6 +168,7 @@ const Calendar = () => {
       setCurrentDate(navDate);
       setSelectedYear(navDate.getFullYear());
       setCalendarMode('detailed'); // Switch to detailed view when navigating from date
+      setDetailedView('day'); // Show day view when navigating to specific date
     }
   }, [location.state]);
 
@@ -188,6 +190,7 @@ const Calendar = () => {
     setCurrentDate(date);
     setSelectedDate(date);
     setCalendarMode('detailed');
+    setDetailedView('day'); // When clicking a specific date, show day view
   };
 
   // Function to get the dynamic initial date for FullCalendar
@@ -1077,7 +1080,10 @@ const Calendar = () => {
             <Button
               variant={calendarMode === 'detailed' ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => setCalendarMode('detailed')}
+              onClick={() => {
+                setCalendarMode('detailed');
+                setDetailedView('week'); // Default to week view when switching to detailed
+              }}
               className="px-4 flex items-center justify-center min-w-0"
             >
               <CalendarIconView className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -1183,15 +1189,13 @@ const Calendar = () => {
                   <FullCalendar
                     plugins={[dayGridPlugin, timeGridPlugin]}
                     initialView={
-                      view === 'month' ? 'dayGridMonth' 
-                      : view === 'weekend' ? 'timeGridWeek'
-                      : 'timeGridWeek'
+                      detailedView === 'week' ? 'timeGridWeek' : 'timeGridDay'
                     }
                     initialDate={getInitialDate()}
                     headerToolbar={{
                       left: 'prev,next today',
                       center: 'title',
-                      right: view === 'month' ? 'dayGridMonth' : 'timeGridWeek'
+                      right: detailedView === 'week' ? 'timeGridWeek,timeGridDay' : 'timeGridDay,timeGridWeek'
                     }}
                     weekends={view !== 'weekend'}
                     hiddenDays={view === 'weekend' ? [0, 1, 2, 3, 4] : []}
@@ -1249,10 +1253,18 @@ const Calendar = () => {
                       }
                       
                       // Announce date changes for accessibility
-                      const announcement = `${language === 'en' ? 'Viewing' : 'Viendo'} ${format(dateInfo.start, 'MMMM yyyy')}`;
+                      const announcement = `${language === 'en' ? 'Viewing' : 'Viendo'} ${format(dateInfo.start, detailedView === 'day' ? 'EEEE, MMMM d, yyyy' : 'MMMM yyyy')}`;
                       const ariaLive = document.getElementById('calendar-aria-live');
                       if (ariaLive) {
                         ariaLive.textContent = announcement;
+                      }
+                    }}
+                    viewDidMount={(viewInfo) => {
+                      // Update our state when FullCalendar view changes
+                      if (viewInfo.view.type === 'timeGridWeek') {
+                        setDetailedView('week');
+                      } else if (viewInfo.view.type === 'timeGridDay') {
+                        setDetailedView('day');
                       }
                     }}
                   />
