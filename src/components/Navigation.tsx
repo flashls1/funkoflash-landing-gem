@@ -27,7 +27,7 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
   const { hasPermission } = usePermissions();
   const navigate = useNavigate();
 
-  // Apply custom styles with fallbacks
+  // Apply custom styles with fallbacks - FORCE SOLID BACKGROUND
   const navStyles = {
     backgroundColor: customStyles?.backgroundColor || 'hsl(var(--background))',
     color: customStyles?.textColor || 'hsl(var(--foreground))',

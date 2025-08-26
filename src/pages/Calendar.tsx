@@ -185,14 +185,15 @@ const calendarStyles = `
     border-color: #1d4ed8;
   }
 
-  /* Toolbar styling */
+  /* Toolbar styling with HIGH CONTRAST text */
   .fc-toolbar {
     margin-bottom: 16px;
   }
   .fc-toolbar-title {
-    color: #111827 !important;
-    font-weight: 600 !important;
-    font-size: 20px !important;
+    color: #1f2937 !important;
+    font-weight: 700 !important;
+    font-size: 24px !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
   /* Custom today styling */
@@ -297,7 +298,7 @@ const Calendar = () => {
   });
   const [showTransition, setShowTransition] = useState(false);
   
-  // Hybrid calendar state - DEFAULT TO SIMPLE VIEW
+  // Hybrid calendar state - FORCE DEFAULT TO SIMPLE VIEW
   const [calendarMode, setCalendarMode] = useState<'simple' | 'detailed'>('simple');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [detailedView, setDetailedView] = useState<'week' | 'day'>('week');
@@ -315,7 +316,7 @@ const Calendar = () => {
       setCurrentDate(navDate);
       setSelectedYear(navDate.getFullYear());
       setCalendarMode('detailed'); // Switch to detailed view when navigating from date
-      setDetailedView('day'); // Show day view when navigating to specific date
+      setDetailedView('week'); // Default to week view when navigating to specific date
     }
   }, [location.state]);
 
@@ -337,7 +338,7 @@ const Calendar = () => {
     setCurrentDate(date);
     setSelectedDate(date);
     setCalendarMode('detailed');
-    setDetailedView('day'); // When clicking a specific date, show day view
+    setDetailedView('week'); // When clicking a specific date, show week view by default
   };
 
   // Function to get the dynamic initial date for FullCalendar
@@ -1254,10 +1255,10 @@ const Calendar = () => {
                     <Button
                       variant={calendarMode === 'detailed' ? 'default' : 'ghost'}
                       size="sm"
-                      onClick={() => {
-                        setCalendarMode('detailed');
-                        setDetailedView('week'); // Default to week view when switching to detailed
-                      }}
+                       onClick={() => {
+                         setCalendarMode('detailed');
+                         setDetailedView('week'); // Always default to week view when switching to detailed
+                       }}
                       className={`px-4 flex items-center justify-center min-w-0 transition-all ${
                         calendarMode === 'detailed'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
