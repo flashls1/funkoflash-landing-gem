@@ -1189,13 +1189,13 @@ const Calendar = () => {
                   <FullCalendar
                     plugins={[dayGridPlugin, timeGridPlugin]}
                     initialView={
-                      detailedView === 'week' ? 'timeGridWeek' : 'timeGridDay'
+                      detailedView === 'week' ? 'dayGridWeek' : 'timeGridDay'
                     }
                     initialDate={getInitialDate()}
                     headerToolbar={{
                       left: 'prev,next today',
                       center: 'title',
-                      right: detailedView === 'week' ? 'timeGridWeek,timeGridDay' : 'timeGridDay,timeGridWeek'
+                      right: detailedView === 'week' ? 'dayGridWeek' : 'timeGridDay'
                     }}
                     weekends={view !== 'weekend'}
                     hiddenDays={view === 'weekend' ? [0, 1, 2, 3, 4] : []}
@@ -1261,9 +1261,17 @@ const Calendar = () => {
                     }}
                     viewDidMount={(viewInfo) => {
                       // Update our state when FullCalendar view changes
-                      if (viewInfo.view.type === 'timeGridWeek') {
+                      if (viewInfo.view.type === 'dayGridWeek') {
                         setDetailedView('week');
                       } else if (viewInfo.view.type === 'timeGridDay') {
+                        setDetailedView('day');
+                      }
+                    }}
+                    dayHeaderClick={(info) => {
+                      // When clicking a date in week view, switch to day view
+                      if (detailedView === 'week') {
+                        setCurrentDate(new Date(info.date));
+                        setSelectedDate(new Date(info.date));
                         setDetailedView('day');
                       }
                     }}
