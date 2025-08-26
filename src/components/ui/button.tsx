@@ -16,7 +16,7 @@ const buttonVariants = cva(
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        ghost: "text-foreground hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         funko: "bg-[hsl(25,100%,60%)] text-white hover:bg-[hsl(25,100%,45%)] shadow-lg transition-all duration-300 transform hover:scale-105",
         "funko-blue": "bg-[hsl(220,90%,45%)] text-white hover:bg-[hsl(220,90%,30%)] shadow-lg transition-all duration-300 transform hover:scale-105",

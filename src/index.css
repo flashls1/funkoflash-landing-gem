@@ -74,6 +74,12 @@ All colors MUST be HSL.
     --design-warning: 40 90% 50%;
     --design-info: 200 80% 50%;
 
+    /* Contrast Safety Rules */
+    --text-high-contrast: 220 15% 15%;
+    --text-high-contrast-inverse: 0 0% 98%;
+    --bg-high-contrast: 0 0% 98%;
+    --bg-high-contrast-inverse: 220 15% 15%;
+
     /* Enhanced Gradients */
     --gradient-rainbow: linear-gradient(135deg, 
       hsl(340, 70%, 50%), 
@@ -163,5 +169,35 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Global Contrast Safety Rules */
+@layer utilities {
+  /* Ensure buttons always have visible text */
+  .contrast-safe-text {
+    color: hsl(var(--text-high-contrast)) !important;
+  }
+  
+  .contrast-safe-text-inverse {
+    color: hsl(var(--text-high-contrast-inverse)) !important;
+  }
+
+  /* Force minimum contrast for ghost buttons */
+  .ghost-button-safe {
+    color: hsl(var(--foreground));
+    background-color: transparent;
+  }
+  
+  .ghost-button-safe:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+
+  /* Dropdown menu safety */
+  .dropdown-safe {
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border: 1px solid hsl(var(--border)) !important;
   }
 }
