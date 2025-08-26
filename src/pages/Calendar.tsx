@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid, Plus, Trash2, CheckCircle, PauseCircle, Clock3, CircleDashed, XCircle, MinusCircle, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid, Plus, Trash2, CheckCircle, PauseCircle, Clock3, Clock, CircleDashed, XCircle, MinusCircle, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -43,44 +43,191 @@ const calendarStyles = `
   .fc, .fc-view-harness, .fc-view-harness-active {
     background: transparent !important;
   }
-  
+
+  /* FullCalendar comprehensive styling with high contrast */
+  .fc {
+    font-family: var(--font-sans);
+    font-size: 14px;
+  }
+
+  /* Grid and borders */
+  .fc-theme-standard .fc-scrollgrid {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+  }
+  .fc-theme-standard .fc-scrollgrid td,
+  .fc-theme-standard .fc-scrollgrid th {
+    border-color: #e5e7eb;
+  }
+
+  /* Header styling with high contrast */
+  .fc-theme-standard .fc-col-header-cell {
+    background-color: #f8fafc;
+    border-bottom: 2px solid #e5e7eb;
+    padding: 12px 8px;
+  }
+  .fc-col-header-cell .fc-col-header-cell-cushion {
+    color: #374151 !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Day cells with proper contrast */
+  .fc-theme-standard .fc-daygrid-day {
+    background-color: #ffffff;
+    min-height: 100px;
+  }
+  .fc-theme-standard .fc-daygrid-day:hover {
+    background-color: #f1f5f9;
+    cursor: pointer;
+  }
+  .fc-daygrid-day-number {
+    color: #374151 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    padding: 8px !important;
+  }
+
+  /* Today highlighting */
+  .fc-theme-standard .fc-day-today {
+    background-color: #dbeafe !important;
+    border: 2px solid #3b82f6 !important;
+  }
+  .fc-day-today .fc-daygrid-day-number {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin: 4px;
+  }
+
+  /* Weekend styling */
+  .fc-day-weekend {
+    background-color: #f9fafb !important;
+  }
+
+  /* Time grid styling for day view */
+  .fc-timegrid-slot {
+    height: 60px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .fc-timegrid-slot-label {
+    color: #6b7280 !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-right: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+  }
+  .fc-timegrid-axis {
+    background-color: #f9fafb;
+  }
+
+  /* Event styling with high contrast */
+  .fc-theme-standard .fc-event {
+    border: 1px solid #3b82f6;
+    background-color: #3b82f6;
+    color: #ffffff !important;
+    font-weight: 500;
+    font-size: 12px;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: 1px;
+  }
+  .fc-event-title {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+  }
+  .fc-event-time {
+    color: #ffffff !important;
+    font-weight: 400 !important;
+  }
+
+  /* Event status colors */
+  .fc-event.status-confirmed {
+    border-color: #10b981;
+    background-color: #10b981;
+  }
+  .fc-event.status-tentative {
+    border-color: #f59e0b;
+    background-color: #f59e0b;
+  }
+  .fc-event.status-cancelled {
+    border-color: #ef4444;
+    background-color: #ef4444;
+  }
+  .fc-event.status-not_available {
+    border-color: #6b7280;
+    background-color: #6b7280;
+  }
+
+  /* Button styling */
+  .fc-theme-standard .fc-button-primary {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 8px 16px;
+  }
+  .fc-theme-standard .fc-button-primary:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+  }
+  .fc-theme-standard .fc-button-primary:not(:disabled):active,
+  .fc-theme-standard .fc-button-primary:not(:disabled).fc-button-active {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+  }
+
+  /* Toolbar styling */
+  .fc-toolbar {
+    margin-bottom: 16px;
+  }
+  .fc-toolbar-title {
+    color: #111827 !important;
+    font-weight: 600 !important;
+    font-size: 20px !important;
+  }
+
+  /* Custom today styling */
   .fc-day-today-custom {
     position: relative;
   }
-  
   .fc-today-pill {
     position: absolute;
-    top: 2px;
-    right: 2px;
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
+    top: 4px;
+    right: 4px;
+    background-color: #3b82f6;
+    color: #ffffff;
+    padding: 2px 6px;
+    border-radius: 10px;
     font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 12px;
-    font-weight: 600;
+    font-weight: bold;
     z-index: 1;
   }
-  
-  .fc-day-weekend {
-    background-color: hsl(var(--muted) / 0.3) !important;
-  }
-  
-  .fc-daygrid-day {
-    border: 1px solid hsl(var(--border)) !important;
-  }
-  
   .fc-event-today {
-    box-shadow: 0 0 0 2px hsl(var(--primary)) !important;
+    border: 2px solid #3b82f6 !important;
+    background-color: #3b82f6 !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
   }
-  
-  .calendar-container .fc-event {
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .calendar-container .fc-event:hover {
-    transform: scale(1.02);
-    z-index: 10;
+
+  /* Responsive improvements */
+  @media (max-width: 768px) {
+    .fc-col-header-cell .fc-col-header-cell-cushion {
+      font-size: 11px !important;
+    }
+    .fc-daygrid-day-number {
+      font-size: 12px !important;
+    }
+    .fc-event {
+      font-size: 11px !important;
+    }
   }
 `;
 
@@ -1072,7 +1219,11 @@ const Calendar = () => {
               variant={calendarMode === 'simple' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setCalendarMode('simple')}
-              className="px-4 flex items-center justify-center min-w-0 !text-blue-600 hover:!text-blue-600"
+              className={`px-4 flex items-center justify-center min-w-0 transition-all ${
+                calendarMode === 'simple'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
+              }`}
             >
               <Grid className="h-4 w-4 mr-2 flex-shrink-0" />
               <span className="whitespace-nowrap">{t.simpleView}</span>
@@ -1084,7 +1235,11 @@ const Calendar = () => {
                 setCalendarMode('detailed');
                 setDetailedView('week'); // Default to week view when switching to detailed
               }}
-              className="px-4 flex items-center justify-center min-w-0 !text-blue-600 hover:!text-blue-600"
+              className={`px-4 flex items-center justify-center min-w-0 transition-all ${
+                calendarMode === 'detailed'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
+              }`}
             >
               <CalendarIconView className="h-4 w-4 mr-2 flex-shrink-0" />
               <span className="whitespace-nowrap">{t.detailView}</span>
@@ -1185,6 +1340,47 @@ const Calendar = () => {
             /* Detailed FullCalendar View */
             <Card className={density === 'compact' ? 'text-sm' : ''}>
               <CardContent className={`p-6 ${density === 'compact' ? 'p-4' : ''}`}>
+                {/* Week/Day Toggle for Detailed View */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1">
+                      <Button
+                        variant={detailedView === 'week' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setDetailedView('week')}
+                        className={`text-sm font-medium transition-all ${
+                          detailedView === 'week' 
+                            ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                            : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
+                        }`}
+                      >
+                        <CalendarIcon className="h-4 w-4 mr-1" />
+                        Week
+                      </Button>
+                      <Button
+                        variant={detailedView === 'day' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setDetailedView('day')}
+                        className={`text-sm font-medium transition-all ${
+                          detailedView === 'day' 
+                            ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                            : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
+                        }`}
+                      >
+                        <Clock className="h-4 w-4 mr-1" />
+                        Day
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm text-muted-foreground">
+                    {detailedView === 'week' 
+                      ? 'Click a date to view day schedule'
+                      : 'Hourly schedule view'
+                    }
+                  </div>
+                </div>
+
                 <div className="calendar-container">
                   <FullCalendar
                     plugins={[dayGridPlugin, timeGridPlugin]}
@@ -1195,7 +1391,7 @@ const Calendar = () => {
                     headerToolbar={{
                       left: 'prev,next today',
                       center: 'title',
-                      right: detailedView === 'week' ? 'dayGridWeek' : 'timeGridDay'
+                      right: ''
                     }}
                     weekends={view !== 'weekend'}
                     hiddenDays={view === 'weekend' ? [0, 1, 2, 3, 4] : []}
@@ -1209,17 +1405,19 @@ const Calendar = () => {
                     editable={false}
                     selectMirror={false}
                     dayHeaders={true}
-                    allDaySlot={true}
+                    allDaySlot={detailedView === 'day'}
                     slotDuration="01:00:00"
                     slotLabelInterval="01:00:00"
+                    slotMinTime="06:00:00"
+                    slotMaxTime="24:00:00"
                     locale={language}
                     eventDidMount={(info) => {
                       const event = info.event.extendedProps as CalendarEvent;
                       
-                      // Add tooltip wrapper
-                      const tooltipWrapper = document.createElement('div');
-                      info.el.parentNode?.insertBefore(tooltipWrapper, info.el);
-                      tooltipWrapper.appendChild(info.el);
+                      // Add status-based styling
+                      if (event.status) {
+                        info.el.classList.add(`status-${event.status}`);
+                      }
                       
                       // Add custom styling for today
                       const today = new Date().toISOString().split('T')[0];
@@ -1241,12 +1439,8 @@ const Calendar = () => {
                       }
                     }}
                     viewDidMount={(viewInfo) => {
-                      // Update our state when FullCalendar view changes
-                      if (viewInfo.view.type === 'dayGridWeek') {
-                        setDetailedView('week');
-                      } else if (viewInfo.view.type === 'timeGridDay') {
-                        setDetailedView('day');
-                      }
+                      // Calendar view has mounted, ensure our state is in sync
+                      console.log('Calendar view mounted:', viewInfo.view.type);
                     }}
                     dayCellDidMount={(info) => {
                       const today = new Date().toISOString().split('T')[0];
