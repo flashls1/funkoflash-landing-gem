@@ -1072,7 +1072,7 @@ const Calendar = () => {
               variant={calendarMode === 'simple' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setCalendarMode('simple')}
-              className="px-4 flex items-center justify-center min-w-0 text-foreground"
+              className="px-4 flex items-center justify-center min-w-0 text-primary hover:text-primary"
             >
               <Grid className="h-4 w-4 mr-2 flex-shrink-0" />
               <span className="whitespace-nowrap">{t.simpleView}</span>
@@ -1084,7 +1084,7 @@ const Calendar = () => {
                 setCalendarMode('detailed');
                 setDetailedView('week'); // Default to week view when switching to detailed
               }}
-              className="px-4 flex items-center justify-center min-w-0 text-foreground"
+              className="px-4 flex items-center justify-center min-w-0 text-primary hover:text-primary"
             >
               <CalendarIconView className="h-4 w-4 mr-2 flex-shrink-0" />
               <span className="whitespace-nowrap">{t.detailView}</span>
