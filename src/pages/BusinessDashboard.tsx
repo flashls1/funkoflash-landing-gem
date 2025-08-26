@@ -19,6 +19,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
 import { NextEventCard } from '@/components/NextEventCard';
 import { MiniAgenda } from '@/components/MiniAgenda';
+import { CalendarWidget } from '@/components/CalendarWidget';
 import BusinessProfileSettings from '@/components/BusinessProfileSettings';
 import TravelManagementModule from '@/features/business-events/TravelManagementModule';
 
@@ -390,14 +391,19 @@ const BusinessDashboard = () => {
 
         {/* Main Content */}
         <div className="space-y-6">
-          {/* Next Event and Mini Agenda */}
+          {/* Next Event and Calendar Widget */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <DraggableCard id="next-event" index={0} moveCard={moveCard} isDragEnabled={isDragEnabled}>
               <NextEventCard language={language} />
             </DraggableCard>
-            <DraggableCard id="mini-agenda" index={1} moveCard={moveCard} isDragEnabled={isDragEnabled}>
-              <MiniAgenda language={language} />
+            <DraggableCard id="calendar-widget" index={1} moveCard={moveCard} isDragEnabled={isDragEnabled}>
+              <CalendarWidget language={language} />
             </DraggableCard>
+          </div>
+
+          {/* Mini Agenda */}
+          <div className="mb-6">
+            <MiniAgenda language={language} />
           </div>
 
           {/* Business Events and Travel Management */}

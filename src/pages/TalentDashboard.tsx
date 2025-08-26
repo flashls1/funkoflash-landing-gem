@@ -19,6 +19,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
 import { NextEventCard } from '@/components/NextEventCard';
+import { CalendarWidget } from '@/components/CalendarWidget';
 import { MiniAgenda } from '@/components/MiniAgenda';
 
 // Draggable card component for talent
@@ -378,9 +379,16 @@ const TalentDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Next Event and Mini Agenda */}
+            {/* Next Event and Calendar Widget */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <NextEventCard language={language} />
+              <div className="lg:col-span-1">
+                <CalendarWidget language={language} />
+              </div>
+            </div>
+            
+            {/* Mini Agenda */}
+            <div className="mb-6">
               <MiniAgenda language={language} />
             </div>
 
