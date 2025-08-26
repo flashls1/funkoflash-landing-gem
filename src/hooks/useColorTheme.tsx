@@ -20,7 +20,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(217, 33%, 17%)',
     cardForeground: 'hsl(210, 40%, 98%)',
     accent: 'hsl(217, 91%, 60%)',
-    border: 'hsl(217, 33%, 24%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'blue',
@@ -30,7 +30,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(224, 71%, 4%)',
     cardForeground: 'hsl(210, 40%, 98%)',
     accent: 'hsl(213, 94%, 68%)',
-    border: 'hsl(215, 27%, 32%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'green',
@@ -40,7 +40,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(120, 13%, 10%)',
     cardForeground: 'hsl(0, 0%, 98%)',
     accent: 'hsl(142, 76%, 36%)',
-    border: 'hsl(120, 13%, 15%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'purple',
@@ -50,7 +50,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(263, 69%, 12%)',
     cardForeground: 'hsl(210, 40%, 98%)',
     accent: 'hsl(263, 70%, 50%)',
-    border: 'hsl(263, 69%, 20%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'amber',
@@ -60,7 +60,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(12, 6%, 15%)',
     cardForeground: 'hsl(60, 9%, 98%)',
     accent: 'hsl(38, 92%, 50%)',
-    border: 'hsl(12, 6%, 25%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'rose',
@@ -70,7 +70,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(345, 13%, 15%)',
     cardForeground: 'hsl(210, 40%, 98%)',
     accent: 'hsl(330, 81%, 60%)',
-    border: 'hsl(345, 13%, 25%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'teal',
@@ -80,7 +80,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(170, 13%, 15%)',
     cardForeground: 'hsl(0, 0%, 98%)',
     accent: 'hsl(173, 80%, 40%)',
-    border: 'hsl(170, 13%, 25%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'indigo',
@@ -90,7 +90,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(234, 13%, 15%)',
     cardForeground: 'hsl(210, 40%, 98%)',
     accent: 'hsl(239, 84%, 67%)',
-    border: 'hsl(234, 13%, 25%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'orange',
@@ -100,7 +100,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(24, 9%, 10%)',
     cardForeground: 'hsl(60, 9%, 98%)',
     accent: 'hsl(20, 90%, 48%)',
-    border: 'hsl(24, 9%, 20%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'cyan',
@@ -110,7 +110,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(191, 13%, 15%)',
     cardForeground: 'hsl(0, 0%, 98%)',
     accent: 'hsl(188, 94%, 43%)',
-    border: 'hsl(191, 13%, 25%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'emerald',
@@ -120,7 +120,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(151, 13%, 15%)',
     cardForeground: 'hsl(0, 0%, 98%)',
     accent: 'hsl(160, 84%, 39%)',
-    border: 'hsl(151, 13%, 25%)'
+    border: 'hsl(0, 0%, 100%)'
   },
   {
     id: 'violet',
@@ -130,7 +130,7 @@ const colorThemes: ColorTheme[] = [
     cardBackground: 'hsl(283, 13%, 15%)',
     cardForeground: 'hsl(210, 40%, 98%)',
     accent: 'hsl(271, 91%, 65%)',
-    border: 'hsl(283, 13%, 25%)'
+    border: 'hsl(0, 0%, 100%)'
   }
 ];
 
