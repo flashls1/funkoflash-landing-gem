@@ -234,8 +234,18 @@ const BusinessEventFormDialog = ({
         end_ts = end.toISOString();
       }
 
+      // Create clean event data with only business_events table columns
       const eventData = {
-        ...formData,
+        title: formData.title || 'Untitled Event',
+        venue: formData.venue || null,
+        city: formData.city || null,
+        state: formData.state || null,
+        country: formData.country || null,
+        address_line: formData.address_line || null,
+        website: formData.website || null,
+        hero_logo_path: formData.hero_logo_path || null,
+        status: formData.status || 'draft',
+        primary_business_id: formData.primary_business_id || null,
         start_ts,
         end_ts,
         // Store daily schedule with our three days
@@ -258,9 +268,7 @@ const BusinessEventFormDialog = ({
             start_time: day3StartTime || null,
             end_time: day3EndTime || null
           }] : [])
-        ],
-        // Allow saving with minimal data - just require title
-        title: formData.title || 'Untitled Event'
+        ]
       };
 
       console.log('Prepared event data for save:', eventData);
