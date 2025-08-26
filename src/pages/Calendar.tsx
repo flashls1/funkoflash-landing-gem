@@ -297,7 +297,7 @@ const Calendar = () => {
   });
   const [showTransition, setShowTransition] = useState(false);
   
-  // Hybrid calendar state
+  // Hybrid calendar state - DEFAULT TO SIMPLE VIEW
   const [calendarMode, setCalendarMode] = useState<'simple' | 'detailed'>('simple');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [detailedView, setDetailedView] = useState<'week' | 'day'>('week');
@@ -1401,7 +1401,7 @@ const Calendar = () => {
                   <FullCalendar
                     plugins={[dayGridPlugin, timeGridPlugin]}
                     initialView={
-                      detailedView === 'week' ? 'dayGridWeek' : 'timeGridDay'
+                      detailedView === 'week' ? 'timeGridWeek' : 'timeGridDay'
                     }
                     initialDate={getInitialDate()}
                     headerToolbar={{
