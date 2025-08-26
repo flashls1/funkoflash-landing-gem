@@ -159,7 +159,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         return;
       }
       
-      // For talent users, get next calendar event
+      // For talent users, get next calendar event AND business event assignments
       const { data: talentProfile } = await supabase
         .from('talent_profiles')
         .select('id')
@@ -171,10 +171,10 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         return;
       }
 
-      // Get next upcoming event for this talent
+      // Get next upcoming calendar event for this talent
       const now = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
       
-      const { data, error } = await supabase
+      const { data: calendarEvents, error: calendarError } = await supabase
         .from('calendar_event')
         .select(`
           *,
@@ -186,9 +186,54 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         .order('created_at', { ascending: true })
         .limit(1);
 
-      if (error) throw error;
+      if (calendarError) throw calendarError;
 
-      setNextEvent(data && data.length > 0 ? data[0] as CalendarEvent : null);
+      // Get next upcoming business event for this talent
+      const nowISO = new Date().toISOString();
+      const { data: businessEvents, error: businessError } = await supabase
+        .from('business_events')
+        .select(`
+          *,
+          business_event_talent!inner(talent_id)
+        `)
+        .eq('business_event_talent.talent_id', talentProfile.id)
+        .gte('start_ts', nowISO)
+        .order('start_ts', { ascending: true })
+        .limit(1);
+
+      if (businessError) throw businessError;
+
+      // Compare dates and select the earliest event
+      let nextEvent = null;
+      const calendarEvent = calendarEvents && calendarEvents.length > 0 ? calendarEvents[0] : null;
+      const businessEvent = businessEvents && businessEvents.length > 0 ? businessEvents[0] : null;
+
+      if (calendarEvent && businessEvent) {
+        const calendarDate = new Date(calendarEvent.start_date);
+        const businessDate = new Date(businessEvent.start_ts);
+        nextEvent = calendarDate <= businessDate ? calendarEvent : businessEvent;
+      } else if (calendarEvent) {
+        nextEvent = calendarEvent;
+      } else if (businessEvent) {
+        // Convert business event to calendar event format
+        nextEvent = {
+          id: businessEvent.id,
+          start_date: businessEvent.start_ts ? businessEvent.start_ts.split('T')[0] : '',
+          end_date: businessEvent.end_ts ? businessEvent.end_ts.split('T')[0] : '',
+          start_time: businessEvent.start_ts ? businessEvent.start_ts.split('T')[1]?.split('.')[0] : null,
+          end_time: businessEvent.end_ts ? businessEvent.end_ts.split('T')[1]?.split('.')[0] : null,
+          all_day: !businessEvent.start_ts?.includes('T'),
+          event_title: businessEvent.title || 'Business Event',
+          status: businessEvent.status === 'published' ? 'booked' : 'tentative',
+          venue_name: businessEvent.venue,
+          location_city: businessEvent.city,
+          location_state: businessEvent.state,
+          location_country: businessEvent.country,
+          talent_profiles: null
+        };
+      }
+
+      setNextEvent(nextEvent as CalendarEvent);
     } catch (error) {
       console.error('Error loading next event:', error);
       setNextEvent(null);

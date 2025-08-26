@@ -1,5 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// Daily schedule item type
+interface DailyScheduleItem {
+  day: number;
+  date: string;
+  start_time?: string;
+  end_time?: string;
+}
+
 // Business Events data types
 export interface BusinessEvent {
   id: string;
@@ -158,6 +166,9 @@ export const businessEventsApi = {
       .insert([{ event_id: eventId, talent_id: talentId }]);
 
     if (error) throw error;
+
+    // Create corresponding calendar events for the talent
+    await this.createCalendarEventsForBusinessEvent(eventId, talentId);
   },
 
   // Remove talent from event
@@ -169,6 +180,9 @@ export const businessEventsApi = {
       .eq('talent_id', talentId);
 
     if (error) throw error;
+
+    // Remove corresponding calendar events
+    await this.removeCalendarEventsForBusinessEvent(eventId, talentId);
   },
 
   // Assign business account to event
@@ -269,5 +283,108 @@ export const businessEventsApi = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Create calendar events when talent is assigned to business event
+  async createCalendarEventsForBusinessEvent(eventId: string, talentId: string) {
+    // Get the business event details
+    const { data: businessEvent, error: eventError } = await supabase
+      .from('business_events')
+      .select('*')
+      .eq('id', eventId)
+      .single();
+
+    if (eventError || !businessEvent) {
+      console.error('Error fetching business event:', eventError);
+      return;
+    }
+
+    // Parse daily_schedule if it exists
+    const dailySchedule = businessEvent.daily_schedule;
+    
+    if (Array.isArray(dailySchedule) && dailySchedule.length > 0) {
+      // Create calendar events for each day in the schedule
+      for (const dayItem of dailySchedule) {
+        const day = dayItem as unknown as DailyScheduleItem;
+        if (day.date) {
+          const calendarEvent = {
+            talent_id: talentId,
+            start_date: day.date,
+            end_date: day.date,
+            start_time: day.start_time || null,
+            end_time: day.end_time || null,
+            all_day: !day.start_time && !day.end_time,
+            event_title: businessEvent.title || 'Business Event',
+            status: 'booked',
+            venue_name: businessEvent.venue,
+            location_city: businessEvent.city,
+            location_state: businessEvent.state,
+            location_country: businessEvent.country,
+            address_line: businessEvent.address_line,
+            url: businessEvent.website,
+            notes_internal: `Business Event: ${businessEvent.title}`,
+            notes_public: `Day ${day.day} of ${businessEvent.title}`,
+            source_file: 'business_event',
+            source_row_id: eventId
+          };
+
+          const { error } = await supabase
+            .from('calendar_event')
+            .insert([calendarEvent]);
+
+          if (error) {
+            console.error('Error creating calendar event:', error);
+          }
+        }
+      }
+    } else {
+      // If no daily schedule, create a single event based on start/end timestamps
+      if (businessEvent.start_ts) {
+        const startDate = businessEvent.start_ts.split('T')[0];
+        const endDate = businessEvent.end_ts ? businessEvent.end_ts.split('T')[0] : startDate;
+        
+        const calendarEvent = {
+          talent_id: talentId,
+          start_date: startDate,
+          end_date: endDate,
+          start_time: businessEvent.start_ts.includes('T') ? businessEvent.start_ts.split('T')[1]?.split('.')[0] : null,
+          end_time: businessEvent.end_ts?.includes('T') ? businessEvent.end_ts.split('T')[1]?.split('.')[0] : null,
+          all_day: !businessEvent.start_ts.includes('T'),
+          event_title: businessEvent.title || 'Business Event',
+          status: 'booked',
+          venue_name: businessEvent.venue,
+          location_city: businessEvent.city,
+          location_state: businessEvent.state,
+          location_country: businessEvent.country,
+          address_line: businessEvent.address_line,
+          url: businessEvent.website,
+          notes_internal: `Business Event: ${businessEvent.title}`,
+          source_file: 'business_event',
+          source_row_id: eventId
+        };
+
+        const { error } = await supabase
+          .from('calendar_event')
+          .insert([calendarEvent]);
+
+        if (error) {
+          console.error('Error creating calendar event:', error);
+        }
+      }
+    }
+  },
+
+  // Remove calendar events when talent is removed from business event
+  async removeCalendarEventsForBusinessEvent(eventId: string, talentId: string) {
+    const { error } = await supabase
+      .from('calendar_event')
+      .delete()
+      .eq('talent_id', talentId)
+      .eq('source_file', 'business_event')
+      .eq('source_row_id', eventId);
+
+    if (error) {
+      console.error('Error removing calendar events:', error);
+    }
   }
 };

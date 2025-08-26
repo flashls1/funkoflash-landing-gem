@@ -9,6 +9,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/PageLayout';
 import { BusinessEvent, businessEventsApi } from '@/features/business-events/data';
+import { supabase } from '@/integrations/supabase/client';
 
 const TalentBookingManagement = () => {
   const [events, setEvents] = useState<BusinessEvent[]>([]);
@@ -25,17 +26,40 @@ const TalentBookingManagement = () => {
   const loadEvents = async () => {
     try {
       setLoading(true);
-      const data = await businessEventsApi.getEvents();
-      // Filter events that this talent is assigned to
-      const talentEvents = data.filter(event => 
-        (event as any).business_event_talent?.some((assignment: any) => 
-          assignment.talent_profiles?.some((tp: any) => 
-            tp.user_id === profile?.user_id
+      
+      // Get the talent profile ID for the current user
+      const { data: talentProfile } = await supabase
+        .from('talent_profiles')
+        .select('id')
+        .eq('user_id', profile?.user_id)
+        .single();
+
+      if (!talentProfile) {
+        setEvents([]);
+        return;
+      }
+
+      // Get business events directly from the talent assignments
+      const { data, error } = await supabase
+        .from('business_events')
+        .select(`
+          *,
+          business_event_talent!inner(
+            talent_id,
+            per_diem_amount,
+            guarantee_amount,
+            per_diem_currency,
+            guarantee_currency
           )
-        )
-      );
-      setEvents(talentEvents);
+        `)
+        .eq('business_event_talent.talent_id', talentProfile.id)
+        .order('start_ts', { ascending: true });
+
+      if (error) throw error;
+
+      setEvents(data || []);
     } catch (error) {
+      console.error('Error loading talent bookings:', error);
       toast({
         title: language === 'es' ? 'Error' : 'Error',
         description: language === 'es' 
@@ -147,9 +171,7 @@ const TalentBookingManagement = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => {
-              const talentAssignment = (event as any).business_event_talent?.find((assignment: any) => 
-                assignment.talent_profiles?.some((tp: any) => tp.user_id === profile?.user_id)
-              );
+              const talentAssignment = (event as any).business_event_talent?.[0];
               
               return (
                 <Card key={event.id} className="border-2 hover:shadow-lg transition-shadow">
