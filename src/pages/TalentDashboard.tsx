@@ -372,7 +372,7 @@ const TalentDashboard = () => {
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">{t.overview}</TabsTrigger>
-            <TabsTrigger value="bookings">{t.bookings}</TabsTrigger>
+            <TabsTrigger value="bookings" onClick={() => navigate('/talent/booking-management')}>{t.bookings}</TabsTrigger>
             <TabsTrigger value="messages">{t.messages}</TabsTrigger>
             <TabsTrigger value="portfolio">{t.portfolio}</TabsTrigger>
             <TabsTrigger value="earnings">{t.earnings}</TabsTrigger>
