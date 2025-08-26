@@ -3,10 +3,11 @@ import Navigation from "@/components/Navigation";
 import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import ContentTiles from "@/components/ContentTiles";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
 
 const Index = () => {
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const { language, setLanguage } = useLanguage();
   const { setCurrentPage } = useSiteDesign();
 
   useEffect(() => {

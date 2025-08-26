@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import UnifiedHeroSection from "@/components/UnifiedHeroSection";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
 
 interface Product {
@@ -108,7 +109,7 @@ const ImageSlider = ({ images, autoplayInterval, productTitle }: ImageSliderProp
 const Shop = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const { language, setLanguage } = useLanguage();
   const { setCurrentPage } = useSiteDesign();
 
   useEffect(() => {

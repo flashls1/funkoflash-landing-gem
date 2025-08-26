@@ -8,10 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import UnifiedHeroSection from "@/components/UnifiedHeroSection";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
 
 const Contact = () => {
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const { language, setLanguage } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',

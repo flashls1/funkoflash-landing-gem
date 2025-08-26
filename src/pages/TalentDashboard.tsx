@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import { TalentAssetsManager } from '@/features/talent-assets/TalentAssetsManager';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
@@ -54,7 +55,7 @@ const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) =>
 };
 
 const TalentDashboard = () => {
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const { language, setLanguage } = useLanguage();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5]);

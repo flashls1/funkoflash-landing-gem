@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CalendarIcon, Upload, Download, Filter, Search, Calendar as CalendarIconView, Grid, Plus, Trash2, CheckCircle, PauseCircle, Clock3, Clock, CircleDashed, XCircle, MinusCircle, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { usePermissions } from '@/hooks/usePermissions';
 import { hasFeature, FEATURES } from '@/lib/features';
 import { AdminThemeProvider } from '@/components/AdminThemeProvider';
@@ -271,7 +272,7 @@ interface CalendarFilters {
 }
 
 const Calendar = () => {
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const { language, setLanguage } = useLanguage();
   const [view, setView] = useState<'month' | 'week' | 'weekend'>(() => {
     return (localStorage.getItem('ffCal.viewMode') as 'month' | 'week' | 'weekend') || 'week';
   });

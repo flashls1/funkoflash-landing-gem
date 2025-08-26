@@ -5,18 +5,16 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, MapPin, Clock, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useToast } from '@/hooks/use-toast';
 import PageLayout from '@/components/PageLayout';
 import { BusinessEvent, businessEventsApi } from '@/features/business-events/data';
 
-interface TalentBookingManagementProps {
-  language?: 'en' | 'es';
-}
-
-const TalentBookingManagement = ({ language = 'en' }: TalentBookingManagementProps) => {
+const TalentBookingManagement = () => {
   const [events, setEvents] = useState<BusinessEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const { profile } = useAuth();
+  const { language, setLanguage } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -54,7 +52,7 @@ const TalentBookingManagement = ({ language = 'en' }: TalentBookingManagementPro
     en: {
       title: "Booking Management",
       description: "View and manage your event bookings",
-      backToDashboard: "Back to Dashboard",
+      backToDashboard: profile?.role === 'admin' ? "Back to Admin Dashboard" : "Back to Dashboard",
       noBookings: "No bookings found",
       noBookingsDesc: "You don't have any event bookings at this time.",
       status: "Status",
@@ -65,7 +63,7 @@ const TalentBookingManagement = ({ language = 'en' }: TalentBookingManagementPro
     es: {
       title: "Gestión de Reservas",
       description: "Ver y gestionar tus reservas de eventos",
-      backToDashboard: "Volver al Panel",
+      backToDashboard: profile?.role === 'admin' ? "Volver al Panel de Administración" : "Volver al Panel",
       noBookings: "No se encontraron reservas",
       noBookingsDesc: "No tienes reservas de eventos en este momento.",
       status: "Estado",

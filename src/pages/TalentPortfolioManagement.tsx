@@ -6,11 +6,12 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { TalentAssetsManager } from '@/features/talent-assets/TalentAssetsManager';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useBackgroundManager } from '@/hooks/useBackgroundManager';
 
 const TalentPortfolioManagement: React.FC = () => {
   const { profile } = useAuth();
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const { language, setLanguage } = useLanguage();
   const { getBackgroundStyle } = useBackgroundManager();
   const navigate = useNavigate();
 
@@ -18,12 +19,12 @@ const TalentPortfolioManagement: React.FC = () => {
     en: {
       title: "Portfolio Management",
       description: "Manage your portfolio assets and showcase your work",
-      backToDashboard: "Back to Dashboard"
+      backToDashboard: profile?.role === 'admin' ? "Back to Admin Dashboard" : "Back to Dashboard"
     },
     es: {
       title: "Gestión de Portafolio",
       description: "Gestiona los recursos de tu portafolio y muestra tu trabajo",
-      backToDashboard: "Volver al Panel"
+      backToDashboard: profile?.role === 'admin' ? "Volver al Panel de Administración" : "Volver al Panel"
     }
   };
 

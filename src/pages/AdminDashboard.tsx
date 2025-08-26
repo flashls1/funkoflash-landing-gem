@@ -12,6 +12,7 @@ import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import TalentDirectoryCMS from './TalentDirectoryCMS';
 import { AdminTalentAssetsWrapper } from '@/features/talent-assets/AdminTalentAssetsWrapper';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
@@ -57,7 +58,7 @@ const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) =>
 };
 
 const AdminDashboard = () => {
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const { language, setLanguage } = useLanguage();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
