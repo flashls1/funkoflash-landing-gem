@@ -137,13 +137,14 @@ const BusinessEventCard = ({
         })()}
 
         {/* Location */}
-        {(event.city || event.state || event.address_line) && (
+        {(event.city || event.state || event.address_line || event.zipcode) && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPinIcon className="h-4 w-4" />
             <span>
               {event.address_line && <span>{event.address_line}, </span>}
               {event.city && <span>{event.city}</span>}
               {event.state && <span>, {event.state}</span>}
+              {event.zipcode && <span> {event.zipcode}</span>}
               {event.country && event.country !== 'USA' && <span>, {event.country}</span>}
             </span>
           </div>

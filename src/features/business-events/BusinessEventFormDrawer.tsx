@@ -36,6 +36,7 @@ const BusinessEventFormDialog = ({
     state: '',
     country: 'USA',
     address_line: '',
+    zipcode: '',
     website: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -70,6 +71,7 @@ const BusinessEventFormDialog = ({
           state: event.state || '',
           country: event.country || 'USA',
           address_line: event.address_line || '',
+          zipcode: event.zipcode || '',
           website: event.website || ''
         });
         
@@ -159,6 +161,7 @@ const BusinessEventFormDialog = ({
           state: '',
           country: 'USA',
           address_line: '',
+          zipcode: '',
           website: ''
         });
         // Reset all day dates and times for new event
@@ -285,6 +288,7 @@ const BusinessEventFormDialog = ({
         state: formData.state || null,
         country: formData.country || null,
         address_line: formData.address_line || null,
+        zipcode: formData.zipcode || null,
         website: formData.website || null,
         hero_logo_path: formData.hero_logo_path || null,
         status: formData.status || 'draft',
@@ -759,7 +763,7 @@ const BusinessEventFormDialog = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="city" className="text-sm font-medium">
                   {language === 'es' ? 'Ciudad' : 'City'}
@@ -781,6 +785,18 @@ const BusinessEventFormDialog = ({
                   value={formData.state || ''}
                   onChange={(e) => handleInputChange('state', e.target.value)}
                   placeholder={language === 'es' ? 'Estado' : 'State'}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="zipcode" className="text-sm font-medium">
+                  {language === 'es' ? 'Código Postal' : 'Zipcode'}
+                </Label>
+                <Input
+                  id="zipcode"
+                  value={formData.zipcode || ''}
+                  onChange={(e) => handleInputChange('zipcode', e.target.value)}
+                  placeholder={language === 'es' ? 'Código postal' : 'Zipcode'}
                   className="w-full"
                 />
               </div>

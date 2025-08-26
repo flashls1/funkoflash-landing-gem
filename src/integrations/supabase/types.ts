@@ -369,6 +369,7 @@ export type Database = {
           updated_at: string
           venue: string | null
           website: string | null
+          zipcode: string | null
         }
         Insert: {
           address_line?: string | null
@@ -388,6 +389,7 @@ export type Database = {
           updated_at?: string
           venue?: string | null
           website?: string | null
+          zipcode?: string | null
         }
         Update: {
           address_line?: string | null
@@ -407,6 +409,7 @@ export type Database = {
           updated_at?: string
           venue?: string | null
           website?: string | null
+          zipcode?: string | null
         }
         Relationships: []
       }

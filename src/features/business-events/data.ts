@@ -19,6 +19,7 @@ export interface BusinessEvent {
   state?: string;
   country?: string;
   address_line?: string;
+  zipcode?: string;
   website?: string;
   hero_logo_path?: string;
   status: string;
