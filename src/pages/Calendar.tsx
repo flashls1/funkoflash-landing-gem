@@ -232,12 +232,16 @@ const calendarStyles = `
   }
 `;
 
-// Inject styles
+// Inject styles only once
 if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.type = 'text/css';
-  styleSheet.innerText = calendarStyles;
-  document.head.appendChild(styleSheet);
+  const existingStyle = document.querySelector('#calendar-custom-styles');
+  if (!existingStyle) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'calendar-custom-styles';
+    styleSheet.type = 'text/css';
+    styleSheet.innerText = calendarStyles;
+    document.head.appendChild(styleSheet);
+  }
 }
 
 interface CalendarEvent {
@@ -296,7 +300,10 @@ const Calendar = () => {
   const [density, setDensity] = useState<'comfortable' | 'compact'>(() => {
     return (localStorage.getItem('calendar-density') as 'comfortable' | 'compact') || 'comfortable';
   });
-  const [showTransition, setShowTransition] = useState(false);
+  
+  // Unified initialization state to prevent scrambled rendering
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [navigationInProgress, setNavigationInProgress] = useState(false);
   
   // Hybrid calendar state - ALWAYS DEFAULT TO SIMPLE VIEW
   const [calendarMode, setCalendarMode] = useState<'simple' | 'detailed'>('simple');
@@ -311,13 +318,19 @@ const Calendar = () => {
 
   // Check if we should start with a specific date from navigation state
   useEffect(() => {
-    if (location.state?.selectedDate) {
+    if (location.state?.selectedDate && !navigationInProgress) {
+      setNavigationInProgress(true);
       const navDate = new Date(location.state.selectedDate);
       setCurrentDate(navDate);
       setSelectedYear(navDate.getFullYear());
       // Keep simple view as default, don't auto-switch to detailed
+      
+      // Reset navigation state after a brief delay
+      setTimeout(() => {
+        setNavigationInProgress(false);
+      }, 100);
     }
-  }, [location.state]);
+  }, [location.state, navigationInProgress]);
 
   // Simple calendar navigation functions
   const handlePrevMonth = () => {
@@ -456,41 +469,63 @@ const Calendar = () => {
 
   const t = content[language];
 
+  // Unified initialization effect to prevent scrambled rendering
   useEffect(() => {
-    // Check feature flag first
-    if (!hasFeature('calendar')) {
-      navigate('/');
-      return;
-    }
+    const initializeCalendar = async () => {
+      setIsInitializing(true);
+      
+      // Check feature flag first
+      if (!hasFeature('calendar')) {
+        navigate('/');
+        return;
+      }
 
-    // Wait for auth and permissions to load
-    if (authLoading || permissionsLoading) return;
+      // Wait for auth and permissions to load
+      if (authLoading || permissionsLoading) {
+        return;
+      }
 
-    // Check authentication
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
+      // Check authentication
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
 
-    // Check calendar:view permission
-    if (!hasPermission('calendar:view')) {
-      navigate('/');
-      return;
-    }
+      // Check calendar:view permission
+      if (!hasPermission('calendar:view')) {
+        navigate('/');
+        return;
+      }
 
-    // Load initial data only once
-    loadTalents();
+      try {
+        // Sequential data loading to prevent conflicts
+        await loadTalents();
+        
+        // Add minimum loading time to prevent flashing
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+      } catch (error) {
+        console.error('Error initializing calendar:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to initialize calendar. Please refresh the page.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeCalendar();
   }, [hasFeature, navigate, authLoading, permissionsLoading, user, hasPermission]);
 
   const loadEvents = useCallback(async () => {
-    // Prevent loading if not ready
-    if (!user || !hasPermission('calendar:view') || authLoading || permissionsLoading) {
+    // Prevent loading if not ready or still initializing
+    if (!user || !hasPermission('calendar:view') || authLoading || permissionsLoading || isInitializing || navigationInProgress) {
       return;
     }
 
     setLoading(true);
-    // Reduce transition effects that cause ghost calendars
-    setShowTransition(false);
     try {
       // Calendar should always be viewable for all roles
       let startDate: Date;
@@ -1231,7 +1266,7 @@ const Calendar = () => {
         </div>
 
         {/* Calendar View - Moved closer to filters */}
-        <div className={`transition-opacity duration-300 ${showTransition ? 'opacity-50' : 'opacity-100'}`}>
+        <div className={`transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
           {loading ? (
             <CalendarSkeleton view={view} />
           ) : (
@@ -1272,163 +1307,165 @@ const Calendar = () => {
                   </div>
                 </div>
 
-                {calendarMode === 'simple' ? (
-                  /* Simple Calendar Grid */
-                  <div>
-                  {/* Month Navigation */}
-                  <div className="flex items-center justify-between mb-6">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handlePrevMonth}
-                      className="h-8 w-8 p-0"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    
-                     <h3 className="text-xl font-bold text-funko-orange">
-                       {t.monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                     </h3>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleNextMonth}
-                    className="h-8 w-8 p-0"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+                 {calendarMode === 'simple' ? (
+                   /* Simple Calendar Grid */
+                   <div>
+                     {/* Month Navigation */}
+                     <div className="flex items-center justify-between mb-6">
+                       <Button
+                         variant="ghost"
+                         size="sm"
+                         onClick={handlePrevMonth}
+                         className="h-8 w-8 p-0"
+                       >
+                         <ChevronLeft className="h-4 w-4" />
+                       </Button>
+                       
+                        <h3 className="text-xl font-bold text-funko-orange">
+                          {t.monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                        </h3>
+                     
+                     <Button
+                       variant="ghost"
+                       size="sm"
+                       onClick={handleNextMonth}
+                       className="h-8 w-8 p-0"
+                     >
+                       <ChevronRight className="h-4 w-4" />
+                     </Button>
+                   </div>
 
-                {/* Calendar Grid */}
-                <div className="space-y-2">
-                  {/* Day Headers */}
-                  <div className="grid grid-cols-7 gap-1">
-                     {t.dayNames.map((day) => (
-                       <div key={day} className="text-sm font-medium text-funko-orange text-center py-2">
-                         {day}
-                       </div>
-                     ))}
-                  </div>
-                  
-                  {/* Calendar Days */}
-                  <div className="grid grid-cols-7 gap-1">
-                    {(() => {
-                      const monthStart = startOfMonth(currentDate);
-                      const monthEnd = endOfMonth(currentDate);
-                      const startDate = startOfWeek(monthStart);
-                      const endDate = endOfWeek(monthEnd);
-                      const days = eachDayOfInterval({ start: startDate, end: endDate });
-                      
-                      return days.map((day, index) => {
-                        const isCurrentMonth = isSameMonth(day, currentDate);
-                        const isTodayDate = isToday(day);
-                        
-                        return (
-                          <div
-                            key={index}
-                            className={cn(
-                              "relative h-12 text-sm text-center flex items-center justify-center rounded border border-border/50",
-                              "hover:bg-accent cursor-pointer transition-colors",
-                              isTodayDate && "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 font-bold border-blue-500",
-                              !isCurrentMonth && "text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-800"
-                            )}
-                            onClick={() => handleSimpleDateClick(day)}
-                          >
-                            <span className="font-medium">{format(day, 'd')}</span>
+                   {/* Calendar Grid */}
+                   <div className="space-y-2">
+                     {/* Day Headers */}
+                     <div className="grid grid-cols-7 gap-1">
+                        {t.dayNames.map((day) => (
+                          <div key={day} className="text-sm font-medium text-funko-orange text-center py-2">
+                            {day}
                           </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                </div>
+                        ))}
+                     </div>
+                     
+                     {/* Calendar Days */}
+                     <div className="grid grid-cols-7 gap-1">
+                       {(() => {
+                         const monthStart = startOfMonth(currentDate);
+                         const monthEnd = endOfMonth(currentDate);
+                         const startDate = startOfWeek(monthStart);
+                         const endDate = endOfWeek(monthEnd);
+                         const days = eachDayOfInterval({ start: startDate, end: endDate });
+                         
+                         return days.map((day, index) => {
+                           const isCurrentMonth = isSameMonth(day, currentDate);
+                           const isTodayDate = isToday(day);
+                           
+                           return (
+                             <div
+                               key={index}
+                               className={cn(
+                                 "relative h-12 text-sm text-center flex items-center justify-center rounded border border-border/50",
+                                 "hover:bg-accent cursor-pointer transition-colors",
+                                 isTodayDate && "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 font-bold border-blue-500",
+                                 !isCurrentMonth && "text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-800"
+                               )}
+                               onClick={() => handleSimpleDateClick(day)}
+                             >
+                               <span className="font-medium">{format(day, 'd')}</span>
+                             </div>
+                           );
+                         });
+                       })()}
+                     </div>
+                   </div>
 
-                {/* Today Button */}
-                <div className="flex justify-center mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleToday}
-                    className="text-sm"
-                  >
-                    {t.calendarUi.today}
-                  </Button>
-                </div>
-                </div>
-                ) : (
-                  /* Detailed FullCalendar View */
-                  <div>
-                    {/* Week/Day Toggle for Detailed View */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1">
-                      <Button
-                        variant={detailedView === 'week' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setDetailedView('week')}
-                        className={`text-sm font-medium transition-all ${
-                          detailedView === 'week' 
-                            ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                            : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
-                        }`}
-                      >
-                        <CalendarIcon className="h-4 w-4 mr-1" />
-                        Week
-                      </Button>
-                      <Button
-                        variant={detailedView === 'day' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setDetailedView('day')}
-                        className={`text-sm font-medium transition-all ${
-                          detailedView === 'day' 
-                            ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                            : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
-                        }`}
-                      >
-                        <Clock className="h-4 w-4 mr-1" />
-                        Day
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="text-sm text-muted-foreground">
-                    {detailedView === 'week' 
-                      ? 'Click a date to view day schedule'
-                      : 'Hourly schedule view'
-                    }
-                  </div>
-                </div>
+                   {/* Today Button */}
+                   <div className="flex justify-center mt-4">
+                     <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={handleToday}
+                       className="text-sm"
+                     >
+                       {t.calendarUi.today}
+                     </Button>
+                   </div>
+                   </div>
+                  ) : (
+                   /* Detailed FullCalendar View */
+                   <div>
+                     {/* Week/Day Toggle for Detailed View */}
+                     <div className="flex items-center justify-between mb-6">
+                       <div className="flex items-center gap-4">
+                         <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1">
+                           <Button
+                             variant={detailedView === 'week' ? 'default' : 'ghost'}
+                             size="sm"
+                             onClick={() => setDetailedView('week')}
+                             className={`text-sm font-medium transition-all ${
+                               detailedView === 'week' 
+                                 ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                 : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
+                             }`}
+                           >
+                             <CalendarIcon className="h-4 w-4 mr-1" />
+                             Week
+                           </Button>
+                           <Button
+                             variant={detailedView === 'day' ? 'default' : 'ghost'}
+                             size="sm"
+                             onClick={() => setDetailedView('day')}
+                             className={`text-sm font-medium transition-all ${
+                               detailedView === 'day' 
+                                 ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                                 : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
+                             }`}
+                           >
+                             <Clock className="h-4 w-4 mr-1" />
+                             Day
+                           </Button>
+                         </div>
+                       </div>
+                       
+                       <div className="text-sm text-muted-foreground">
+                         {detailedView === 'week' 
+                           ? 'Click a date to view day schedule'
+                           : 'Hourly schedule view'
+                         }
+                       </div>
+                     </div>
 
-                <div className="calendar-container">
-                  <FullCalendar
-                    plugins={[dayGridPlugin, timeGridPlugin]}
-                    initialView={
-                      detailedView === 'week' ? 'timeGridWeek' : 'timeGridDay'
-                    }
-                    initialDate={getInitialDate()}
-                    headerToolbar={{
-                      left: 'prev,next today',
-                      center: 'title',
-                      right: ''
-                    }}
-                    weekends={view !== 'weekend'}
-                    hiddenDays={view === 'weekend' ? [0, 1, 2, 3, 4] : []}
-                    events={formatEventsForFullCalendar(events)}
-                    eventClick={handleEventClick}
-                    selectable={true}
-                    select={handleDateSelect}
-                    height="auto"
-                    eventDisplay="block"
-                    dayMaxEvents={density === 'compact' ? 2 : 3}
-                    editable={false}
-                    selectMirror={false}
-                    dayHeaders={true}
-                    allDaySlot={detailedView === 'day'}
-                    slotDuration="01:00:00"
-                    slotLabelInterval="01:00:00"
-                    slotMinTime="06:00:00"
-                    slotMaxTime="24:00:00"
-                    locale={language}
+                     {/* Delay FullCalendar rendering until initialization is complete */}
+                     {!isInitializing && !navigationInProgress && (
+                   <div className="calendar-container">
+                     <FullCalendar
+                       plugins={[dayGridPlugin, timeGridPlugin]}
+                       initialView={
+                         detailedView === 'week' ? 'timeGridWeek' : 'timeGridDay'
+                       }
+                       initialDate={getInitialDate()}
+                       headerToolbar={{
+                         left: 'prev,next today',
+                         center: 'title',
+                         right: ''
+                       }}
+                       weekends={view !== 'weekend'}
+                       hiddenDays={view === 'weekend' ? [0, 1, 2, 3, 4] : []}
+                       events={formatEventsForFullCalendar(events)}
+                       eventClick={handleEventClick}
+                       selectable={true}
+                       select={handleDateSelect}
+                       height="auto"
+                       eventDisplay="block"
+                       dayMaxEvents={density === 'compact' ? 2 : 3}
+                       editable={false}
+                       selectMirror={false}
+                       dayHeaders={true}
+                       allDaySlot={detailedView === 'day'}
+                       slotDuration="01:00:00"
+                       slotLabelInterval="01:00:00"
+                       slotMinTime="06:00:00"
+                       slotMaxTime="24:00:00"
+                       locale={language}
                     eventDidMount={(info) => {
                       const event = info.event.extendedProps as CalendarEvent;
                       
@@ -1491,54 +1528,55 @@ const Calendar = () => {
                     }}
                   />
                   
-                  {/* Aria live region for screen readers */}
-                  <div
-                    id="calendar-aria-live"
-                    aria-live="polite"
-                    aria-atomic="true"
-                    className="sr-only"
-                  />
-                </div>
-        </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </main>
+                       {/* Aria live region for screen readers */}
+                       <div
+                         id="calendar-aria-live"
+                         aria-live="polite"
+                         aria-atomic="true"
+                         className="sr-only"
+                       />
+                     </div>
+                     )}
+                   </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+       </main>
 
-      <Footer language={language} />
+       <Footer language={language} />
 
-      {/* Import Dialog */}
-      <CalendarImportDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        language={language}
-        selectedTalent={selectedTalent}
-        onImportComplete={() => {
-          loadEvents();
-          setImportDialogOpen(false);
-        }}
-      />
+       {/* Import Dialog */}
+       <CalendarImportDialog
+         open={importDialogOpen}
+         onOpenChange={setImportDialogOpen}
+         language={language}
+         selectedTalent={selectedTalent}
+         onImportComplete={() => {
+           loadEvents();
+           setImportDialogOpen(false);
+         }}
+       />
 
-      {/* Event Form Dialog */}
-      <CalendarEventForm
-        open={eventFormOpen}
-        onOpenChange={setEventFormOpen}
-        language={language}
-        selectedDate={selectedDate}
-        endDate={selectedEndDate}
-        selectedTalent={selectedTalent}
-        editEvent={editEvent}
-        onSave={() => {
-          loadEvents();
-          setEventFormOpen(false);
-          setEditEvent(null);
-        }}
-      />
-        </div>
-      </ErrorBoundary>
-    </AdminThemeProvider>
+       {/* Event Form Dialog */}
+       <CalendarEventForm
+         open={eventFormOpen}
+         onOpenChange={setEventFormOpen}
+         language={language}
+         selectedDate={selectedDate}
+         endDate={selectedEndDate}
+         selectedTalent={selectedTalent}
+         editEvent={editEvent}
+         onSave={() => {
+           loadEvents();
+           setEventFormOpen(false);
+           setEditEvent(null);
+         }}
+       />
+       </div>
+     </ErrorBoundary>
+   </AdminThemeProvider>
   );
 };
 
