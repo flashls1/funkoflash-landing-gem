@@ -80,10 +80,11 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         const now = new Date().toISOString();
         
         // Get business account ID for this user
+        const businessName = fullProfile.business_name || fullProfile.first_name + ' ' + (fullProfile.last_name || '');
         const { data: businessAccount } = await supabase
           .from('business_account')
           .select('id')
-          .or(`name.eq.${fullProfile.business_name || fullProfile.first_name + ' ' + (fullProfile.last_name || '')},contact_email.eq.${fullProfile.email}`)
+          .or(`name.eq."${businessName}",contact_email.eq."${fullProfile.email}"`)
           .single();
           
         if (!businessAccount) {
