@@ -119,5 +119,10 @@
       "updateFailed": "Error al actualizar",
       "deleteFailed": "Error al eliminar"
     }
+  },
+  "admin": {
+    "loginHistory": {
+      "export": "Exportar historial completo"
+    }
   }
 }

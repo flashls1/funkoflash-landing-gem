@@ -146,7 +146,8 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       userCreated: "User created successfully",
       userUpdated: "User updated successfully",
       updateUser: "Update User",
-      update: "Update"
+      update: "Update",
+      exportLoginHistory: "Export Full History"
     },
     es: {
       userManagement: "Gestión de Usuarios",
@@ -199,7 +200,8 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       userCreated: "Usuario creado exitosamente",
       userUpdated: "Usuario actualizado exitosamente",
       updateUser: "Actualizar Usuario",
-      update: "Actualizar"
+      update: "Actualizar",
+      exportLoginHistory: "Exportar historial completo"
     }
   };
 
@@ -272,7 +274,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
         .select('*')
         .eq('user_id', userId)
         .order('login_time', { ascending: false })
-        .limit(10);
+        .limit(15);
 
       if (error) throw error;
       setLoginHistory(data || []);
@@ -675,6 +677,70 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
     }
   };
 
+  const exportLoginHistory = async (userId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to export login history",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Make a direct HTTP request since we're downloading a file
+      const response = await fetch(
+        `https://gytjgmeoepglbrjrbfie.supabase.co/functions/v1/export-login-history?user_id=${userId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Export error:', errorData);
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to export login history",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get the CSV content
+      const csvContent = await response.text();
+      
+      // Create a blob and trigger download
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `login-history-${userId}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "Login history exported successfully",
+      });
+
+    } catch (error: any) {
+      console.error('Error exporting login history:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to export login history",
+        variant: "destructive",
+      });
+    }
+  };
+
   const openUserDashboard = (user: UserProfile) => {
     setSelectedUser(user);
     fetchUserLoginHistory(user.user_id);
@@ -976,9 +1042,20 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  {t.loginHistory}
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    {t.loginHistory}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportLoginHistory(selectedUser.user_id)}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {t.exportLoginHistory}
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>

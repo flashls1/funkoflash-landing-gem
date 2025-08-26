@@ -119,5 +119,10 @@
       "updateFailed": "Update failed",
       "deleteFailed": "Delete failed"
     }
+  },
+  "admin": {
+    "loginHistory": {
+      "export": "Export Full History"
+    }
   }
 }

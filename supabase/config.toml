@@ -1,5 +1,8 @@
 project_id = "gytjgmeoepglbrjrbfie"
 
+[functions.export-login-history]
+verify_jwt = true
+
 [functions.image-scrape]
 verify_jwt = true
 
