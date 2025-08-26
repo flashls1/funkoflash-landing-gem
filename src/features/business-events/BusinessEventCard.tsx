@@ -59,7 +59,9 @@ const BusinessEventCard = ({
   };
 
   const heroImageUrl = event.hero_logo_path && !imageError
-    ? `https://gytjgmeoepglbrjrbfie.supabase.co/storage/v1/object/public/business-events/${event.hero_logo_path}`
+    ? (event.hero_logo_path.startsWith('https://') 
+        ? event.hero_logo_path 
+        : `https://gytjgmeoepglbrjrbfie.supabase.co/storage/v1/object/public/business-events/${event.hero_logo_path}`)
     : null;
 
   return (
