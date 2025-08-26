@@ -508,6 +508,8 @@ const TalentDashboard = () => {
                               navigate('/calendar');
                             } else if (card.id === 'booking-management') {
                               navigate('/talent/booking-management');
+                            } else if (card.id === 'portfolio-management') {
+                              navigate('/talent/portfolio-management');
                             }
                           }}
                           style={{
