@@ -37,6 +37,12 @@ const BusinessEventCard = ({
   const formatDate = (dateString?: string) => {
     if (!dateString) return null;
     try {
+      // Handle date-only strings with proper UTC parsing to avoid timezone shifts
+      if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const date = new Date(dateString + 'T12:00:00.000Z');
+        return format(date, 'MMM dd, yyyy');
+      }
+      // Handle full datetime strings
       return format(new Date(dateString), 'MMM dd, yyyy');
     } catch {
       return null;

@@ -106,25 +106,28 @@ const BusinessEventFormDialog = ({
             console.log(`📅 Processing day ${dayData.day}:`, dayData);
             if (dayData.day === 1) {
               if (dayData.date) {
-                const day1 = new Date(dayData.date + 'T00:00:00');
+                // Use UTC parsing to avoid timezone shifts
+                const day1 = new Date(dayData.date + 'T12:00:00.000Z');
                 setDay1Date(day1);
-                console.log('✅ Set Day 1 date:', day1);
+                console.log('✅ Set Day 1 date (UTC):', day1, 'from string:', dayData.date);
               }
               if (dayData.start_time) setDay1StartTime(dayData.start_time);
               if (dayData.end_time) setDay1EndTime(dayData.end_time);
             } else if (dayData.day === 2) {
               if (dayData.date) {
-                const day2 = new Date(dayData.date + 'T00:00:00');
+                // Use UTC parsing to avoid timezone shifts
+                const day2 = new Date(dayData.date + 'T12:00:00.000Z');
                 setDay2Date(day2);
-                console.log('✅ Set Day 2 date:', day2);
+                console.log('✅ Set Day 2 date (UTC):', day2, 'from string:', dayData.date);
               }
               if (dayData.start_time) setDay2StartTime(dayData.start_time);
               if (dayData.end_time) setDay2EndTime(dayData.end_time);
             } else if (dayData.day === 3) {
               if (dayData.date) {
-                const day3 = new Date(dayData.date + 'T00:00:00');
+                // Use UTC parsing to avoid timezone shifts
+                const day3 = new Date(dayData.date + 'T12:00:00.000Z');
                 setDay3Date(day3);
-                console.log('✅ Set Day 3 date:', day3);
+                console.log('✅ Set Day 3 date (UTC):', day3, 'from string:', dayData.date);
               }
               if (dayData.start_time) setDay3StartTime(dayData.start_time);
               if (dayData.end_time) setDay3EndTime(dayData.end_time);
