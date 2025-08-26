@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown } from 'lucide-react';
+import TalentProfileSettings from '@/components/TalentProfileSettings';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd';
@@ -59,6 +60,7 @@ const TalentDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5]);
+  const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
   const { user, profile } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const { loading: siteDesignLoading } = useSiteDesign();
@@ -84,6 +86,25 @@ const TalentDashboard = () => {
     newOrder.splice(dragIndex, 1);
     newOrder.splice(hoverIndex, 0, draggedCard);
     setCardOrder(newOrder);
+  };
+
+  const handleModuleClick = (moduleId: string) => {
+    switch (moduleId) {
+      case 'portfolio-management':
+        navigate('/talent/portfolio-management');
+        break;
+      case 'booking-management':
+        navigate('/talent/booking-management');
+        break;
+      case 'availability-calendar':
+        navigate('/calendar');
+        break;
+      case 'profile-settings':
+        setIsProfileSettingsOpen(true);
+        break;
+      default:
+        break;
+    }
   };
 
   const getGreeting = () => {
@@ -504,15 +525,7 @@ const TalentDashboard = () => {
                       <CardContent>
                         <Button 
                           className="w-full"
-                          onClick={() => {
-                            if (card.id === 'availability-calendar') {
-                              navigate('/calendar');
-                            } else if (card.id === 'booking-management') {
-                              navigate('/talent/booking-management');
-                            } else if (card.id === 'portfolio-management') {
-                              navigate('/talent/portfolio-management');
-                            }
-                          }}
+                          onClick={() => handleModuleClick(card.id)}
                           style={{
                             backgroundColor: currentTheme.accent,
                             color: currentTheme.background,
@@ -569,7 +582,14 @@ const TalentDashboard = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+        </div>
+
+        {/* Profile Settings Modal */}
+        <TalentProfileSettings
+          language={language}
+          isOpen={isProfileSettingsOpen}
+          onClose={() => setIsProfileSettingsOpen(false)}
+        />
 
         <Footer language={language} />
       </div>
