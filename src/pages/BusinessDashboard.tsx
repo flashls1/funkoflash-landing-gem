@@ -467,7 +467,7 @@ const BusinessDashboard = () => {
                 <div className="space-y-2">
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start h-8 text-sm bg-background hover:bg-accent hover:text-accent-foreground"
+                    className="w-full justify-start h-8 text-sm bg-funko-orange hover:bg-funko-orange/90 hover:text-white"
                     onClick={() => setProfileSettingsOpen(true)}
                   >
                     <Upload className="h-3 w-3 mr-2" />
@@ -475,7 +475,7 @@ const BusinessDashboard = () => {
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start h-8 text-sm bg-background hover:bg-accent hover:text-accent-foreground"
+                    className="w-full justify-start h-8 text-sm bg-funko-orange hover:bg-funko-orange/90 hover:text-white"
                     onClick={() => setProfileSettingsOpen(true)}
                   >
                     <FileText className="h-3 w-3 mr-2" />
@@ -483,7 +483,7 @@ const BusinessDashboard = () => {
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start h-8 text-sm bg-background hover:bg-accent hover:text-accent-foreground"
+                    className="w-full justify-start h-8 text-sm bg-funko-orange hover:bg-funko-orange/90 hover:text-white"
                     onClick={() => setProfileSettingsOpen(true)}
                   >
                     <Building2 className="h-3 w-3 mr-2" />
