@@ -1101,110 +1101,126 @@ const Calendar = () => {
             />
           </div>
 
-          {/* Filters */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
+          {/* Filters - Compact Design */}
+          <Card className="mb-4">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Filter className="h-4 w-4" />
                 {t.filters}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Status Filter */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">{t.status}</label>
-                  <div className="space-y-2">
-                    {['booked', 'hold', 'available', 'tentative', 'cancelled', 'not_available'].map(status => (
-                      <div key={status} className="flex items-center space-x-2">
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Status Filter - Compact with Color Codes */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-foreground">{t.status}</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { key: 'booked', color: '#10b981', label: 'Booked' },
+                      { key: 'hold', color: '#f59e0b', label: 'Hold' },
+                      { key: 'available', color: '#3b82f6', label: 'Available' },
+                      { key: 'tentative', color: '#f59e0b', label: 'Tentative' },
+                      { key: 'cancelled', color: '#ef4444', label: 'Cancelled' },
+                      { key: 'not_available', color: '#6b7280', label: 'Not Available' }
+                    ].map(status => (
+                      <div key={status.key} className="flex items-center space-x-2">
                         <Checkbox
-                          id={status}
-                          checked={filters.status.includes(status)}
+                          id={status.key}
+                          checked={filters.status.includes(status.key)}
                           onCheckedChange={(checked) => {
                             if (checked) {
-                              setFilters(prev => ({ ...prev, status: [...prev.status, status] }));
+                              setFilters(prev => ({ ...prev, status: [...prev.status, status.key] }));
                             } else {
-                              setFilters(prev => ({ ...prev, status: prev.status.filter(s => s !== status) }));
+                              setFilters(prev => ({ ...prev, status: prev.status.filter(s => s !== status.key) }));
                             }
                           }}
                         />
-                        <label htmlFor={status} className="capitalize text-sm">
-                          {status === 'not_available' ? (language === 'en' ? 'Not Available' : 'No disponible') : status}
-                        </label>
+                        <div className="flex items-center gap-1">
+                          <div 
+                            className="w-3 h-3 rounded-full border border-gray-300" 
+                            style={{ backgroundColor: status.color }}
+                          />
+                          <label htmlFor={status.key} className="text-xs font-medium">
+                            {status.label}
+                          </label>
+                        </div>
                       </div>
                     ))}
-                    {/* Hide Not Available Toggle */}
-                    <div className="pt-2 border-t">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="hide-not-available"
-                          checked={filters.hideNotAvailable}
-                          onCheckedChange={(checked) => 
-                            setFilters(prev => ({ ...prev, hideNotAvailable: !!checked }))
-                          }
-                        />
-                        <label htmlFor="hide-not-available" className="text-sm font-medium">
-                          {t.hideNotAvailable}
-                        </label>
-                      </div>
+                  </div>
+                  {/* Hide Not Available Toggle */}
+                  <div className="pt-2 border-t border-border/50">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="hide-not-available"
+                        checked={filters.hideNotAvailable}
+                        onCheckedChange={(checked) => 
+                          setFilters(prev => ({ ...prev, hideNotAvailable: !!checked }))
+                        }
+                      />
+                      <label htmlFor="hide-not-available" className="text-xs font-medium text-muted-foreground">
+                        {t.hideNotAvailable}
+                      </label>
                     </div>
                   </div>
                 </div>
 
-                {/* Talent Filter - Only visible to Admin/Staff */}
-                {hasPermission('calendar:edit') && (
+                {/* Combined Talent & Date Range Filters */}
+                <div className="space-y-3">
+                  {/* Date Range Filter */}
                   <div>
-                    <label className="text-sm font-medium mb-2 block">{t.talent}</label>
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder={t.searchTalent}
-                          value={talentSearch}
-                          onChange={(e) => setTalentSearch(e.target.value)}
-                          className="pl-8"
-                        />
-                      </div>
-                      <div className="max-h-32 overflow-y-auto space-y-2">
-                        {filteredTalents.map(talent => (
-                          <div key={talent.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={talent.id}
-                              checked={filters.talent.includes(talent.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setFilters(prev => ({ ...prev, talent: [...prev.talent, talent.id] }));
-                                } else {
-                                  setFilters(prev => ({ ...prev, talent: prev.talent.filter(t => t !== talent.id) }));
-                                }
-                              }}
-                            />
-                            <label htmlFor={talent.id} className="text-sm">
-                              {talent.name}
-                            </label>
-                          </div>
-                        ))}
+                    <label className="text-sm font-semibold text-foreground mb-1 block">{t.dateRange}</label>
+                    <Select value={filters.dateRange} onValueChange={(value) => 
+                      setFilters(prev => ({ ...prev, dateRange: value }))
+                    }>
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="year">Full Year</SelectItem>
+                        <SelectItem value="next7">{t.next7}</SelectItem>
+                        <SelectItem value="next30">{t.next30}</SelectItem>
+                        <SelectItem value="next90">{t.next90}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Talent Filter - Only visible to Admin/Staff */}
+                  {hasPermission('calendar:edit') && (
+                    <div>
+                      <label className="text-sm font-semibold text-foreground mb-1 block">{t.talent}</label>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Search className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
+                          <Input
+                            placeholder={t.searchTalent}
+                            value={talentSearch}
+                            onChange={(e) => setTalentSearch(e.target.value)}
+                            className="pl-7 h-8 text-xs"
+                          />
+                        </div>
+                        <div className="max-h-24 overflow-y-auto space-y-1 bg-muted/30 rounded p-2">
+                          {filteredTalents.map(talent => (
+                            <div key={talent.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={talent.id}
+                                checked={filters.talent.includes(talent.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setFilters(prev => ({ ...prev, talent: [...prev.talent, talent.id] }));
+                                  } else {
+                                    setFilters(prev => ({ ...prev, talent: prev.talent.filter(t => t !== talent.id) }));
+                                  }
+                                }}
+                              />
+                              <label htmlFor={talent.id} className="text-xs">
+                                {talent.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* Date Range Filter */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">{t.dateRange}</label>
-                  <Select value={filters.dateRange} onValueChange={(value) => 
-                    setFilters(prev => ({ ...prev, dateRange: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="year">Full Year</SelectItem>
-                      <SelectItem value="next7">{t.next7}</SelectItem>
-                      <SelectItem value="next30">{t.next30}</SelectItem>
-                      <SelectItem value="next90">{t.next90}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  )}
                 </div>
               </div>
             </CardContent>
