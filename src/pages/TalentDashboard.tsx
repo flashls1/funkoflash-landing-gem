@@ -374,7 +374,7 @@ const TalentDashboard = () => {
             <TabsTrigger value="overview">{t.overview}</TabsTrigger>
             <TabsTrigger value="bookings" onClick={() => navigate('/talent/booking-management')}>{t.bookings}</TabsTrigger>
             <TabsTrigger value="messages">{t.messages}</TabsTrigger>
-            <TabsTrigger value="portfolio">{t.portfolio}</TabsTrigger>
+            <TabsTrigger value="portfolio" onClick={() => navigate('/talent/portfolio-management')}>{t.portfolio}</TabsTrigger>
             <TabsTrigger value="earnings">{t.earnings}</TabsTrigger>
           </TabsList>
 
@@ -543,7 +543,15 @@ const TalentDashboard = () => {
           </TabsContent>
 
           <TabsContent value="portfolio">
-            <TalentAssetsManager talentId={profile?.id} locale={language} />
+            <Card className="border-2 border-black bg-white">
+              <CardHeader>
+                <CardTitle>Portfolio Management</CardTitle>
+                <CardDescription>Manage your portfolio assets and showcase your work</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Portfolio management functionality has been moved to a dedicated page.</p>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="earnings">
