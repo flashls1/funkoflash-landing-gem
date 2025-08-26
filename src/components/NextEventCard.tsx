@@ -69,14 +69,14 @@ export const NextEventCard = ({ language }: NextEventProps) => {
       setLoading(true);
       
       // Get user's profile to check role
-      const { data: profile } = await supabase
+      const { data: fullProfile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, business_name, first_name, last_name, email')
         .eq('user_id', user.id)
         .single();
 
       // For business users, get next business event
-      if (profile?.role === 'business') {
+      if (fullProfile?.role === 'business') {
         const now = new Date().toISOString();
         
         const { data, error } = await supabase
@@ -84,11 +84,11 @@ export const NextEventCard = ({ language }: NextEventProps) => {
           .select(`
             *,
             business_event_account!inner(
-              business_account!inner(user_id)
+              business_account!inner(name, contact_email)
             )
           `)
           .gte('start_ts', now)
-          .eq('business_event_account.business_account.user_id', user.id)
+          .or(`business_event_account.business_account.name.eq.${fullProfile.business_name || fullProfile.first_name + ' ' + (fullProfile.last_name || '')},business_event_account.business_account.contact_email.eq.${fullProfile.email}`)
           .order('start_ts', { ascending: true })
           .limit(1);
 

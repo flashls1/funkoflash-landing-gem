@@ -182,15 +182,16 @@ const BusinessEventFormDialog = ({
   };
 
   const handleFileUpload = (url: string, fileName: string, fileType: string) => {
-    const urlParts = url.split('/');
-    const bucketIndex = urlParts.findIndex(part => part === 'business-events');
-    if (bucketIndex > -1) {
-      const filePath = urlParts.slice(bucketIndex + 1).join('/');
-      setFormData(prev => ({
-        ...prev,
-        hero_logo_path: filePath
-      }));
-    }
+    // Store the full URL for hero_logo_path
+    setFormData(prev => ({
+      ...prev,
+      hero_logo_path: url
+    }));
+    
+    toast({
+      title: language === 'es' ? 'Imagen subida' : 'Image uploaded',
+      description: language === 'es' ? 'La imagen se subió correctamente.' : 'Image uploaded successfully.',
+    });
   };
 
   const handleSubmit = async () => {
