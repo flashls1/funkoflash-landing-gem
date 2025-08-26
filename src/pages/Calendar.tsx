@@ -37,7 +37,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 // Add custom CSS for calendar styling
 const calendarStyles = `
   .fc, .fc-view-harness, .fc-view-harness-active {
-    background-image: url('/lovable-uploads/d0f4637c-55b5-42eb-af08-29eabb28b253.png') !important;
+    background-image: var(--site-background) !important;
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -918,41 +918,43 @@ const Calendar = () => {
                   </div>
                 </div>
 
-                {/* Talent Filter */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">{t.talent}</label>
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder={t.searchTalent}
-                        value={talentSearch}
-                        onChange={(e) => setTalentSearch(e.target.value)}
-                        className="pl-8"
-                      />
-                    </div>
-                    <div className="max-h-32 overflow-y-auto space-y-2">
-                      {filteredTalents.map(talent => (
-                        <div key={talent.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={talent.id}
-                            checked={filters.talent.includes(talent.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setFilters(prev => ({ ...prev, talent: [...prev.talent, talent.id] }));
-                              } else {
-                                setFilters(prev => ({ ...prev, talent: prev.talent.filter(t => t !== talent.id) }));
-                              }
-                            }}
-                          />
-                          <label htmlFor={talent.id} className="text-sm">
-                            {talent.name}
-                          </label>
-                        </div>
-                      ))}
+                {/* Talent Filter - Only visible to Admin/Staff */}
+                {hasPermission('calendar:edit') && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">{t.talent}</label>
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder={t.searchTalent}
+                          value={talentSearch}
+                          onChange={(e) => setTalentSearch(e.target.value)}
+                          className="pl-8"
+                        />
+                      </div>
+                      <div className="max-h-32 overflow-y-auto space-y-2">
+                        {filteredTalents.map(talent => (
+                          <div key={talent.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={talent.id}
+                              checked={filters.talent.includes(talent.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setFilters(prev => ({ ...prev, talent: [...prev.talent, talent.id] }));
+                                } else {
+                                  setFilters(prev => ({ ...prev, talent: prev.talent.filter(t => t !== talent.id) }));
+                                }
+                              }}
+                            />
+                            <label htmlFor={talent.id} className="text-sm">
+                              {talent.name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Date Range Filter */}
                 <div>
