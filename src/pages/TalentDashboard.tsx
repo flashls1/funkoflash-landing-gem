@@ -506,6 +506,8 @@ const TalentDashboard = () => {
                           onClick={() => {
                             if (card.id === 'availability-calendar') {
                               navigate('/calendar');
+                            } else if (card.id === 'booking-management') {
+                              navigate('/talent/booking-management');
                             }
                           }}
                           style={{

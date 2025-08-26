@@ -26,6 +26,7 @@ import Calendar from "./pages/Calendar";
 import NotFound from "./pages/NotFound";
 import BusinessEventsPage from "./features/business-events/BusinessEventsPage";
 import BusinessEventDetail from "./features/business-events/BusinessEventDetail";
+import TalentBookingManagement from "./pages/TalentBookingManagement";
 import BackgroundManager from "./features/appearance/BackgroundManager";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/admin/business-events/:id" element={<BusinessEventDetail />} />
             <Route path="/business/events" element={<BusinessEventsPage />} />
             <Route path="/business/events/:id" element={<BusinessEventDetail />} />
+            <Route path="/talent/booking-management" element={<TalentBookingManagement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
             </Routes>
