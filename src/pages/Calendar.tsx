@@ -1006,15 +1006,6 @@ const Calendar = () => {
         <div className={`transition-opacity duration-300 ${showTransition ? 'opacity-50' : 'opacity-100'}`}>
           {loading ? (
             <CalendarSkeleton view={view} />
-          ) : events.length === 0 ? (
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center py-8">
-                  <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p>{t.noEvents}</p>
-                </div>
-              </CardContent>
-            </Card>
           ) : (
             <Card className={density === 'compact' ? 'text-sm' : ''}>
               <CardContent className={`p-6 ${density === 'compact' ? 'p-4' : ''}`}>
