@@ -1228,63 +1228,65 @@ const Calendar = () => {
 
         </div>
 
-        {/* Calendar Mode Toggle */}
-        <div className="mb-4 flex justify-center">
-          <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
-            <Button
-              variant={calendarMode === 'simple' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setCalendarMode('simple')}
-              className={`px-4 flex items-center justify-center min-w-0 transition-all ${
-                calendarMode === 'simple'
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
-              }`}
-            >
-              <Grid className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="whitespace-nowrap">{t.simpleView}</span>
-            </Button>
-            <Button
-              variant={calendarMode === 'detailed' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => {
-                setCalendarMode('detailed');
-                setDetailedView('week'); // Default to week view when switching to detailed
-              }}
-              className={`px-4 flex items-center justify-center min-w-0 transition-all ${
-                calendarMode === 'detailed'
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
-              }`}
-            >
-              <CalendarIconView className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="whitespace-nowrap">{t.detailView}</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Calendar View */}
+        {/* Calendar View - Moved closer to filters */}
         <div className={`transition-opacity duration-300 ${showTransition ? 'opacity-50' : 'opacity-100'}`}>
           {loading ? (
             <CalendarSkeleton view={view} />
-          ) : calendarMode === 'simple' ? (
-            /* Simple Calendar Grid */
+          ) : (
             <Card>
               <CardContent className="p-6">
-                {/* Month Navigation */}
-                <div className="flex items-center justify-between mb-6">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handlePrevMonth}
-                    className="h-8 w-8 p-0"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  
-                  <h3 className="text-lg font-semibold">
-                    {t.monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                  </h3>
+                {/* Calendar Mode Toggle - Moved inside calendar box and centered */}
+                <div className="flex justify-center mb-6">
+                  <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
+                    <Button
+                      variant={calendarMode === 'simple' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setCalendarMode('simple')}
+                      className={`px-4 flex items-center justify-center min-w-0 transition-all ${
+                        calendarMode === 'simple'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
+                      }`}
+                    >
+                      <Grid className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="whitespace-nowrap">{t.simpleView}</span>
+                    </Button>
+                    <Button
+                      variant={calendarMode === 'detailed' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => {
+                        setCalendarMode('detailed');
+                        setDetailedView('week'); // Default to week view when switching to detailed
+                      }}
+                      className={`px-4 flex items-center justify-center min-w-0 transition-all ${
+                        calendarMode === 'detailed'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : '!text-blue-600 hover:!bg-blue-50 hover:!text-blue-700'
+                      }`}
+                    >
+                      <CalendarIconView className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="whitespace-nowrap">{t.detailView}</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {calendarMode === 'simple' ? (
+                  /* Simple Calendar Grid */
+                  <div>
+                  {/* Month Navigation */}
+                  <div className="flex items-center justify-between mb-6">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handlePrevMonth}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                      {t.monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                    </h3>
                   
                   <Button
                     variant="ghost"
@@ -1326,12 +1328,12 @@ const Calendar = () => {
                             className={cn(
                               "relative h-12 text-sm text-center flex items-center justify-center rounded border border-border/50",
                               "hover:bg-accent cursor-pointer transition-colors",
-                              isTodayDate && "bg-primary text-primary-foreground font-medium border-primary",
-                              !isCurrentMonth && "text-muted-foreground/50 bg-muted/30"
+                              isTodayDate && "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 font-bold border-blue-500",
+                              !isCurrentMonth && "text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-800"
                             )}
                             onClick={() => handleSimpleDateClick(day)}
                           >
-                            <span>{format(day, 'd')}</span>
+                            <span className="font-medium">{format(day, 'd')}</span>
                           </div>
                         );
                       });
@@ -1350,13 +1352,11 @@ const Calendar = () => {
                     {t.calendarUi.today}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            /* Detailed FullCalendar View */
-            <Card className={density === 'compact' ? 'text-sm' : ''}>
-              <CardContent className={`p-6 ${density === 'compact' ? 'p-4' : ''}`}>
-                {/* Week/Day Toggle for Detailed View */}
+                </div>
+                ) : (
+                  /* Detailed FullCalendar View */
+                  <div>
+                    {/* Week/Day Toggle for Detailed View */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1">
@@ -1497,6 +1497,8 @@ const Calendar = () => {
                     className="sr-only"
                   />
                 </div>
+        </div>
+                )}
               </CardContent>
             </Card>
           )}
