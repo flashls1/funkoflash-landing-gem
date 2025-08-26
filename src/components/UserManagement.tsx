@@ -207,6 +207,41 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
   useEffect(() => {
     fetchUsers();
+    
+    // Set up real-time subscriptions for user changes
+    const profilesChannel = supabase
+      .channel('profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('Profile change detected:', payload);
+          // Refresh users list when any profile changes
+          fetchUsers();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_roles'
+        },
+        (payload) => {
+          console.log('User role change detected:', payload);
+          // Refresh users list when roles change
+          fetchUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(profilesChannel);
+    };
   }, []);
 
   const fetchUsers = async () => {
@@ -357,6 +392,10 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
   const updateUserRole = async (userId: string, newRole: 'admin' | 'staff' | 'talent' | 'business') => {
     try {
+      // Get current user data for logging
+      const currentUserData = users.find(u => u.user_id === userId);
+      const oldRole = currentUserData?.role;
+
       // Enhanced security: Use the secure role update function with validation
       const { data, error } = await supabase.rpc('update_user_role_safely', {
         target_user_id: userId,
@@ -368,23 +407,38 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
         throw new Error(error.message || 'Failed to update user role');
       }
 
+      // Clean role transition: Remove old permissions and add new ones
+      await cleanRoleTransition(userId, oldRole, newRole);
+
       // Additional activity logging for frontend operations
       await supabase.from('user_activity_logs').insert({
         user_id: userId,
         admin_user_id: currentUser?.id,
         action: 'role_updated_via_ui',
         details: { 
+          old_role: oldRole,
           new_role: newRole,
           user_agent: navigator.userAgent,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          permissions_cleaned: true
         }
+      });
+
+      // Enhanced security audit log
+      await supabase.rpc('log_security_event', {
+        p_action: 'role_change_completed',
+        p_table_name: 'profiles',
+        p_record_id: userId,
+        p_old_values: { role: oldRole },
+        p_new_values: { role: newRole }
       });
 
       toast({
         title: t.userUpdated,
-        description: "User role updated successfully.",
+        description: `User role updated from ${oldRole} to ${newRole} with permissions cleaned.`,
       });
 
+      // Force refresh to show real-time changes
       fetchUsers();
     } catch (error: any) {
       console.error('Error updating user role:', error);
@@ -393,6 +447,83 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
         description: error.message || "Failed to update user role",
         variant: "destructive",
       });
+    }
+  };
+
+  const cleanRoleTransition = async (userId: string, oldRole: 'admin' | 'staff' | 'talent' | 'business' | undefined, newRole: 'admin' | 'staff' | 'talent' | 'business') => {
+    try {
+      console.log(`Cleaning role transition for user ${userId}: ${oldRole} -> ${newRole}`);
+      
+      // Step 1: Clean up old role permissions in user_roles table
+      if (oldRole) {
+        const { error: deleteOldRoleError } = await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', userId)
+          .eq('role', oldRole);
+        
+        if (deleteOldRoleError) {
+          console.warn('Failed to clean old role permissions:', deleteOldRoleError);
+        }
+      }
+
+      // Step 2: Ensure new role is properly set (the function already handles this, but this is extra insurance)
+      const { error: insertNewRoleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: newRole,
+          assigned_by: currentUser?.id
+        });
+
+      if (insertNewRoleError) {
+        console.warn('Failed to ensure new role permissions:', insertNewRoleError);
+      }
+
+      // Step 3: Special handling for talent profile management
+      if (oldRole === 'talent' && newRole !== 'talent') {
+        // Deactivate talent profile when moving away from talent role
+        await supabase
+          .from('talent_profiles')
+          .update({ 
+            active: false, 
+            public_visibility: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId);
+      } else if (oldRole !== 'talent' && newRole === 'talent') {
+        // Reactivate or create talent profile when moving to talent role
+        const { data: existingProfile } = await supabase
+          .from('talent_profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+
+        if (existingProfile) {
+          // Reactivate existing profile
+          await supabase
+            .from('talent_profiles')
+            .update({ 
+              active: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', userId);
+        }
+        // Note: New talent profile creation is handled by the database trigger
+      }
+
+      // Step 4: Business account management
+      if (newRole === 'business') {
+        // Ensure business account exists
+        await supabase.rpc('ensure_business_account_exists', {
+          p_user_id: userId
+        });
+      }
+
+      console.log(`Role transition cleanup completed for user ${userId}`);
+    } catch (error) {
+      console.error('Error during role transition cleanup:', error);
+      throw error;
     }
   };
 
@@ -1083,12 +1214,57 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
                     </div>
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge className={getRoleBadgeColor(user.role)}>
-                      {getRoleIcon(user.role)}
-                      <span className="ml-1">{t[user.role as keyof typeof t]}</span>
-                    </Badge>
-                  </TableCell>
+                   <TableCell>
+                     <Select
+                       value={user.role}
+                       onValueChange={(value: 'admin' | 'staff' | 'talent' | 'business') => {
+                         if (user.user_id === currentUser?.id) {
+                           toast({
+                             title: "Error",
+                             description: "You cannot change your own role.",
+                             variant: "destructive",
+                           });
+                           return;
+                         }
+                         updateUserRole(user.user_id, value);
+                       }}
+                     >
+                       <SelectTrigger className="w-32">
+                         <SelectValue>
+                           <div className="flex items-center gap-2">
+                             {getRoleIcon(user.role)}
+                             <span>{t[user.role as keyof typeof t]}</span>
+                           </div>
+                         </SelectValue>
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="admin">
+                           <div className="flex items-center gap-2">
+                             <Crown className="h-4 w-4" />
+                             {t.admin}
+                           </div>
+                         </SelectItem>
+                         <SelectItem value="staff">
+                           <div className="flex items-center gap-2">
+                             <UserCheck className="h-4 w-4" />
+                             {t.staff}
+                           </div>
+                         </SelectItem>
+                         <SelectItem value="talent">
+                           <div className="flex items-center gap-2">
+                             <User className="h-4 w-4" />
+                             {t.talent}
+                           </div>
+                         </SelectItem>
+                         <SelectItem value="business">
+                           <div className="flex items-center gap-2">
+                             <User className="h-4 w-4" />
+                             {t.business}
+                           </div>
+                         </SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </TableCell>
                   <TableCell>
                     <Switch
                       checked={user.active}
