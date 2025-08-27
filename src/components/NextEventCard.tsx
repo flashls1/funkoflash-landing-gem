@@ -80,22 +80,34 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         
         console.log('NextEventCard: Loading events for business user');
         
-        // Get business events assigned to this user (RLS will filter appropriately)
-        const { data: businessEvents } = await supabase
+        // For business users, we need to get business events assigned to their business account
+        // RLS will automatically filter to only show events for their business account
+        const { data: businessEvents, error: businessError } = await supabase
           .from('business_events')
           .select('*')
           .gte('start_ts', now)
           .order('start_ts', { ascending: true });
         
-        // Get calendar events for this business user (RLS will filter appropriately)  
-        const { data: businessCalendarEvents } = await supabase
+        console.log('NextEventCard: Business events:', businessEvents);
+        
+        if (businessError) {
+          console.error('Error fetching business events:', businessError);
+        }
+        
+        // For calendar events, we only get events that are sourced from business events
+        // The new RLS policy will automatically filter these to the user's business account
+        const { data: businessCalendarEvents, error: calendarError } = await supabase
           .from('calendar_event')
           .select('*')
+          .not('source_row_id', 'is', null)  // Only business-sourced calendar events
           .gte('start_date', now.split('T')[0])
           .order('start_date', { ascending: true });
         
-        console.log('NextEventCard: Business events:', businessEvents);
         console.log('NextEventCard: Business calendar events:', businessCalendarEvents);
+        
+        if (calendarError) {
+          console.error('Error fetching calendar events:', calendarError);
+        }
         
         // Check both business events and calendar events, use whichever is next
         let nextBusinessEvent = businessEvents?.[0] || null;
