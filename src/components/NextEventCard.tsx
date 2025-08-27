@@ -80,26 +80,11 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         
         console.log('NextEventCard: Loading events for business user');
         
-        // For business users, we need to get business events assigned to their business account
-        // RLS will automatically filter to only show events for their business account
-        const { data: businessEvents, error: businessError } = await supabase
-          .from('business_events')
-          .select('*')
-          .gte('start_ts', now)
-          .order('start_ts', { ascending: true });
-        
-        console.log('NextEventCard: Business events:', businessEvents);
-        
-        if (businessError) {
-          console.error('Error fetching business events:', businessError);
-        }
-        
-        // For calendar events, we only get events that are sourced from business events
-        // The new RLS policy will automatically filter these to the user's business account
+        // Use the new optimized view that automatically applies RLS filtering
+        // This will only return calendar events for business events assigned to this user's business account
         const { data: businessCalendarEvents, error: calendarError } = await supabase
-          .from('calendar_event')
+          .from('v_business_calendar_events')
           .select('*')
-          .not('source_row_id', 'is', null)  // Only business-sourced calendar events
           .gte('start_date', now.split('T')[0])
           .order('start_date', { ascending: true });
         
@@ -107,48 +92,31 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         
         if (calendarError) {
           console.error('Error fetching calendar events:', calendarError);
+          setNextEvent(null);
+          return;
         }
         
-        // Check both business events and calendar events, use whichever is next
-        let nextBusinessEvent = businessEvents?.[0] || null;
+        // Use the first calendar event as the next event
         let nextCalendarEvent = businessCalendarEvents?.[0] || null;
 
-        // Determine which event is next (calendar event or business event)
-        let selectedEvent = null;
-        
-        if (nextCalendarEvent && nextBusinessEvent) {
-          const calendarDate = new Date(nextCalendarEvent.start_date);
-          const businessDate = new Date(nextBusinessEvent.start_ts);
-          selectedEvent = calendarDate <= businessDate ? { type: 'calendar', event: nextCalendarEvent } : { type: 'business', event: nextBusinessEvent };
-        } else if (nextCalendarEvent) {
-          selectedEvent = { type: 'calendar', event: nextCalendarEvent };
-        } else if (nextBusinessEvent) {
-          selectedEvent = { type: 'business', event: nextBusinessEvent };
-        }
-
-        if (selectedEvent) {
-          if (selectedEvent.type === 'calendar') {
-            setNextEvent(selectedEvent.event as CalendarEvent);
-          } else {
-            // Convert business event to calendar event format for display
-            const businessEvent = selectedEvent.event;
-            const convertedEvent: CalendarEvent = {
-              id: businessEvent.id,
-              start_date: businessEvent.start_ts ? businessEvent.start_ts.split('T')[0] : '',
-              end_date: businessEvent.end_ts ? businessEvent.end_ts.split('T')[0] : '',
-              start_time: businessEvent.start_ts ? businessEvent.start_ts.split('T')[1]?.split('.')[0] : null,
-              end_time: businessEvent.end_ts ? businessEvent.end_ts.split('T')[1]?.split('.')[0] : null,
-              all_day: !businessEvent.start_ts?.includes('T'),
-              event_title: businessEvent.title || 'Business Event',
-              status: businessEvent.status === 'published' ? 'booked' : 'tentative',
-              venue_name: businessEvent.venue,
-              location_city: businessEvent.city,
-              location_state: businessEvent.state,
-              location_country: businessEvent.country,
-              talent_profiles: null
-            };
-            setNextEvent(convertedEvent);
-          }
+        // Set the next calendar event directly (view data is already in the right format)
+        if (nextCalendarEvent) {
+          const convertedEvent: CalendarEvent = {
+            id: nextCalendarEvent.calendar_id,
+            event_title: nextCalendarEvent.event_title,
+            start_date: nextCalendarEvent.start_date,
+            end_date: nextCalendarEvent.end_date,
+            start_time: nextCalendarEvent.start_time,
+            end_time: nextCalendarEvent.end_time,
+            all_day: nextCalendarEvent.all_day,
+            status: nextCalendarEvent.status as 'booked' | 'hold' | 'available' | 'tentative' | 'cancelled' | 'not_available',
+            venue_name: nextCalendarEvent.venue_name,
+            location_city: nextCalendarEvent.location_city,
+            location_state: nextCalendarEvent.location_state,
+            location_country: 'USA', // Default as not included in view
+            talent_profiles: null
+          };
+          setNextEvent(convertedEvent);
         } else {
           setNextEvent(null);
         }
