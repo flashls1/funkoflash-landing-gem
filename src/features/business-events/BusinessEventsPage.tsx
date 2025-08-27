@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,8 +29,19 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
   
   const { profile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const canEdit = profile?.role === 'admin' || profile?.role === 'staff';
+
+  const handleBackToDashboard = () => {
+    if (profile?.role === 'admin') {
+      navigate('/dashboard/admin');
+    } else if (profile?.role === 'staff') {
+      navigate('/dashboard/staff');
+    } else {
+      navigate('/dashboard/business');
+    }
+  };
 
   useEffect(() => {
     loadEvents();
@@ -217,7 +229,7 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
               {/* Back Button */}
               <Button 
                 variant="outline" 
-                onClick={() => window.history.back()}
+                onClick={handleBackToDashboard}
                 className="w-fit"
               >
                 ← {language === 'es' ? 'Volver al Panel' : profile?.role === 'admin' ? 'Back to Admin Dashboard' : 'Back to Dashboard'}
