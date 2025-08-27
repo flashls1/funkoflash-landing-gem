@@ -460,7 +460,7 @@ export type Database = {
           contact_name: string | null
           contact_phone: string | null
           created_at: string
-          created_by: string | null
+          created_by: string
           do_not_sync: boolean | null
           end_date: string
           end_time: string | null
@@ -494,7 +494,7 @@ export type Database = {
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
-          created_by?: string | null
+          created_by: string
           do_not_sync?: boolean | null
           end_date: string
           end_time?: string | null
@@ -528,7 +528,7 @@ export type Database = {
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           do_not_sync?: boolean | null
           end_date?: string
           end_time?: string | null
