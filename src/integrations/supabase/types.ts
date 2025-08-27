@@ -1506,6 +1506,10 @@ export type Database = {
         }
         Returns: string
       }
+      update_talent_sort_order: {
+        Args: { talent_updates: Json[] }
+        Returns: undefined
+      }
       update_user_role_safely: {
         Args: {
           new_role: Database["public"]["Enums"]["app_role"]

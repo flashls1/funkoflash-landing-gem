@@ -11,12 +11,15 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, GripVertical, ArrowLeft, User, Users, UserPlus } from "lucide-react";
+import { Plus, Edit, Trash2, GripVertical, ArrowLeft, User, Users, UserPlus, Lock, Unlock } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import AdminThemeProvider from '@/components/AdminThemeProvider';
 import AdminHeader from '@/components/AdminHeader';
 import { useColorTheme } from '@/hooks/useColorTheme';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface TalentProfile {
   id: string;
@@ -43,9 +46,41 @@ interface TalentFormData {
   public_visibility: boolean;
 }
 
+// Draggable card component for talent profiles
+const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'talent',
+    item: { id, index },
+    canDrag: isDragEnabled,
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const [, drop] = useDrop({
+    accept: 'talent',
+    hover: (item: any) => {
+      if (!isDragEnabled || item.index === index) return;
+      moveCard(item.index, index);
+      item.index = index;
+    },
+  });
+
+  return (
+    <div
+      ref={(node) => drag(drop(node))}
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+      className={isDragEnabled ? 'cursor-move' : 'cursor-default'}
+    >
+      {children}
+    </div>
+  );
+};
+
 const TalentDirectoryCMS = () => {
   const { user, profile } = useAuth();
   const { currentTheme } = useColorTheme();
+  const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [talents, setTalents] = useState<TalentProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,11 +93,15 @@ const TalentDirectoryCMS = () => {
     public_visibility: false
   });
   const [headshotFile, setHeadshotFile] = useState<File | null>(null);
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [showConnectDialog, setShowConnectDialog] = useState(false);
   const [connectingTalent, setConnectingTalent] = useState<TalentProfile | null>(null);
   const [availableUsers, setAvailableUsers] = useState<AvailableUser[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
+  
+  // Module Layout state
+  const [isDragEnabled, setIsDragEnabled] = useState(false);
+  const [cardOrder, setCardOrder] = useState<number[]>([]);
+  
   const { toast } = useToast();
 
   // Check if user has permission
@@ -73,6 +112,67 @@ const TalentDirectoryCMS = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Initialize card order when talents load
+  useEffect(() => {
+    if (talents.length > 0) {
+      setCardOrder(talents.map((_, index) => index));
+    }
+  }, [talents]);
+
+  // Module Layout functions
+  const moveCard = (dragIndex: number, hoverIndex: number) => {
+    const newOrder = [...cardOrder];
+    const draggedCard = newOrder[dragIndex];
+    newOrder.splice(dragIndex, 1);
+    newOrder.splice(hoverIndex, 0, draggedCard);
+    setCardOrder(newOrder);
+  };
+
+  const updateSortOrder = async (newOrder: number[]) => {
+    try {
+      const updates = newOrder.map((originalIndex, newIndex) => ({
+        id: talents[originalIndex].id,
+        sort_rank: newIndex
+      }));
+
+      const { error } = await supabase.rpc('update_talent_sort_order', {
+        talent_updates: updates
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: language === 'en' ? "Success" : "Éxito",
+        description: language === 'en' ? "Talent order updated successfully" : "Orden de talentos actualizado exitosamente",
+      });
+
+      // Refresh data to reflect new order
+      await fetchData();
+    } catch (error) {
+      console.error('Error updating sort order:', error);
+      toast({
+        title: language === 'en' ? "Error" : "Error",
+        description: language === 'en' ? "Failed to update talent order" : "No se pudo actualizar el orden de talentos",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const content = {
+    en: {
+      moduleLayout: "Module Layout",
+      unlockToReorder: "Unlock to reorder talent profiles",
+      lockOrder: "Lock talent order",
+      dragToReorder: "Drag talent profiles to reorder them"
+    },
+    es: {
+      moduleLayout: "Diseño de Módulo",
+      unlockToReorder: "Desbloquear para reordenar perfiles de talento",
+      lockOrder: "Bloquear orden de talento",
+      dragToReorder: "Arrastra los perfiles de talento para reordenarlos"
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -419,10 +519,11 @@ const TalentDirectoryCMS = () => {
   }
 
   return (
-    <AdminThemeProvider>
-      <Navigation language={language} setLanguage={setLanguage} />
-      
-      <div className="container mx-auto px-4 py-8">
+    <DndProvider backend={HTML5Backend}>
+      <AdminThemeProvider>
+        <Navigation language={language} setLanguage={setLanguage} />
+        
+        <div className="container mx-auto px-4 py-8">
         <AdminHeader
           title="Talent Directory Management"
           description="Manage talent profiles and directory settings"
@@ -478,6 +579,48 @@ const TalentDirectoryCMS = () => {
           </div>
         </div>
 
+        {/* Module Layout Control Bar */}
+        <Card 
+          className="border-2 mb-4"
+          style={{
+            backgroundColor: currentTheme.cardBackground,
+            borderColor: currentTheme.border,
+            color: currentTheme.cardForeground
+          }}
+        >
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold" style={{ color: currentTheme.accent }}>
+                  {content[language].moduleLayout}
+                </h3>
+                {isDragEnabled ? (
+                  <Unlock className="w-5 h-5" style={{ color: currentTheme.accent }} />
+                ) : (
+                  <Lock className="w-5 h-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {isDragEnabled ? content[language].dragToReorder : content[language].unlockToReorder}
+                  </span>
+                  <Switch
+                    checked={isDragEnabled}
+                    onCheckedChange={(checked) => {
+                      setIsDragEnabled(checked);
+                      if (!checked && cardOrder.length > 0) {
+                        // Save the current order when locking
+                        updateSortOrder(cardOrder);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Talent List */}
         <Card 
           className="border-2"
@@ -492,9 +635,23 @@ const TalentDirectoryCMS = () => {
           </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {talents.map((talent) => (
-                  <div key={talent.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                    <GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
+                {cardOrder.map((originalIndex, currentIndex) => {
+                  const talent = talents[originalIndex];
+                  if (!talent) return null;
+                  
+                  return (
+                    <DraggableCard
+                      key={talent.id}
+                      id={talent.id}
+                      index={currentIndex}
+                      moveCard={moveCard}
+                      isDragEnabled={isDragEnabled}
+                    >
+                      <div className="flex items-center gap-4 p-4 border rounded-lg">
+                        <GripVertical 
+                          className={`w-4 h-4 ${isDragEnabled ? 'text-primary cursor-move' : 'text-muted-foreground cursor-default'}`}
+                          style={isDragEnabled ? { color: currentTheme.accent } : {}}
+                        />
                     {talent.headshot_url && (
                       <img 
                         src={getImageUrl(talent.headshot_url)} 
@@ -592,19 +749,21 @@ const TalentDirectoryCMS = () => {
                      >
                        <Edit className="w-4 h-4" />
                      </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        if (confirm('Are you sure you want to delete this talent?')) {
-                          deleteTalent(talent.id);
-                        }
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this talent?')) {
+                              deleteTalent(talent.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </DraggableCard>
+                  );
+                })}
               </div>
           </CardContent>
         </Card>
@@ -764,7 +923,8 @@ const TalentDirectoryCMS = () => {
           )}
         </DialogContent>
       </Dialog>
-    </AdminThemeProvider>
+      </AdminThemeProvider>
+    </DndProvider>
   );
 };
 
