@@ -75,58 +75,31 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         .eq('user_id', user.id)
         .single();
 
-      // For business users, get next business event
       if (fullProfile?.role === 'business') {
         const now = new Date().toISOString();
         
-        // Use standardized business account lookup and also check calendar events
-        const { data: businessAccountId } = await supabase
-          .rpc('get_business_account_for_user', { p_user_id: user.id });
+        console.log('NextEventCard: Loading events for business user');
         
-        console.log('NextEventCard: Business account ID found:', businessAccountId);
-          
-        if (!businessAccountId) {
-          console.log('NextEventCard: No business account found for user:', user.id);
-          setNextEvent(null);
-          return;
-        }
+        // Get business events assigned to this user (RLS will filter appropriately)
+        const { data: businessEvents } = await supabase
+          .from('business_events')
+          .select('*')
+          .gte('start_ts', now)
+          .order('start_ts', { ascending: true });
         
-        // Get event IDs from business_event_account table first
-        const { data: eventIds } = await supabase
-          .from('business_event_account')
-          .select('event_id')
-          .eq('business_account_id', businessAccountId);
-          
-        // Get calendar events created from business events assigned to this business account
-        let businessCalendarEvents = [];
-        if (eventIds && eventIds.length > 0) {
-          const { data: calendarEvents } = await supabase
-            .from('calendar_event')
-            .select('*')
-            .in('source_row_id', eventIds.map(item => item.event_id))
-            .gte('start_date', now.split('T')[0])
-            .order('start_date', { ascending: true });
-          
-          businessCalendarEvents = calendarEvents || [];
-        }
+        // Get calendar events for this business user (RLS will filter appropriately)  
+        const { data: businessCalendarEvents } = await supabase
+          .from('calendar_event')
+          .select('*')
+          .gte('start_date', now.split('T')[0])
+          .order('start_date', { ascending: true });
+        
+        console.log('NextEventCard: Business events:', businessEvents);
+        console.log('NextEventCard: Business calendar events:', businessCalendarEvents);
         
         // Check both business events and calendar events, use whichever is next
-        let nextBusinessEvent = null;
-        let nextCalendarEvent = businessCalendarEvents.length > 0 ? businessCalendarEvents[0] : null;
-
-        // Get next business event if we have event assignments
-        if (eventIds && eventIds.length > 0) {
-          const { data, error } = await supabase
-            .from('business_events')
-            .select('*')
-            .in('id', eventIds.map(item => item.event_id))
-            .gte('start_ts', now)
-            .order('start_ts', { ascending: true })
-            .limit(1);
-
-          if (error) throw error;
-          nextBusinessEvent = data && data.length > 0 ? data[0] : null;
-        }
+        let nextBusinessEvent = businessEvents?.[0] || null;
+        let nextCalendarEvent = businessCalendarEvents?.[0] || null;
 
         // Determine which event is next (calendar event or business event)
         let selectedEvent = null;

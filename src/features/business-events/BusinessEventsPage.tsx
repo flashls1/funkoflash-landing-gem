@@ -55,40 +55,30 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
     try {
       setLoading(true);
       
-      // For business users, only load their assigned events
+      // For business users, load their assigned events (RLS will filter appropriately)
       if (profile?.role === 'business') {
-        // Use standardized business account lookup
-        const { data: businessAccountId } = await supabase
-          .rpc('get_business_account_for_user', { p_user_id: profile.user_id });
-          
-        console.log('BusinessEventsPage: Business account ID found:', businessAccountId);
-        if (!businessAccountId) throw new Error('Business account not found');
+        console.log('BusinessEventsPage: Loading events for business user');
         
-        // Get events assigned to this business account
-        // First get event IDs from business_event_account table
-        const { data: eventIds } = await supabase
-          .from('business_event_account')
-          .select('event_id')
-          .eq('business_account_id', businessAccountId);
-          
-        if (!eventIds || eventIds.length === 0) {
-          setEvents([]);
-          return;
-        }
-        
-        // Then get the full event details
-        const { data, error } = await supabase
+        // Get business events assigned to this user - RLS policies will handle the filtering
+        const { data: businessEvents, error: businessEventsError } = await supabase
           .from('business_events')
           .select(`
             *,
             business_event_talent(
-              talent_profiles(*)
+              talent_id,
+              talent_profiles(name)
+            ),
+            business_event_account(
+              business_account_id,
+              business_account(name, contact_email)
             )
-          `)
-          .in('id', eventIds.map(item => item.event_id));
-          
-        if (error) throw error;
-        setEvents(data || []);
+          `);
+        
+        console.log('BusinessEventsPage: Business events data:', businessEvents);
+        console.log('BusinessEventsPage: Business events error:', businessEventsError);
+        
+        if (businessEventsError) throw businessEventsError;
+        setEvents(businessEvents || []);
       } else {
         // For admin/staff, load all events
         const data = await businessEventsApi.getEvents();
