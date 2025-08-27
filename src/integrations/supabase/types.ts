@@ -1356,6 +1356,10 @@ export type Database = {
           user_role: Database["public"]["Enums"]["app_role"]
         }[]
       }
+      cleanup_orphaned_business_accounts: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       connect_talent_to_user: {
         Args: { p_talent_id: string; p_user_id: string }
         Returns: boolean
@@ -1383,6 +1387,10 @@ export type Database = {
       delete_user_and_files_completely: {
         Args: { target_user_id: string }
         Returns: boolean
+      }
+      delete_user_and_files_completely_enhanced: {
+        Args: { target_user_id: string }
+        Returns: Json
       }
       delete_user_completely: {
         Args: { target_user_id: string }
