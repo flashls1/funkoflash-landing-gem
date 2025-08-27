@@ -294,6 +294,15 @@ export const businessEventsApi = {
 
   // Create calendar events when talent is assigned to business event
   async createCalendarEventsForBusinessEvent(eventId: string, talentId: string) {
+    // Get current user for created_by field
+    const { data: { user } } = await supabase.auth.getUser();
+    const currentUserId = user?.id;
+    
+    if (!currentUserId) {
+      console.error('No authenticated user found for calendar event creation');
+      return;
+    }
+
     // Get the business event details
     const { data: businessEvent, error: eventError } = await supabase
       .from('business_events')
@@ -332,7 +341,8 @@ export const businessEventsApi = {
             notes_internal: `Business Event: ${businessEvent.title}`,
             notes_public: `Day ${day.day} of ${businessEvent.title}`,
             source_file: 'business_event',
-            source_row_id: eventId
+            source_row_id: eventId,
+            created_by: currentUserId
           };
 
           const { error } = await supabase
@@ -367,7 +377,8 @@ export const businessEventsApi = {
           url: businessEvent.website,
           notes_internal: `Business Event: ${businessEvent.title}`,
           source_file: 'business_event',
-          source_row_id: eventId
+          source_row_id: eventId,
+          created_by: currentUserId
         };
 
         const { error } = await supabase
@@ -397,6 +408,15 @@ export const businessEventsApi = {
 
   // Create calendar events for business user when assigned to business event
   async createCalendarEventsForBusinessUser(eventId: string, businessAccountId: string) {
+    // Get current user for created_by field
+    const { data: { user } } = await supabase.auth.getUser();
+    const currentUserId = user?.id;
+    
+    if (!currentUserId) {
+      console.error('No authenticated user found for calendar event creation');
+      return;
+    }
+
     // Get the business event details
     const { data: businessEvent, error: eventError } = await supabase
       .from('business_events')
@@ -488,7 +508,8 @@ export const businessEventsApi = {
             notes_internal: `Business Event Management: ${businessEvent.title}`,
             notes_public: `Day ${day.day} of ${businessEvent.title} (Business Management)`,
             source_file: 'business_event_management',
-            source_row_id: eventId
+            source_row_id: eventId,
+            created_by: currentUserId
           };
 
           const { error } = await supabase
@@ -523,7 +544,8 @@ export const businessEventsApi = {
           url: businessEvent.website,
           notes_internal: `Business Event Management: ${businessEvent.title}`,
           source_file: 'business_event_management',
-          source_row_id: eventId
+          source_row_id: eventId,
+          created_by: currentUserId
         };
 
         const { error } = await supabase
