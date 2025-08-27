@@ -511,23 +511,29 @@ const TalentBookingManagement = () => {
             )}
 
             {/* Mobile contact info */}
-            {isMobile && contactDetails && (
+            {isMobile && (
               <div className="mt-3 pt-3 border-t space-y-2">
                 <h4 className="font-semibold text-sm flex items-center gap-2">
                   <User className="h-4 w-4" />
                   {t.contact}
                 </h4>
                 <div className="text-xs space-y-1">
-                  {contactDetails.contact_name && (
-                    <div><span className="text-muted-foreground">{t.contactPerson}:</span> {contactDetails.contact_name}</div>
-                  )}
-                  {contactDetails.phone_number && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-3 w-3 text-muted-foreground" />
-                      <a href={`tel:${contactDetails.phone_number}`} className="text-primary hover:underline">
-                        {contactDetails.phone_number}
-                      </a>
-                    </div>
+                  {contactDetails ? (
+                    <>
+                      <div>
+                        <span className="text-muted-foreground">{t.contactPerson}:</span> {contactDetails.contact_name || t.notAvailable}
+                      </div>
+                      {contactDetails.phone_number && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-3 w-3 text-muted-foreground" />
+                          <a href={`tel:${contactDetails.phone_number}`} className="text-primary hover:underline">
+                            {contactDetails.phone_number}
+                          </a>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-muted-foreground italic">{t.notAvailable}</div>
                   )}
                 </div>
               </div>
