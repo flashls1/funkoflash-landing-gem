@@ -1412,6 +1412,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_business_account_for_user: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       get_gcal_tokens: {
         Args: { p_talent_id: string }
         Returns: {

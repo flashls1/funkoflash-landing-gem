@@ -79,36 +79,14 @@ export const NextEventCard = ({ language }: NextEventProps) => {
       if (fullProfile?.role === 'business') {
         const now = new Date().toISOString();
         
-        // Get business account ID for this user  
-        const businessName = fullProfile.business_name || fullProfile.first_name + ' ' + (fullProfile.last_name || '');
-        console.log('NextEventCard: Looking for business account with name:', businessName, 'or email:', fullProfile.email);
+        // Use standardized business account lookup and also check calendar events
+        const { data: businessAccountId } = await supabase
+          .rpc('get_business_account_for_user', { p_user_id: user.id });
         
-        // Try to find business account by name first, then by email
-        let businessAccount = null;
-        
-        // First try by name
-        if (businessName.trim()) {
-          const { data: accountByName } = await supabase
-            .from('business_account')
-            .select('id, name, contact_email')
-            .eq('name', businessName)
-            .maybeSingle();
-          businessAccount = accountByName;
-        }
-        
-        // If not found by name, try by email
-        if (!businessAccount && fullProfile.email) {
-          const { data: accountByEmail } = await supabase
-            .from('business_account')
-            .select('id, name, contact_email')
-            .eq('contact_email', fullProfile.email)
-            .maybeSingle();
-          businessAccount = accountByEmail;
-        }
-        
-        console.log('NextEventCard: Business account query result:', businessAccount);
+        console.log('NextEventCard: Business account ID found:', businessAccountId);
           
-        if (!businessAccount) {
+        if (!businessAccountId) {
+          console.log('NextEventCard: No business account found for user:', user.id);
           setNextEvent(null);
           return;
         }
@@ -117,42 +95,78 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         const { data: eventIds } = await supabase
           .from('business_event_account')
           .select('event_id')
-          .eq('business_account_id', businessAccount.id);
+          .eq('business_account_id', businessAccountId);
           
-        if (!eventIds || eventIds.length === 0) {
-          setNextEvent(null);
-          return;
-        }
+        // Also check for calendar events with business tag
+        const { data: calendarEvents } = await supabase
+          .from('calendar_event')
+          .select(`
+            *,
+            talent_profiles(name, user_id)
+          `)
+          .eq('source_file', 'business_event_management')
+          .gte('start_date', now.split('T')[0])
+          .order('start_date', { ascending: true });
         
-        const { data, error } = await supabase
-          .from('business_events')
-          .select('*')
-          .in('id', eventIds.map(item => item.event_id))
-          .gte('start_ts', now)
-          .order('start_ts', { ascending: true })
-          .limit(1);
+        // Find calendar events for this business user
+        const businessCalendarEvents = calendarEvents?.filter(event => 
+          event.talent_profiles?.user_id === user.id
+        ) || [];
+        
+        // Check both business events and calendar events, use whichever is next
+        let nextBusinessEvent = null;
+        let nextCalendarEvent = businessCalendarEvents.length > 0 ? businessCalendarEvents[0] : null;
 
-        if (error) throw error;
+        // Get next business event if we have event assignments
+        if (eventIds && eventIds.length > 0) {
+          const { data, error } = await supabase
+            .from('business_events')
+            .select('*')
+            .in('id', eventIds.map(item => item.event_id))
+            .gte('start_ts', now)
+            .order('start_ts', { ascending: true })
+            .limit(1);
+
+          if (error) throw error;
+          nextBusinessEvent = data && data.length > 0 ? data[0] : null;
+        }
+
+        // Determine which event is next (calendar event or business event)
+        let selectedEvent = null;
         
-        // Convert business event to calendar event format for display
-        if (data && data.length > 0) {
-          const businessEvent = data[0];
-          const convertedEvent: CalendarEvent = {
-            id: businessEvent.id,
-            start_date: businessEvent.start_ts ? businessEvent.start_ts.split('T')[0] : '',
-            end_date: businessEvent.end_ts ? businessEvent.end_ts.split('T')[0] : '',
-            start_time: businessEvent.start_ts ? businessEvent.start_ts.split('T')[1]?.split('.')[0] : null,
-            end_time: businessEvent.end_ts ? businessEvent.end_ts.split('T')[1]?.split('.')[0] : null,
-            all_day: !businessEvent.start_ts?.includes('T'),
-            event_title: businessEvent.title || 'Business Event',
-            status: businessEvent.status === 'published' ? 'booked' : 'tentative',
-            venue_name: businessEvent.venue,
-            location_city: businessEvent.city,
-            location_state: businessEvent.state,
-            location_country: businessEvent.country,
-            talent_profiles: null
-          };
-          setNextEvent(convertedEvent);
+        if (nextCalendarEvent && nextBusinessEvent) {
+          const calendarDate = new Date(nextCalendarEvent.start_date);
+          const businessDate = new Date(nextBusinessEvent.start_ts);
+          selectedEvent = calendarDate <= businessDate ? { type: 'calendar', event: nextCalendarEvent } : { type: 'business', event: nextBusinessEvent };
+        } else if (nextCalendarEvent) {
+          selectedEvent = { type: 'calendar', event: nextCalendarEvent };
+        } else if (nextBusinessEvent) {
+          selectedEvent = { type: 'business', event: nextBusinessEvent };
+        }
+
+        if (selectedEvent) {
+          if (selectedEvent.type === 'calendar') {
+            setNextEvent(selectedEvent.event as CalendarEvent);
+          } else {
+            // Convert business event to calendar event format for display
+            const businessEvent = selectedEvent.event;
+            const convertedEvent: CalendarEvent = {
+              id: businessEvent.id,
+              start_date: businessEvent.start_ts ? businessEvent.start_ts.split('T')[0] : '',
+              end_date: businessEvent.end_ts ? businessEvent.end_ts.split('T')[0] : '',
+              start_time: businessEvent.start_ts ? businessEvent.start_ts.split('T')[1]?.split('.')[0] : null,
+              end_time: businessEvent.end_ts ? businessEvent.end_ts.split('T')[1]?.split('.')[0] : null,
+              all_day: !businessEvent.start_ts?.includes('T'),
+              event_title: businessEvent.title || 'Business Event',
+              status: businessEvent.status === 'published' ? 'booked' : 'tentative',
+              venue_name: businessEvent.venue,
+              location_city: businessEvent.city,
+              location_state: businessEvent.state,
+              location_country: businessEvent.country,
+              talent_profiles: null
+            };
+            setNextEvent(convertedEvent);
+          }
         } else {
           setNextEvent(null);
         }
