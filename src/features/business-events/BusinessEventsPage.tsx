@@ -57,54 +57,19 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
       
       // For business users, only load their assigned events
       if (profile?.role === 'business') {
-        // Get full profile data for business matching
-        const { data: fullProfile } = await supabase
-          .from('profiles')
-          .select('user_id, business_name, first_name, last_name, email')
-          .eq('user_id', profile.user_id)
-          .single();
+        // Use standardized business account lookup
+        const { data: businessAccountId } = await supabase
+          .rpc('get_business_account_for_user', { p_user_id: profile.user_id });
           
-        if (!fullProfile) throw new Error('Profile not found');
-        
-        // Ensure business account exists for this user
-        await businessEventsApi.ensureBusinessAccountForUser(fullProfile.user_id);
-        
-        // Get business account ID for this user
-        const businessName = fullProfile.business_name || (fullProfile.first_name || '') + ' ' + (fullProfile.last_name || '');
-        console.log('Looking for business account with name:', businessName, 'or email:', fullProfile.email);
-        
-        // Try to find business account by name first, then by email
-        let businessAccount = null;
-        
-        // First try by name
-        if (businessName.trim()) {
-          const { data: accountByName } = await supabase
-            .from('business_account')
-            .select('id, name, contact_email')
-            .eq('name', businessName)
-            .maybeSingle();
-          businessAccount = accountByName;
-        }
-        
-        // If not found by name, try by email
-        if (!businessAccount && fullProfile.email) {
-          const { data: accountByEmail } = await supabase
-            .from('business_account')
-            .select('id, name, contact_email')
-            .eq('contact_email', fullProfile.email)
-            .maybeSingle();
-          businessAccount = accountByEmail;
-        }
-        
-        console.log('Business account query result:', businessAccount);
-        if (!businessAccount) throw new Error('Business account not found');
+        console.log('BusinessEventsPage: Business account ID found:', businessAccountId);
+        if (!businessAccountId) throw new Error('Business account not found');
         
         // Get events assigned to this business account
         // First get event IDs from business_event_account table
         const { data: eventIds } = await supabase
           .from('business_event_account')
           .select('event_id')
-          .eq('business_account_id', businessAccount.id);
+          .eq('business_account_id', businessAccountId);
           
         if (!eventIds || eventIds.length === 0) {
           setEvents([]);

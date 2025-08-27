@@ -97,21 +97,18 @@ export const NextEventCard = ({ language }: NextEventProps) => {
           .select('event_id')
           .eq('business_account_id', businessAccountId);
           
-        // Also check for calendar events with business tag
-        const { data: calendarEvents } = await supabase
-          .from('calendar_event')
-          .select(`
-            *,
-            talent_profiles(name, user_id)
-          `)
-          .eq('source_file', 'business_event_management')
-          .gte('start_date', now.split('T')[0])
-          .order('start_date', { ascending: true });
-        
-        // Find calendar events for this business user
-        const businessCalendarEvents = calendarEvents?.filter(event => 
-          event.talent_profiles?.user_id === user.id
-        ) || [];
+        // Get calendar events created from business events assigned to this business account
+        let businessCalendarEvents = [];
+        if (eventIds && eventIds.length > 0) {
+          const { data: calendarEvents } = await supabase
+            .from('calendar_event')
+            .select('*')
+            .in('source_row_id', eventIds.map(item => item.event_id))
+            .gte('start_date', now.split('T')[0])
+            .order('start_date', { ascending: true });
+          
+          businessCalendarEvents = calendarEvents || [];
+        }
         
         // Check both business events and calendar events, use whichever is next
         let nextBusinessEvent = null;
