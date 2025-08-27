@@ -182,10 +182,13 @@ const BusinessEventFormDialog = ({
 
   const loadDropdownData = async () => {
     try {
+      console.log('=== Loading dropdown data ===');
       const [accounts, talents] = await Promise.all([
         businessEventsApi.getBusinessAccounts(),
         businessEventsApi.getTalentProfiles()
       ]);
+      console.log('Business accounts loaded:', accounts);
+      console.log('Talent profiles loaded:', talents);
       setBusinessAccounts(accounts || []);
       setTalentProfiles(talents || []);
     } catch (error) {
@@ -921,11 +924,17 @@ const BusinessEventFormDialog = ({
             </div>
 
             {/* Business Team Assignment Section */}
-            <div className="space-y-4">
+            <div className="space-y-4 border border-border rounded-lg p-4 bg-card">
               <h4 className="text-md font-medium flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 {language === 'es' ? 'Equipo Comercial Adicional (máximo 5)' : 'Additional Business Team (max 5)'}
               </h4>
+              
+              
+              {/* Debug Info */}
+              <div className="text-xs text-muted-foreground">
+                Debug: {businessAccounts.length} accounts loaded, {teamMembers.length} team members assigned
+              </div>
               
               {/* Available Business Accounts */}
               <div className="space-y-2">
@@ -934,6 +943,7 @@ const BusinessEventFormDialog = ({
                 </Label>
                 <Select 
                   onValueChange={(value) => {
+                    console.log('Selecting business account:', value);
                     if (teamMembers.length < 5 && !teamMembers.includes(value) && value !== formData.primary_business_id) {
                       setTeamMembers(prev => [...prev, value]);
                     }
@@ -955,6 +965,9 @@ const BusinessEventFormDialog = ({
                     ))}
                   </SelectContent>
                 </Select>
+                {businessAccounts.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No business accounts available</p>
+                )}
               </div>
 
               {/* Assigned Team Members Display */}
@@ -968,7 +981,7 @@ const BusinessEventFormDialog = ({
                       const account = businessAccounts.find(a => a.id === memberId);
                       return (
                         <div key={memberId} className="flex items-center gap-2 bg-secondary rounded-md px-3 py-1">
-                          <span className="text-sm">{account?.name}</span>
+                          <span className="text-sm">{account?.name || `Account ${memberId}`}</span>
                           <button
                             type="button"
                             onClick={() => setTeamMembers(prev => prev.filter(id => id !== memberId))}
