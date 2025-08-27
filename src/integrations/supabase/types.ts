@@ -1534,6 +1534,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      test_business_account_isolation: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          passed: boolean
+          test_name: string
+        }[]
+      }
       track_user_login: {
         Args: {
           p_ip_address: string
