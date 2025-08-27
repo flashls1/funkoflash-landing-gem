@@ -33,6 +33,50 @@ const TalentBookingManagement = () => {
 
   useEffect(() => {
     loadEvents();
+    
+    // Set up real-time subscriptions for logistics updates
+    const channel = supabase
+      .channel('booking-logistics-updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'business_event_travel'
+      }, () => {
+        loadEvents();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'business_event_hotel'
+      }, () => {
+        loadEvents();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'business_event_transport'
+      }, () => {
+        loadEvents();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'business_event_contact'
+      }, () => {
+        loadEvents();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'business_events'
+      }, () => {
+        loadEvents();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadEvents = async () => {
@@ -335,115 +379,134 @@ const TalentBookingManagement = () => {
             </TabsContent>
 
             <TabsContent value="logistics" className="space-y-4 mt-3">
-              {/* Travel */}
-              {travelDetails && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <Plane className="h-4 w-4" />
-                    {t.travel}
-                  </h4>
-                  <div className="text-xs space-y-1 pl-6">
-                    {travelDetails.airline_name && (
-                      <div><span className="text-muted-foreground">{t.airline}:</span> {travelDetails.airline_name}</div>
-                    )}
-                    {travelDetails.confirmation_codes && (
-                      <div><span className="text-muted-foreground">{t.confirmation}:</span> {travelDetails.confirmation_codes}</div>
-                    )}
-                    {travelDetails.arrival_datetime && (
-                      <div><span className="text-muted-foreground">{t.arrival}:</span> {formatDateTime(travelDetails.arrival_datetime)}</div>
-                    )}
-                    {travelDetails.departure_datetime && (
-                      <div><span className="text-muted-foreground">{t.departure}:</span> {formatDateTime(travelDetails.departure_datetime)}</div>
-                    )}
-                    {travelDetails.flight_tickets_url && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(travelDetails.flight_tickets_url, '_blank')}
-                        className="h-6 text-xs"
-                      >
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        {t.viewDetails}
-                      </Button>
-                    )}
-                  </div>
+              {/* Travel - Always show section */}
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <Plane className="h-4 w-4" />
+                  {t.travel}
+                </h4>
+                <div className="text-xs space-y-1 pl-6">
+                  {travelDetails ? (
+                    <>
+                      <div>
+                        <span className="text-muted-foreground">{t.airline}:</span> {travelDetails.airline_name || t.notAvailable}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t.flightConfirmation}:</span> {travelDetails.confirmation_codes || t.notAvailable}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t.arrival}:</span> {formatDateTime(travelDetails.arrival_datetime)}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t.departure}:</span> {formatDateTime(travelDetails.departure_datetime)}
+                      </div>
+                      {travelDetails.flight_tickets_url && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(travelDetails.flight_tickets_url, '_blank')}
+                          className="h-6 text-xs mt-2"
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          {t.viewDetails}
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-muted-foreground italic">{t.notAvailable}</div>
+                  )}
                 </div>
-              )}
+              </div>
 
-              {/* Hotel */}
-              {hotelDetails && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <Hotel className="h-4 w-4" />
-                    {t.hotel}
-                  </h4>
-                  <div className="text-xs space-y-1 pl-6">
-                    {hotelDetails.hotel_name && (
-                      <div><span className="text-muted-foreground">{t.hotelName}:</span> {hotelDetails.hotel_name}</div>
-                    )}
-                    {hotelDetails.hotel_address && (
-                      <div><span className="text-muted-foreground">{t.hotelAddress}:</span> {hotelDetails.hotel_address}</div>
-                    )}
-                    {hotelDetails.checkin_date && (
-                      <div><span className="text-muted-foreground">{t.checkin}:</span> {formatDate(hotelDetails.checkin_date)}</div>
-                    )}
-                    {hotelDetails.checkout_date && (
-                      <div><span className="text-muted-foreground">{t.checkout}:</span> {formatDate(hotelDetails.checkout_date)}</div>
-                    )}
-                    {hotelDetails.confirmation_number && (
-                      <div><span className="text-muted-foreground">{t.confirmation}:</span> {hotelDetails.confirmation_number}</div>
-                    )}
-                  </div>
+              {/* Hotel - Always show section */}
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <Hotel className="h-4 w-4" />
+                  {t.hotel}
+                </h4>
+                <div className="text-xs space-y-1 pl-6">
+                  {hotelDetails ? (
+                    <>
+                      <div>
+                        <span className="text-muted-foreground">{t.hotelName}:</span> {hotelDetails.hotel_name || t.notAvailable}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t.hotelAddress}:</span> {hotelDetails.hotel_address || t.notAvailable}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t.checkin}:</span> {hotelDetails.checkin_date ? formatDate(hotelDetails.checkin_date) : t.notAvailable}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t.checkout}:</span> {hotelDetails.checkout_date ? formatDate(hotelDetails.checkout_date) : t.notAvailable}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t.confirmation}:</span> {hotelDetails.confirmation_number || t.notAvailable}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-muted-foreground italic">{t.notAvailable}</div>
+                  )}
                 </div>
-              )}
+              </div>
 
-              {/* Transport */}
-              {transportDetails && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <Car className="h-4 w-4" />
-                    {t.transport}
-                  </h4>
-                  <div className="text-xs space-y-1 pl-6">
-                    {transportDetails.provider_type && (
-                      <div><span className="text-muted-foreground">{t.provider}:</span> {transportDetails.provider_type}</div>
-                    )}
-                    {transportDetails.pickup_location && (
-                      <div><span className="text-muted-foreground">{t.pickup}:</span> {transportDetails.pickup_location}</div>
-                    )}
-                    {transportDetails.dropoff_location && (
-                      <div><span className="text-muted-foreground">{t.dropoff}:</span> {transportDetails.dropoff_location}</div>
-                    )}
-                    {transportDetails.confirmation_code && (
-                      <div><span className="text-muted-foreground">{t.confirmation}:</span> {transportDetails.confirmation_code}</div>
-                    )}
-                  </div>
+              {/* Transport - Always show section */}
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <Car className="h-4 w-4" />
+                  {t.transport}
+                </h4>
+                <div className="text-xs space-y-1 pl-6">
+                  {transportDetails ? (
+                    <>
+                      <div>
+                        <span className="text-muted-foreground">{t.provider}:</span> {transportDetails.provider_type || t.notAvailable}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t.pickup}:</span> {transportDetails.pickup_location || t.notAvailable}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t.dropoff}:</span> {transportDetails.dropoff_location || t.notAvailable}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{t.confirmation}:</span> {transportDetails.confirmation_code || t.notAvailable}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-muted-foreground italic">{t.notAvailable}</div>
+                  )}
                 </div>
-              )}
+              </div>
             </TabsContent>
 
             {!isMobile && (
               <TabsContent value="contact" className="space-y-3 mt-3">
-                {contactDetails ? (
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      {t.contact}
-                    </h4>
-                    <div className="text-xs space-y-1 pl-6">
-                      {contactDetails.contact_name && (
-                        <div><span className="text-muted-foreground">{t.contactPerson}:</span> {contactDetails.contact_name}</div>
-                      )}
-                      {contactDetails.phone_number && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {t.contact}
+                  </h4>
+                  <div className="text-xs space-y-1 pl-6">
+                    {contactDetails ? (
+                      <>
+                        <div>
+                          <span className="text-muted-foreground">{t.contactPerson}:</span> {contactDetails.contact_name || t.notAvailable}
+                        </div>
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground">{t.phone}:</span>
-                          <a href={`tel:${contactDetails.phone_number}`} className="text-primary hover:underline">
-                            {contactDetails.phone_number}
-                          </a>
+                          {contactDetails.phone_number ? (
+                            <a href={`tel:${contactDetails.phone_number}`} className="text-primary hover:underline">
+                              {contactDetails.phone_number}
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground italic">{t.notAvailable}</span>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </>
+                    ) : (
+                      <div className="text-muted-foreground italic">{t.notAvailable}</div>
+                    )}
                   </div>
+                </div>
                 ) : (
                   <div className="text-sm text-muted-foreground">{t.notAvailable}</div>
                 )}
