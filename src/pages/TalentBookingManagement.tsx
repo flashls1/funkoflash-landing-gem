@@ -32,7 +32,12 @@ const TalentBookingManagement = () => {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    loadEvents();
+    if (profile?.user_id) {
+      console.log('🔄 DEBUG: Profile available, loading events for user:', profile.user_id);
+      loadEvents();
+    } else {
+      console.log('⏳ DEBUG: Profile not yet available, waiting...');
+    }
     
     // Set up real-time subscriptions for logistics updates
     const channel = supabase
@@ -77,45 +82,88 @@ const TalentBookingManagement = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [profile?.user_id]);
 
   const loadEvents = async () => {
     try {
       setLoading(true);
       
+      // Debug: Log current authentication state
+      console.log('🔍 DEBUG: Current profile:', profile);
+      console.log('🔍 DEBUG: Profile user_id:', profile?.user_id);
+      
+      if (!profile?.user_id) {
+        console.log('❌ DEBUG: No user_id available, skipping query');
+        setEvents([]);
+        setLoading(false);
+        return;
+      }
+      
       // Get the talent profile ID for the current user
-      const { data: talentProfile } = await supabase
+      console.log('🔍 DEBUG: Querying talent_profiles for user_id:', profile.user_id);
+      const { data: talentProfile, error: talentError } = await supabase
         .from('talent_profiles')
-        .select('id')
-        .eq('user_id', profile?.user_id)
+        .select('id, name, user_id')
+        .eq('user_id', profile.user_id)
         .single();
 
-      if (!talentProfile) {
+      console.log('🔍 DEBUG: Talent profile query result:', { talentProfile, talentError });
+
+      if (talentError || !talentProfile) {
+        console.log('❌ DEBUG: No talent profile found or error:', talentError);
         setEvents([]);
         return;
       }
 
-      // Get business events assigned to the talent
+      console.log('✅ DEBUG: Found talent profile:', talentProfile);
+
+      // Try alternative query approach - get talent assignments first
+      console.log('🔍 DEBUG: Querying business_event_talent assignments for talent_id:', talentProfile.id);
+      const { data: talentAssignments, error: assignmentError } = await supabase
+        .from('business_event_talent')
+        .select('event_id, talent_id, per_diem_amount, guarantee_amount, per_diem_currency, guarantee_currency')
+        .eq('talent_id', talentProfile.id);
+
+      console.log('🔍 DEBUG: Talent assignments result:', { talentAssignments, assignmentError });
+
+      if (assignmentError) {
+        console.log('❌ DEBUG: Error querying talent assignments:', assignmentError);
+        throw assignmentError;
+      }
+
+      if (!talentAssignments || talentAssignments.length === 0) {
+        console.log('❌ DEBUG: No talent assignments found');
+        setEvents([]);
+        return;
+      }
+
+      console.log('✅ DEBUG: Found talent assignments:', talentAssignments);
+
+      // Get the events for these assignments
+      const eventIds = talentAssignments.map(a => a.event_id);
+      console.log('🔍 DEBUG: Querying business_events for event_ids:', eventIds);
+      
       const { data: eventsData, error } = await supabase
         .from('business_events')
-        .select(`
-          *,
-          business_event_talent!inner(
-            talent_id,
-            per_diem_amount,
-            guarantee_amount,
-            per_diem_currency,
-            guarantee_currency
-          )
-        `)
-        .eq('business_event_talent.talent_id', talentProfile.id)
+        .select('*')
+        .in('id', eventIds)
         .order('start_ts', { ascending: true });
 
-      if (error) throw error;
+      console.log('🔍 DEBUG: Business events query result:', { eventsData, error });
+
+      if (error) {
+        console.log('❌ DEBUG: Error querying business events:', error);
+        throw error;
+      }
 
       // Get related logistics data for each event
       const eventsWithDetails = await Promise.all(
         (eventsData || []).map(async (event) => {
+          console.log('🔍 DEBUG: Processing event for logistics:', event.id, event.title);
+          
+          // Add talent assignment data to event
+          const talentAssignment = talentAssignments.find(a => a.event_id === event.id);
+          
           const [travelData, hotelData, transportData, contactData] = await Promise.all([
             supabase
               .from('business_event_travel')
@@ -138,8 +186,16 @@ const TalentBookingManagement = () => {
               .eq('event_id', event.id)
           ]);
 
+          console.log('🔍 DEBUG: Logistics data for event', event.title, {
+            travel: travelData.data,
+            hotel: hotelData.data,
+            transport: transportData.data,
+            contact: contactData.data
+          });
+
           return {
             ...event,
+            business_event_talent: talentAssignment ? [talentAssignment] : [],
             business_event_travel: travelData.data || [],
             business_event_hotel: hotelData.data || [],
             business_event_transport: transportData.data || [],
@@ -148,9 +204,10 @@ const TalentBookingManagement = () => {
         })
       );
 
+      console.log('✅ DEBUG: Final events with details:', eventsWithDetails);
       setEvents(eventsWithDetails as EventWithDetails[]);
     } catch (error) {
-      console.error('Error loading talent bookings:', error);
+      console.error('❌ DEBUG: Error loading talent bookings:', error);
       toast({
         title: language === 'es' ? 'Error' : 'Error',
         description: language === 'es' 
@@ -581,6 +638,28 @@ const TalentBookingManagement = () => {
             <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">{t.noBookings}</h3>
             <p className="text-muted-foreground">{t.noBookingsDesc}</p>
+            
+            {/* Debug info when no bookings found */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left text-xs space-y-2 max-w-md mx-auto">
+                <div><strong>Debug Info:</strong></div>
+                <div>Profile User ID: {profile?.user_id || 'Not available'}</div>
+                <div>Profile Role: {profile?.role || 'Not available'}</div>
+                <div>Profile Email: {profile?.email || 'Not available'}</div>
+                <div className="text-blue-600">Check browser console for detailed debug logs</div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    console.log('🔄 Manual debug: Reloading events...');
+                    loadEvents();
+                  }}
+                  className="mt-2"
+                >
+                  Retry Loading Events
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'}`}>
