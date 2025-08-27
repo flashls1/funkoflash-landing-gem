@@ -920,6 +920,70 @@ const BusinessEventFormDialog = ({
               )}
             </div>
 
+            {/* Business Team Assignment Section */}
+            <div className="space-y-4">
+              <h4 className="text-md font-medium flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                {language === 'es' ? 'Equipo Comercial Adicional (máximo 5)' : 'Additional Business Team (max 5)'}
+              </h4>
+              
+              {/* Available Business Accounts */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  {language === 'es' ? 'Cuentas comerciales disponibles' : 'Available Business Accounts'}
+                </Label>
+                <Select 
+                  onValueChange={(value) => {
+                    if (teamMembers.length < 5 && !teamMembers.includes(value) && value !== formData.primary_business_id) {
+                      setTeamMembers(prev => [...prev, value]);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={language === 'es' ? 'Seleccionar cuenta comercial' : 'Select business account'} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border z-[100]">
+                    {businessAccounts
+                      .filter(account => 
+                        !teamMembers.includes(account.id) && 
+                        account.id !== formData.primary_business_id
+                      )
+                      .map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Assigned Team Members Display */}
+              {teamMembers.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    {language === 'es' ? 'Equipo asignado' : 'Assigned Team Members'} ({teamMembers.length}/5)
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {teamMembers.map((memberId) => {
+                      const account = businessAccounts.find(a => a.id === memberId);
+                      return (
+                        <div key={memberId} className="flex items-center gap-2 bg-secondary rounded-md px-3 py-1">
+                          <span className="text-sm">{account?.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => setTeamMembers(prev => prev.filter(id => id !== memberId))}
+                            className="text-destructive hover:text-destructive/80 text-sm font-medium"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Hero Image */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">
