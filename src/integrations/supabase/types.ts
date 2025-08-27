@@ -83,6 +83,39 @@ export type Database = {
         }
         Relationships: []
       }
+      business_event_access_log: {
+        Row: {
+          access_type: string
+          accessed_at: string | null
+          business_account_id: string | null
+          event_id: string | null
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string | null
+          business_account_id?: string | null
+          event_id?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string | null
+          business_account_id?: string | null
+          event_id?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       business_event_account: {
         Row: {
           business_account_id: string
