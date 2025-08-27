@@ -46,33 +46,100 @@ export const MiniAgenda = ({ language }: MiniAgendaProps) => {
     try {
       setLoading(true);
       
-      // Get user's talent profile
-      const { data: talentProfile } = await supabase
-        .from('talent_profiles')
-        .select('id')
+      // Get user's profile to check role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, business_name, first_name, last_name, email')
         .eq('user_id', user.id)
         .single();
 
-      if (!talentProfile) {
+      if (!profile) {
         setEvents([]);
         return;
       }
 
-      // Get next 5 upcoming events for this talent
+      let events: CalendarEvent[] = [];
       const now = new Date().toISOString().split('T')[0];
-      
-      const { data, error } = await supabase
-        .from('calendar_event')
-        .select('id, event_title, start_date, start_time, all_day, status')
-        .eq('talent_id', talentProfile.id)
-        .gte('start_date', now)
-        .order('start_date', { ascending: true })
-        .order('created_at', { ascending: true })
-        .limit(5);
 
-      if (error) throw error;
+      // For business users, get business events
+      if (profile.role === 'business') {
+        // Get business account for this user
+        const businessName = profile.business_name || (profile.first_name + ' ' + (profile.last_name || ''));
+        
+        let businessAccount = null;
+        
+        // Try by name first
+        if (businessName.trim()) {
+          const { data: accountByName } = await supabase
+            .from('business_account')
+            .select('id')
+            .eq('name', businessName)
+            .maybeSingle();
+          businessAccount = accountByName;
+        }
+        
+        // If not found by name, try by email
+        if (!businessAccount && profile.email) {
+          const { data: accountByEmail } = await supabase
+            .from('business_account')
+            .select('id')
+            .eq('contact_email', profile.email)
+            .maybeSingle();
+          businessAccount = accountByEmail;
+        }
+        
+        if (businessAccount) {
+          // Get event IDs from business_event_account table
+          const { data: eventIds } = await supabase
+            .from('business_event_account')
+            .select('event_id')
+            .eq('business_account_id', businessAccount.id);
+            
+          if (eventIds && eventIds.length > 0) {
+            const { data: businessEvents } = await supabase
+              .from('business_events')
+              .select('*')
+              .in('id', eventIds.map(item => item.event_id))
+              .gte('start_ts', now + 'T00:00:00.000Z')
+              .order('start_ts', { ascending: true })
+              .limit(5);
+              
+            // Convert business events to calendar event format
+            events = (businessEvents || []).map(be => ({
+              id: be.id,
+              event_title: be.title || 'Business Event',
+              start_date: be.start_ts ? be.start_ts.split('T')[0] : now,
+              start_time: be.start_ts ? be.start_ts.split('T')[1]?.split('.')[0] : undefined,
+              all_day: !be.start_ts?.includes('T'),
+              status: (be.status === 'published' ? 'booked' : 'tentative') as CalendarEvent['status']
+            }));
+          }
+        }
+      } else {
+        // For talent users, get calendar events
+        const { data: talentProfile } = await supabase
+          .from('talent_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
 
-      setEvents((data as CalendarEvent[]) || []);
+        if (talentProfile) {
+          const { data, error } = await supabase
+            .from('calendar_event')
+            .select('id, event_title, start_date, start_time, all_day, status')
+            .eq('talent_id', talentProfile.id)
+            .gte('start_date', now)
+            .order('start_date', { ascending: true })
+            .order('created_at', { ascending: true })
+            .limit(5);
+
+           if (!error) {
+             events = (data || []) as CalendarEvent[];
+           }
+        }
+      }
+
+      setEvents(events);
     } catch (error) {
       console.error('Error loading mini agenda:', error);
       setEvents([]);
@@ -83,13 +150,13 @@ export const MiniAgenda = ({ language }: MiniAgendaProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'available': return 'bg-green-100 text-green-800';
-      case 'hold': return 'bg-yellow-100 text-yellow-800';
-      case 'tentative': return 'bg-orange-100 text-orange-800';
-      case 'booked': return 'bg-blue-100 text-blue-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'not_available': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'available': return 'bg-status-available text-white';
+      case 'hold': return 'bg-status-hold text-white';
+      case 'tentative': return 'bg-status-tentative text-black';
+      case 'booked': return 'bg-status-booked text-white';
+      case 'cancelled': return 'bg-status-cancelled text-white';
+      case 'not_available': return 'bg-status-not-available text-white';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
