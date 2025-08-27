@@ -507,9 +507,6 @@ const TalentBookingManagement = () => {
                     )}
                   </div>
                 </div>
-                ) : (
-                  <div className="text-sm text-muted-foreground">{t.notAvailable}</div>
-                )}
               </TabsContent>
             )}
 
