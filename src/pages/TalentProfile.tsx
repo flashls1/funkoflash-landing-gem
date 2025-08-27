@@ -85,7 +85,7 @@ const TalentProfile = () => {
   const getImageUrl = (url: string | null) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `${supabase.storage.from('talent-images').getPublicUrl(url).data.publicUrl}`;
+    return `${supabase.storage.from('talent-headshots').getPublicUrl(url).data.publicUrl}`;
   };
 
   const content = {
