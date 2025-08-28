@@ -137,7 +137,7 @@ export const businessEventsApi = {
     if (error) throw error;
   },
 
-  // Get business accounts
+  // Get business accounts (for admin/staff only - all business accounts)
   async getBusinessAccounts() {
     const { data, error } = await supabase
       .from('business_account')
@@ -146,6 +146,15 @@ export const businessEventsApi = {
 
     if (error) throw error;
     return data as BusinessAccount[];
+  },
+
+  // STEP 2: Get all business users for admin dropdown (secure function)
+  async getAllBusinessUsersForAdmin() {
+    const { data, error } = await supabase
+      .rpc('get_admin_business_users');
+
+    if (error) throw error;
+    return data || [];
   },
 
   // Get talent profiles

@@ -78,13 +78,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "bookings_business_account_id_fkey"
-            columns: ["business_account_id"]
-            isOneToOne: false
-            referencedRelation: "v_admin_business_users"
-            referencedColumns: ["business_account_id"]
-          },
-          {
             foreignKeyName: "bookings_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -191,25 +184,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "business_account_user_business_account_id_fkey"
-            columns: ["business_account_id"]
-            isOneToOne: false
-            referencedRelation: "v_admin_business_users"
-            referencedColumns: ["business_account_id"]
-          },
-          {
             foreignKeyName: "business_account_user_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_account_user_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "v_admin_business_users"
-            referencedColumns: ["profile_id"]
           },
         ]
       }
@@ -269,13 +248,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "business_account"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_event_account_business_account_id_fkey"
-            columns: ["business_account_id"]
-            isOneToOne: false
-            referencedRelation: "v_admin_business_users"
-            referencedColumns: ["business_account_id"]
           },
           {
             foreignKeyName: "business_event_account_event_id_fkey"
@@ -886,13 +858,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "directory_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "v_admin_business_users"
-            referencedColumns: ["profile_id"]
           },
         ]
       }
@@ -1855,22 +1820,6 @@ export type Database = {
       }
     }
     Views: {
-      v_admin_business_users: {
-        Row: {
-          business_account_id: string | null
-          business_account_name: string | null
-          business_contact_email: string | null
-          business_display_name: string | null
-          business_name: string | null
-          display_name: string | null
-          email: string | null
-          first_name: string | null
-          last_name: string | null
-          profile_id: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       v_business_calendar_events: {
         Row: {
           business_account_id: string | null
@@ -1893,13 +1842,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "business_account"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_event_account_business_account_id_fkey"
-            columns: ["business_account_id"]
-            isOneToOne: false
-            referencedRelation: "v_admin_business_users"
-            referencedColumns: ["business_account_id"]
           },
         ]
       }

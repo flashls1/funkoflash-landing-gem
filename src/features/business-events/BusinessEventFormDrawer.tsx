@@ -41,6 +41,7 @@ const BusinessEventFormDialog = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [businessAccounts, setBusinessAccounts] = useState<any[]>([]);
+  const [businessUsersForDropdown, setBusinessUsersForDropdown] = useState<any[]>([]);
   const [talentProfiles, setTalentProfiles] = useState<any[]>([]);
   const [assignedTalents, setAssignedTalents] = useState<string[]>([]);
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
@@ -183,13 +184,16 @@ const BusinessEventFormDialog = ({
   const loadDropdownData = async () => {
     try {
       console.log('=== Loading dropdown data ===');
-      const [accounts, talents] = await Promise.all([
+      const [accounts, businessUsers, talents] = await Promise.all([
         businessEventsApi.getBusinessAccounts(),
+        businessEventsApi.getAllBusinessUsersForAdmin(),
         businessEventsApi.getTalentProfiles()
       ]);
       console.log('Business accounts loaded:', accounts);
+      console.log('Business users for dropdown loaded:', businessUsers);
       console.log('Talent profiles loaded:', talents);
       setBusinessAccounts(accounts || []);
+      setBusinessUsersForDropdown(businessUsers || []);
       setTalentProfiles(talents || []);
     } catch (error) {
       console.error('Error loading dropdown data:', error);
@@ -840,7 +844,7 @@ const BusinessEventFormDialog = ({
               />
             </div>
 
-            {/* Primary Business */}
+            {/* Primary Business - STEP 3: Updated to use business users dropdown */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">
                 {language === 'es' ? 'Empresa principal' : 'Primary Business'}
@@ -853,13 +857,18 @@ const BusinessEventFormDialog = ({
                   <SelectValue placeholder={language === 'es' ? 'Seleccionar empresa' : 'Select business'} />
                 </SelectTrigger>
                 <SelectContent className="bg-background border z-[100]">
-                  {businessAccounts.map(account => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.name}
+                  {businessUsersForDropdown.map(businessUser => (
+                    <SelectItem key={businessUser.business_account_id} value={businessUser.business_account_id}>
+                      {businessUser.display_name} ({businessUser.business_display_name})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {businessUsersForDropdown.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {language === 'es' ? 'No hay usuarios comerciales disponibles' : 'No business users available'}
+                </p>
+              )}
             </div>
 
             {/* Talent Assignment Section */}
