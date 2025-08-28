@@ -129,12 +129,62 @@ export const businessEventsApi = {
 
   // Delete business event
   async deleteEvent(id: string) {
-    const { error } = await supabase
-      .from('business_events')
-      .delete()
-      .eq('id', id);
+    try {
+      // First, delete all related calendar events to avoid trigger issues
+      await supabase
+        .from('calendar_event')
+        .delete()
+        .eq('source_row_id', id)
+        .eq('source_file', 'business_event');
 
-    if (error) throw error;
+      // Then delete all related business event data
+      // Delete business event talent assignments
+      await supabase
+        .from('business_event_talent')
+        .delete()
+        .eq('event_id', id);
+
+      // Delete business event account assignments  
+      await supabase
+        .from('business_event_account')
+        .delete()
+        .eq('event_id', id);
+
+      // Delete travel records
+      await supabase
+        .from('business_event_travel')
+        .delete()
+        .eq('event_id', id);
+
+      // Delete transport records
+      await supabase
+        .from('business_event_transport')
+        .delete()
+        .eq('event_id', id);
+
+      // Delete hotel records
+      await supabase
+        .from('business_event_hotel')
+        .delete()
+        .eq('event_id', id);
+
+      // Delete contact records
+      await supabase
+        .from('business_event_contact')
+        .delete()
+        .eq('event_id', id);
+
+      // Finally, delete the business event itself
+      const { error } = await supabase
+        .from('business_events')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting business event:', error);
+      throw error;
+    }
   },
 
   // Get business accounts (for admin/staff only - all business accounts)
