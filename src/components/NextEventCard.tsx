@@ -76,50 +76,36 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         .single();
 
       if (fullProfile?.role === 'business') {
-        const now = new Date().toISOString();
-        
         console.log('NextEventCard: Loading events for business user');
         
-        // Use the new secure view that automatically applies RLS filtering
-        const { data: businessCalendarEvents, error: calendarError } = await supabase
-          .from('v_business_calendar_events')
-          .select('*')
-          .gte('start_at', now)
-          .order('start_at', { ascending: true })
-          .limit(1);
+        // Use server function instead of direct table access
+        const { getNextBusinessEvent } = await import('@/server/data/businessCalendar');
+        const nextCalendarEvent = await getNextBusinessEvent();
         
-        console.log('NextEventCard: Business calendar events:', businessCalendarEvents);
+        console.log('NextEventCard: Business calendar event:', nextCalendarEvent);
         
-        if (calendarError) {
-          console.error('Error fetching calendar events:', calendarError);
+        if (!nextCalendarEvent) {
           setNextEvent(null);
           return;
         }
-        
-        // Use the first calendar event as the next event
-        const nextCalendarEvent = businessCalendarEvents?.[0] || null;
 
         // Convert the view data to our CalendarEvent format
-        if (nextCalendarEvent) {
-          const convertedEvent: CalendarEvent = {
-            id: nextCalendarEvent.event_id,
-            event_title: nextCalendarEvent.title,
-            start_date: nextCalendarEvent.start_at ? nextCalendarEvent.start_at.split('T')[0] : '',
-            end_date: nextCalendarEvent.end_at ? nextCalendarEvent.end_at.split('T')[0] : '',
-            start_time: nextCalendarEvent.start_at ? nextCalendarEvent.start_at.split('T')[1]?.split('.')[0] : null,
-            end_time: nextCalendarEvent.end_at ? nextCalendarEvent.end_at.split('T')[1]?.split('.')[0] : null,
-            all_day: !nextCalendarEvent.start_at?.includes('T'),
-            status: nextCalendarEvent.status as 'booked' | 'hold' | 'available' | 'tentative' | 'cancelled' | 'not_available',
-            venue_name: nextCalendarEvent.venue,
-            location_city: nextCalendarEvent.city,
-            location_state: nextCalendarEvent.state,
-            location_country: nextCalendarEvent.country,
-            talent_profiles: null
-          };
-          setNextEvent(convertedEvent);
-        } else {
-          setNextEvent(null);
-        }
+        const convertedEvent: CalendarEvent = {
+          id: nextCalendarEvent.event_id,
+          event_title: nextCalendarEvent.title,
+          start_date: nextCalendarEvent.start_at ? nextCalendarEvent.start_at.split('T')[0] : '',
+          end_date: nextCalendarEvent.end_at ? nextCalendarEvent.end_at.split('T')[0] : '',
+          start_time: nextCalendarEvent.start_at ? nextCalendarEvent.start_at.split('T')[1]?.split('.')[0] : null,
+          end_time: nextCalendarEvent.end_at ? nextCalendarEvent.end_at.split('T')[1]?.split('.')[0] : null,
+          all_day: !nextCalendarEvent.start_at?.includes('T'),
+          status: nextCalendarEvent.status as 'booked' | 'hold' | 'available' | 'tentative' | 'cancelled' | 'not_available',
+          venue_name: nextCalendarEvent.venue,
+          location_city: nextCalendarEvent.city,
+          location_state: nextCalendarEvent.state,
+          location_country: nextCalendarEvent.country,
+          talent_profiles: null
+        };
+        setNextEvent(convertedEvent);
         return;
       }
       
