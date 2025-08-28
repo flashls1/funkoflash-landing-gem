@@ -127,17 +127,125 @@ export const businessEventsApi = {
     return data as BusinessEvent;
   },
 
-  // Delete business event
+  // Comprehensive business event deletion with complete dependency cleanup
   async deleteEvent(id: string) {
     try {
-      // First, delete all related calendar events to avoid trigger issues
-      await supabase
-        .from('calendar_event')
-        .delete()
-        .eq('source_row_id', id)
-        .eq('source_file', 'business_event');
+      // STEP 1: Pre-deletion validation and audit logging
+      const { data: eventData, error: fetchError } = await supabase
+        .from('business_events')
+        .select('title, hero_logo_path, created_by')
+        .eq('id', id)
+        .single();
 
-      // Then delete all related business event data
+      if (fetchError) {
+        throw new Error(`Event not found: ${fetchError.message}`);
+      }
+
+      console.log(`Starting deletion of business event: ${eventData.title} (ID: ${id})`);
+
+      // STEP 2: Storage file cleanup - Delete hero logo if exists
+      if (eventData.hero_logo_path) {
+        console.log(`Deleting hero logo: ${eventData.hero_logo_path}`);
+        const { error: storageError } = await supabase
+          .storage
+          .from('business-events')
+          .remove([eventData.hero_logo_path]);
+
+        if (storageError) {
+          console.warn(`Failed to delete hero logo: ${storageError.message}`);
+          // Don't throw - continue with deletion even if file cleanup fails
+        }
+      }
+
+      // STEP 3: Delete transport/travel document files
+      const { data: transportDocs } = await supabase
+        .from('business_event_transport')
+        .select('transport_documents_url')
+        .eq('event_id', id)
+        .not('transport_documents_url', 'is', null);
+
+      const { data: travelDocs } = await supabase
+        .from('business_event_travel')
+        .select('flight_tickets_url')
+        .eq('event_id', id)
+        .not('flight_tickets_url', 'is', null);
+
+      // Clean up document files
+      const filesToDelete = [
+        ...(transportDocs?.map(doc => doc.transport_documents_url).filter(Boolean) || []),
+        ...(travelDocs?.map(doc => doc.flight_tickets_url).filter(Boolean) || [])
+      ];
+
+      if (filesToDelete.length > 0) {
+        console.log(`Deleting ${filesToDelete.length} document files`);
+        const { error: docsError } = await supabase
+          .storage
+          .from('business-events')
+          .remove(filesToDelete);
+
+        if (docsError) {
+          console.warn(`Failed to delete some document files: ${docsError.message}`);
+        }
+      }
+
+      // STEP 4: Complete dependency deletion in correct order
+      console.log('Deleting business event dependencies...');
+
+      // Delete business talent access records
+      const { error: talentAccessError } = await supabase
+        .from('business_talent_access')
+        .delete()
+        .eq('business_event_id', id);
+
+      if (talentAccessError) {
+        console.warn(`Failed to delete talent access records: ${talentAccessError.message}`);
+      }
+
+      // Delete travel segments
+      const { error: travelSegmentsError } = await supabase
+        .from('travel_segments')
+        .delete()
+        .eq('event_id', id);
+
+      if (travelSegmentsError) {
+        console.warn(`Failed to delete travel segments: ${travelSegmentsError.message}`);
+      }
+
+      // Delete access log records
+      const { error: accessLogError } = await supabase
+        .from('business_event_access_log')
+        .delete()
+        .eq('event_id', id);
+
+      if (accessLogError) {
+        console.warn(`Failed to delete access log records: ${accessLogError.message}`);
+      }
+
+      // Delete all related calendar events (multiple patterns)
+      const calendarDeletions = [
+        // Business event management calendar events
+        supabase
+          .from('calendar_event')
+          .delete()
+          .eq('source_row_id', id)
+          .eq('source_file', 'business_event_management'),
+        
+        // Direct business event calendar events
+        supabase
+          .from('calendar_event')
+          .delete()
+          .eq('source_row_id', id)
+          .eq('source_file', 'business_event'),
+        
+        // Calendar events linked by business_event_id
+        supabase
+          .from('calendar_event')
+          .delete()
+          .eq('business_event_id', id)
+      ];
+
+      await Promise.all(calendarDeletions);
+
       // Delete business event talent assignments
       await supabase
         .from('business_event_talent')
@@ -174,16 +282,48 @@ export const businessEventsApi = {
         .delete()
         .eq('event_id', id);
 
-      // Finally, delete the business event itself
-      const { error } = await supabase
+      // STEP 5: Finally, delete the business event itself
+      const { error: deleteError } = await supabase
         .from('business_events')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (deleteError) {
+        throw new Error(`Failed to delete business event: ${deleteError.message}`);
+      }
+
+      // STEP 6: Post-deletion verification
+      console.log('Verifying deletion completeness...');
+      
+      // Check for any remaining orphaned records
+      const verificationQueries = [
+        supabase.from('calendar_event').select('id').eq('source_row_id', id),
+        supabase.from('calendar_event').select('id').eq('business_event_id', id),
+        supabase.from('business_event_talent').select('id').eq('event_id', id),
+        supabase.from('business_event_account').select('id').eq('event_id', id),
+        supabase.from('business_event_travel').select('id').eq('event_id', id),
+        supabase.from('business_event_transport').select('id').eq('event_id', id),
+        supabase.from('business_event_hotel').select('id').eq('event_id', id),
+        supabase.from('business_event_contact').select('id').eq('event_id', id),
+        supabase.from('business_talent_access').select('id').eq('business_event_id', id),
+        supabase.from('travel_segments').select('id').eq('event_id', id),
+        supabase.from('business_event_access_log').select('id').eq('event_id', id)
+      ];
+
+      const verificationResults = await Promise.all(verificationQueries);
+      const orphanedRecords = verificationResults.filter(result => result.data && result.data.length > 0);
+
+      if (orphanedRecords.length > 0) {
+        console.warn(`Warning: Found ${orphanedRecords.length} tables with orphaned records after deletion`);
+      } else {
+        console.log('✅ Business event deletion completed successfully with no orphaned records');
+      }
+
+      console.log(`Successfully deleted business event: ${eventData.title}`);
+
     } catch (error) {
-      console.error('Error deleting business event:', error);
-      throw error;
+      console.error('Critical error during business event deletion:', error);
+      throw new Error(`Failed to delete business event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   },
 
