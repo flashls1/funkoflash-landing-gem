@@ -14,6 +14,7 @@ import heroTalentNew from '@/assets/hero-talent-directory-1920x240-real.jpg';
 import heroEventsNew from '@/assets/hero-events-1920x240-real.jpg';
 import heroAboutNew from '@/assets/hero-about-1920x240-real.jpg';
 import heroContactNew from '@/assets/hero-contact-1920x240-real.jpg';
+import businessEventsBackground from '@/assets/business-events-background.png';
 export interface SiteDesignSettings {
   hero: {
     backgroundMedia?: string;
@@ -181,12 +182,16 @@ export const useSiteDesign = () => {
       }
     }
     
-    // If no site background found in settings, ensure we fall back to the default black background
+    // If no site background found in settings, ensure we fall back to appropriate defaults
     if (Object.keys(settings).length > 0) {
       const hasAnySiteBackground = Object.values(settings).some(s => s.siteBackground?.backgroundImage);
       if (!hasAnySiteBackground) {
         const root = document.documentElement;
-        const defaultBackground = 'https://gytjgmeoepglbrjrbfie.supabase.co/storage/v1/object/public/design-assets/0aae1285-c95b-4818-bd0a-05feba50e724/1755732650367.png';
+        // Use business events background for admin pages, or fallback default for others
+        const isAdminPage = window.location.pathname.includes('/admin');
+        const defaultBackground = isAdminPage 
+          ? businessEventsBackground
+          : 'https://gytjgmeoepglbrjrbfie.supabase.co/storage/v1/object/public/design-assets/0aae1285-c95b-4818-bd0a-05feba50e724/1755732650367.png';
         root.style.setProperty('--site-background', `url('${defaultBackground}')`);
         console.log('🎨 Applied fallback site background:', defaultBackground);
       }
@@ -240,6 +245,7 @@ export const useSiteDesign = () => {
       events: heroEventsNew || heroEvents,
       shop: heroShopNew || heroShop,
       'talent-directory': heroTalentNew || heroTalent,
+      'business-events': businessEventsBackground,
       auth: heroHomeAlt
     };
 
