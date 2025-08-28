@@ -1960,6 +1960,15 @@ export type Database = {
           visible_event_titles: string[]
         }[]
       }
+      debug_business_visibility_consolidated: {
+        Args: { p_email: string }
+        Returns: {
+          details: string
+          ok: boolean
+          test_name: string
+          visible_events: string[]
+        }[]
+      }
       delete_calendar_year: {
         Args: { p_talent_id: string; p_year: number }
         Returns: number
