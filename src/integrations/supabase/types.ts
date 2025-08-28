@@ -89,7 +89,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_business_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "bookings_event_id_fkey"
@@ -110,7 +110,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
         ]
       }
@@ -261,7 +261,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_business_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "business_event_account_event_id_fkey"
@@ -282,7 +282,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
         ]
       }
@@ -408,7 +408,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_business_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "business_event_talent_event_id_fkey"
@@ -429,7 +429,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "business_event_talent_talent_id_fkey"
@@ -646,7 +646,7 @@ export type Database = {
             columns: ["business_event_id"]
             isOneToOne: false
             referencedRelation: "v_business_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "fk_business_talent_access_event_id"
@@ -667,7 +667,7 @@ export type Database = {
             columns: ["business_event_id"]
             isOneToOne: false
             referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "fk_business_talent_access_talent_id"
@@ -804,7 +804,7 @@ export type Database = {
             columns: ["business_event_id"]
             isOneToOne: false
             referencedRelation: "v_business_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "fk_ce_business_event"
@@ -825,7 +825,7 @@ export type Database = {
             columns: ["business_event_id"]
             isOneToOne: false
             referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
         ]
       }
@@ -896,7 +896,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_business_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "event_participants_event_id_fkey"
@@ -917,7 +917,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "event_participants_talent_id_fkey"
@@ -1494,7 +1494,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_business_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "talent_event_event_id_fkey"
@@ -1515,7 +1515,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "talent_event_talent_id_fkey"
@@ -1621,7 +1621,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_business_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "travel_segments_event_id_fkey"
@@ -1642,7 +1642,7 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["id"]
+            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "travel_segments_talent_id_fkey"
@@ -1826,17 +1826,17 @@ export type Database = {
           city: string | null
           country: string | null
           end_at: string | null
-          id: string | null
+          event_id: string | null
           start_at: string | null
+          state: string | null
           status: string | null
-          timezone: string | null
           title: string | null
           updated_at: string | null
           venue: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "bookings_business_account_id_fkey"
+            foreignKeyName: "business_event_account_business_account_id_fkey"
             columns: ["business_account_id"]
             isOneToOne: false
             referencedRelation: "business_account"
@@ -1893,17 +1893,12 @@ export type Database = {
       }
       v_talent_calendar_events: {
         Row: {
-          city: string | null
-          country: string | null
           end_at: string | null
-          id: string | null
+          event_id: string | null
           start_at: string | null
           status: string | null
           talent_id: string | null
-          timezone: string | null
           title: string | null
-          updated_at: string | null
-          venue: string | null
         }
         Relationships: [
           {
@@ -1952,6 +1947,17 @@ export type Database = {
           p_sort_rank?: number
         }
         Returns: string
+      }
+      debug_business_visibility: {
+        Args: { p_user_email: string }
+        Returns: {
+          missing_links: string[]
+          ok: boolean
+          should_events: number
+          test: string
+          user_id: string
+          visible_event_titles: string[]
+        }[]
       }
       delete_calendar_year: {
         Args: { p_talent_id: string; p_year: number }
