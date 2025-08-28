@@ -1,0 +1,30 @@
+name: FunkoFlash Audit
+on:
+  push: 
+    branches: [ main ]
+  pull_request: 
+    branches: [ main ]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '9'
+      - run: pnpm i || npm i
+      
+      - name: Block direct base-table reads in client
+        run: |
+          npx rg -n "from\(['\"](events|bookings|business_accounts|event_participants|documents|invoices|talent|profiles|business_account_user)['\"]\)" src --glob '!**/*.test.*' && \
+          echo "::error title=Direct base-table read found::Use RLS-safe views/RPCs in client" && exit 1 || echo "OK"
+      
+      - name: Ensure calendar views referenced
+        run: |
+          npx rg -n "v_business_calendar_events|v_talent_calendar_events" src || \
+          (echo "::warning::No calendar view usage found — verify server-side" && exit 0)
+      
+      - name: Ensure .env not committed
+        run: |
+          test ! -f .env || (echo "::error::'.env' is committed — remove & rotate keys" && exit 1)
