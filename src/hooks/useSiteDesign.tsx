@@ -46,6 +46,7 @@ const getPageFromRoute = (): string => {
   if (path === '/about') return 'about';
   if (path === '/contact') return 'contact';
   if (path === '/auth') return 'auth';
+  if (path === '/admin/business-events') return 'business-events';
   if (path.includes('/admin/site-design')) return 'home'; // Default for site design module
   return 'home'; // Default fallback
 };
