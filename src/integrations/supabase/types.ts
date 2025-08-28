@@ -1827,6 +1827,7 @@ export type Database = {
           country: string | null
           end_at: string | null
           event_id: string | null
+          profile_user_id: string | null
           start_at: string | null
           state: string | null
           status: string | null
