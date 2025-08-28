@@ -10,41 +10,34 @@ test.describe('Business User Dropdown Tests', () => {
     // Sign in as admin
     await page.click('text=Login');
     await page.fill('input[type="email"]', 'admin@funkoflash.com');
-    await page.fill('input[type="password"]', 'admin123');
+    await page.fill('input[type="password"]', 'flash123');
     await page.click('button:has-text("Sign In")');
     
     // Wait for redirect to admin dashboard
     await page.waitForURL('**/dashboard/admin');
     
     // Navigate to Business Events
-    await page.click('text=Business Events');
+    await page.goto('/admin/business-events');
     await page.waitForURL('**/admin/business-events');
     
     // Click Add Event button
     await page.click('button:has-text("Add Event")');
     
     // Wait for the form dialog to open
-    await page.waitForSelector('dialog[open]', { state: 'visible' });
+    await page.waitForSelector('text=Primary Business', { timeout: 10000 });
     
-    // Look for the Primary Business dropdown
-    await page.click('text=Primary Business');
-    
-    // Open the dropdown
-    const primaryBusinessTrigger = page.locator('[aria-haspopup="listbox"]:has-text("Select business")');
+    // Open the Primary Business dropdown
+    const primaryBusinessTrigger = page.locator('[role="combobox"]').filter({ hasText: 'Select business' });
     await primaryBusinessTrigger.click();
     
-    // Wait for dropdown to open and check for Jesse Ortega
-    await page.waitForSelector('[role="listbox"]', { state: 'visible' });
+    // Wait for dropdown options to load
+    await page.waitForTimeout(2000);
     
-    // Check that Jesse Ortega appears in the dropdown
-    const jessOption = page.locator('[role="option"]:has-text("Jesse")');
-    await expect(jessOption).toBeVisible();
-    
-    // Also check that the option contains business info
-    const jessOptionWithBusiness = page.locator('[role="option"]').filter({ 
-      hasText: /Jesse.*\(/
+    // Check that Jesse Ortega appears in the dropdown with correct format
+    const jesseeOption = page.locator('[role="option"]').filter({ 
+      hasText: /Jesse.*Ortega.*\(.*Collectors Collision.*\)/
     });
-    await expect(jessOptionWithBusiness).toBeVisible();
+    await expect(jesseeOption).toBeVisible();
     
     // Verify at least one business user is listed
     const businessOptions = page.locator('[role="option"]');
@@ -52,6 +45,10 @@ test.describe('Business User Dropdown Tests', () => {
     expect(optionCount).toBeGreaterThan(0);
     
     console.log(`Found ${optionCount} business user options in the dropdown`);
+    
+    // Log all options for debugging
+    const allOptions = await businessOptions.allTextContents();
+    console.log('All business user options:', allOptions);
   });
 
   test('Business user dropdown loads correctly for admin', async ({ page }) => {
