@@ -102,7 +102,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         // Convert the view data to our CalendarEvent format
         if (nextCalendarEvent) {
           const convertedEvent: CalendarEvent = {
-            id: nextCalendarEvent.id,
+            id: nextCalendarEvent.event_id,
             event_title: nextCalendarEvent.title,
             start_date: nextCalendarEvent.start_at ? nextCalendarEvent.start_at.split('T')[0] : '',
             end_date: nextCalendarEvent.end_at ? nextCalendarEvent.end_at.split('T')[0] : '',
@@ -112,7 +112,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
             status: nextCalendarEvent.status as 'booked' | 'hold' | 'available' | 'tentative' | 'cancelled' | 'not_available',
             venue_name: nextCalendarEvent.venue,
             location_city: nextCalendarEvent.city,
-            location_state: null,
+            location_state: nextCalendarEvent.state,
             location_country: nextCalendarEvent.country,
             talent_profiles: null
           };
@@ -141,7 +141,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
 
       if (nextTalentEvent) {
         const convertedEvent: CalendarEvent = {
-          id: nextTalentEvent.id,
+          id: nextTalentEvent.event_id,
           event_title: nextTalentEvent.title,
           start_date: nextTalentEvent.start_at ? nextTalentEvent.start_at.split('T')[0] : '',
           end_date: nextTalentEvent.end_at ? nextTalentEvent.end_at.split('T')[0] : '',
@@ -149,10 +149,10 @@ export const NextEventCard = ({ language }: NextEventProps) => {
           end_time: nextTalentEvent.end_at ? nextTalentEvent.end_at.split('T')[1]?.split('.')[0] : null,
           all_day: !nextTalentEvent.start_at?.includes('T'),
           status: nextTalentEvent.status as 'booked' | 'hold' | 'available' | 'tentative' | 'cancelled' | 'not_available',
-          venue_name: nextTalentEvent.venue,
-          location_city: nextTalentEvent.city,
+          venue_name: null, // talent view doesn't include venue info
+          location_city: null,
           location_state: null,
-          location_country: nextTalentEvent.country,
+          location_country: null,
           talent_profiles: null
         };
         setNextEvent(convertedEvent);
@@ -267,7 +267,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         {nextEvent ? (
           <div className="space-y-4">
             <div>
-              <h3 className="font-semibold text-lg">{nextEvent.event_title}</h3>
+              <h3 className="font-semibold text-lg" data-testid="next-event-title">{nextEvent.event_title}</h3>
               <p className="text-muted-foreground">
                 {formatDate(
                   nextEvent.start_date, 
