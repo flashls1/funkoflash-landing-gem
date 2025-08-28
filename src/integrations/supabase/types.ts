@@ -2113,6 +2113,22 @@ export type Database = {
           test_name: string
         }[]
       }
+      test_business_users_dropdown: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          business_account_id: string
+          business_account_name: string
+          business_contact_email: string
+          business_display_name: string
+          business_name: string
+          display_name: string
+          email: string
+          first_name: string
+          last_name: string
+          profile_id: string
+          user_id: string
+        }[]
+      }
       track_user_login: {
         Args: {
           p_ip_address: string
