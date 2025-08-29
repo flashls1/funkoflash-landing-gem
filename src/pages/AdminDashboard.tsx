@@ -250,8 +250,7 @@ const AdminDashboard = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-          backgroundColor: currentTheme.background
+          backgroundAttachment: 'fixed'
         }}
       >
         <Navigation language={language} setLanguage={setLanguage} />

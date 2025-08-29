@@ -40,6 +40,13 @@ export interface SiteDesignSettings {
 
 const getPageFromRoute = (): string => {
   const path = window.location.pathname;
+  
+  // Admin dashboard is the ONLY exception - keep its own background
+  if (path.includes('/dashboard/admin')) {
+    return 'admin-dashboard';
+  }
+  
+  // Everything else gets the global black background
   if (path === '/' || path === '/home') return 'home';
   if (path === '/shop') return 'shop';
   if (path === '/talent-directory') return 'talent-directory';
@@ -48,7 +55,12 @@ const getPageFromRoute = (): string => {
   if (path === '/contact') return 'contact';
   if (path === '/auth') return 'auth';
   if (path === '/admin/business-events') return 'business-events';
-  if (path.includes('/admin/site-design')) return 'home'; // Default for site design module
+  if (path.includes('/dashboard/business')) return 'business-dashboard';
+  if (path.includes('/dashboard/talent')) return 'talent-dashboard';
+  if (path.includes('/dashboard/staff')) return 'staff-dashboard';
+  if (path.includes('/business/')) return 'business-dashboard';
+  if (path.includes('/talent/')) return 'talent-dashboard';
+  if (path.includes('/admin/')) return 'home'; // Admin pages use black background
   return 'home'; // Default fallback
 };
 
@@ -170,31 +182,19 @@ export const useSiteDesign = () => {
     }));
   };
 
-  // Apply site background from any page settings that have it
+  // Apply global black background everywhere EXCEPT admin dashboard
   const applySiteBackgroundFromSettings = () => {
-    // Look for site background in any page settings
-    for (const [pageName, pageSettings] of Object.entries(settings)) {
-      if (pageSettings.siteBackground?.backgroundImage) {
-        const root = document.documentElement;
-        root.style.setProperty('--site-background', `url('${pageSettings.siteBackground.backgroundImage}')`);
-        console.log('🎨 Applied site background from', pageName, ':', pageSettings.siteBackground.backgroundImage);
-        break; // Use the first one found
-      }
-    }
+    const root = document.documentElement;
+    const isAdminDashboard = window.location.pathname.includes('/dashboard/admin');
     
-    // If no site background found in settings, ensure we fall back to appropriate defaults
-    if (Object.keys(settings).length > 0) {
-      const hasAnySiteBackground = Object.values(settings).some(s => s.siteBackground?.backgroundImage);
-      if (!hasAnySiteBackground) {
-        const root = document.documentElement;
-        // Use business events background for admin pages, or fallback default for others
-        const isAdminPage = window.location.pathname.includes('/admin');
-        const defaultBackground = isAdminPage 
-          ? businessEventsBackground
-          : 'https://gytjgmeoepglbrjrbfie.supabase.co/storage/v1/object/public/design-assets/0aae1285-c95b-4818-bd0a-05feba50e724/1755732650367.png';
-        root.style.setProperty('--site-background', `url('${defaultBackground}')`);
-        console.log('🎨 Applied fallback site background:', defaultBackground);
-      }
+    if (isAdminDashboard) {
+      // Admin dashboard keeps its own background - don't override
+      return;
+    } else {
+      // Apply black background globally to ALL other pages
+      const globalBlackBackground = 'url(\'/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png\')';
+      root.style.setProperty('--site-background', globalBlackBackground);
+      console.log('🎨 Applied global black background to:', window.location.pathname);
     }
   };
 
