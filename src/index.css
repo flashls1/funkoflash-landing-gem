@@ -61,8 +61,8 @@ All colors MUST be HSL.
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     
-    /* HARDCODED GLOBAL SITE BACKGROUND - NO OVERRIDES ALLOWED */
-    --site-background: url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png') !important;
+  /* HARDCODED GLOBAL SITE BACKGROUND - NO OVERRIDES ALLOWED */
+  --site-background: url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png') !important;
 
     /* Extended Design System for Site Designer */
     --design-purple: 280 70% 50%;
@@ -171,14 +171,30 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 
-  /* GLOBAL BACKGROUND OVERRIDE - FORCE BLACK BACKGROUND EVERYWHERE EXCEPT ADMIN */
-  body:not([data-admin-page]),
-  .min-h-screen:not([data-admin-page]) {
-    background-image: var(--site-background) !important;
+  /* ABSOLUTE GLOBAL BACKGROUND OVERRIDE - FORCE BLACK BACKGROUND EVERYWHERE EXCEPT ADMIN */
+  html, body, #root {
+    background-image: url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png') !important;
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
     background-attachment: fixed !important;
+    min-height: 100dvh !important;
+  }
+
+  /* ALL PAGES AND COMPONENTS INHERIT BLACK BACKGROUND EXCEPT ADMIN */
+  body:not([data-admin-page]) *,
+  .min-h-screen:not([data-admin-page]),
+  div[class*="min-h-screen"]:not([data-admin-page]) {
+    background-image: url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+  }
+
+  /* ADMIN DASHBOARD EXCEPTION - PRESERVE ITS BACKGROUND */
+  [data-admin-page="true"] {
+    background-image: url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png') !important;
   }
 }
 

@@ -200,16 +200,7 @@ const TalentDashboard = () => {
   // Show loading while authentication and site design are being checked
   if (siteDesignLoading) {
     return (
-      <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{
-          backgroundImage: 'var(--site-background)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
-        }}
-      >
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
           <p className="mt-4 text-lg text-white">Loading dashboard...</p>
@@ -234,16 +225,7 @@ const TalentDashboard = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div 
-        className="min-h-screen"
-        style={{
-          backgroundImage: 'var(--site-background)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
-        }}
-      >
+      <div className="min-h-screen">
         <Navigation language={language} setLanguage={setLanguage} />
         
         <div className="container mx-auto px-4 py-8">

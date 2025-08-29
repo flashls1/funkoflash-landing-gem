@@ -38,23 +38,14 @@ export const useBackgroundManager = () => {
   }, []);
 
   const getBackgroundStyle = () => {
-    // DISABLED: Background manager is now disabled for consistency
-    // Force the hardcoded black background everywhere
-    const styles: React.CSSProperties = {
-      backgroundImage: "url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png')",
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed'
-    };
-
-    return styles;
+    // DISABLED: Background manager completely disabled
+    // Global black background is enforced via CSS
+    return {};
   };
 
   const getBackgroundImageUrl = () => {
-    // DISABLED: Background manager is now disabled for consistency
-    // Return hardcoded black background URL
-    return "url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png')";
+    // DISABLED: Background manager completely disabled
+    return '';
   };
 
   return {

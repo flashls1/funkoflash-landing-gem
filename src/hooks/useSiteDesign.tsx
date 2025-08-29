@@ -156,51 +156,17 @@ export const useSiteDesign = () => {
 
   // Apply settings to CSS for both hero images and site background
   const applySettingsToCSS = (pageSettings: SiteDesignSettings) => {
-    const root = document.documentElement;
-    
-    // DISABLED: All dynamic site background changes are blocked
-    // Force the hardcoded black background for ALL pages (except admin dashboard)
-    const isAdminDashboard = window.location.pathname.includes('/dashboard/admin');
-    
-    if (!isAdminDashboard) {
-      // Force black background - NO OVERRIDES ALLOWED
-      root.style.setProperty('--site-background', "url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png')", 'important');
-      console.log('🔒 FORCED black background (site-design disabled)');
-    }
-
-    // Add cache-busting parameter to hero media URL (still allowed for hero sections)
-    let heroMediaWithCacheBust = pageSettings.hero?.backgroundMedia;
-    if (heroMediaWithCacheBust) {
-      const separator = heroMediaWithCacheBust.includes('?') ? '&' : '?';
-      heroMediaWithCacheBust = `${heroMediaWithCacheBust}${separator}t=${Date.now()}`;
-      console.log('🚫🗃️ Cache-busted hero media URL:', heroMediaWithCacheBust);
-    }
-
-    // Force component re-render by updating a timestamp
-    window.dispatchEvent(new CustomEvent('heroImageUpdate', { 
-      detail: { 
-        page: currentPage, 
-        timestamp: Date.now(),
-        heroMedia: heroMediaWithCacheBust,
-        siteBackground: isAdminDashboard ? null : "url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png')"
-      } 
-    }));
+    // DISABLED: Site design background changes completely disabled
+    // Global black background is now enforced via CSS with !important
+    console.log('🔒 Site design background changes DISABLED - global black background enforced');
+    return;
   };
 
   // Apply global black background everywhere EXCEPT admin dashboard
   const applySiteBackgroundFromSettings = () => {
-    const root = document.documentElement;
-    const isAdminDashboard = window.location.pathname.includes('/dashboard/admin');
-    
-    if (isAdminDashboard) {
-      // Admin dashboard keeps its own background - don't override
-      return;
-    } else {
-      // Apply black background globally to ALL other pages
-      const globalBlackBackground = 'url(\'/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png\')';
-      root.style.setProperty('--site-background', globalBlackBackground);
-      console.log('🎨 Applied global black background to:', window.location.pathname);
-    }
+    // DISABLED: Background application disabled - CSS handles all backgrounds now
+    console.log('🔒 applySiteBackgroundFromSettings DISABLED - CSS controls all backgrounds');
+    return;
   };
 
 

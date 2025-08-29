@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Global Background Verification Test</title>
+    <style>
+        /* ABSOLUTE GLOBAL BACKGROUND OVERRIDE - FORCE BLACK BACKGROUND EVERYWHERE EXCEPT ADMIN */
+        html, body, #root {
+            background-image: url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
+            min-height: 100dvh !important;
+        }
+
+        /* ALL PAGES AND COMPONENTS INHERIT BLACK BACKGROUND EXCEPT ADMIN */
+        body:not([data-admin-page]) *,
+        .min-h-screen:not([data-admin-page]),
+        div[class*="min-h-screen"]:not([data-admin-page]) {
+            background-image: url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
+        }
+
+        /* ADMIN DASHBOARD EXCEPTION - PRESERVE ITS BACKGROUND */
+        [data-admin-page="true"] {
+            background-image: url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png') !important;
+        }
+        
+        .test-div {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .admin-test {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <!-- TEST 1: Normal page (should show black background) -->
+    <div class="test-div">
+        <div class="admin-test">
+            <h1>✅ GLOBAL BLACK BACKGROUND TEST</h1>
+            <p>This page should display the black background image</p>
+            <p>(/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png)</p>
+            <hr style="margin: 20px 0;">
+            <p><strong>Test Routes:</strong></p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>/dashboard/talent - Should show BLACK background</li>
+                <li>/dashboard/business - Should show BLACK background</li>
+                <li>/dashboard/staff - Should show BLACK background</li>
+                <li>/login - Should show BLACK background</li>
+                <li>/home - Should show BLACK background</li>
+                <li>/about - Should show BLACK background</li>
+                <li>/contact - Should show BLACK background</li>
+                <li>/shop - Should show BLACK background</li>
+                <li>/events - Should show BLACK background</li>
+                <li>/dashboard/admin - Should show ADMIN background (exception)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- TEST 2: Admin page simulation (should show admin background if data-admin-page is set) -->
+    <div style="display: none;" data-admin-page="true">
+        <h2>Admin Dashboard Test - Should show different background</h2>
+    </div>
+</body>
+</html>
