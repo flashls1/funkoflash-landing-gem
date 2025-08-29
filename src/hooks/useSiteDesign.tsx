@@ -14,7 +14,6 @@ import heroTalentNew from '@/assets/hero-talent-directory-1920x240-real.jpg';
 import heroEventsNew from '@/assets/hero-events-1920x240-real.jpg';
 import heroAboutNew from '@/assets/hero-about-1920x240-real.jpg';
 import heroContactNew from '@/assets/hero-contact-1920x240-real.jpg';
-import businessEventsBackground from '@/assets/business-events-background.png';
 export interface SiteDesignSettings {
   hero: {
     backgroundMedia?: string;
@@ -40,13 +39,6 @@ export interface SiteDesignSettings {
 
 const getPageFromRoute = (): string => {
   const path = window.location.pathname;
-  
-  // Admin dashboard is the ONLY exception - keep its own background
-  if (path.includes('/dashboard/admin')) {
-    return 'admin-dashboard';
-  }
-  
-  // Everything else gets the global black background
   if (path === '/' || path === '/home') return 'home';
   if (path === '/shop') return 'shop';
   if (path === '/talent-directory') return 'talent-directory';
@@ -54,13 +46,7 @@ const getPageFromRoute = (): string => {
   if (path === '/about') return 'about';
   if (path === '/contact') return 'contact';
   if (path === '/auth') return 'auth';
-  if (path === '/admin/business-events') return 'business-events';
-  if (path.includes('/dashboard/business')) return 'business-dashboard';
-  if (path.includes('/dashboard/talent')) return 'talent-dashboard';
-  if (path.includes('/dashboard/staff')) return 'staff-dashboard';
-  if (path.includes('/business/')) return 'business-dashboard';
-  if (path.includes('/talent/')) return 'talent-dashboard';
-  if (path.includes('/admin/')) return 'home'; // Admin pages use black background
+  if (path.includes('/admin/site-design')) return 'home'; // Default for site design module
   return 'home'; // Default fallback
 };
 
@@ -154,18 +140,56 @@ export const useSiteDesign = () => {
     }
   };
 
-  // Apply settings to CSS for both hero images and site background  
+  // Apply settings to CSS for both hero images and site background
   const applySettingsToCSS = (pageSettings: SiteDesignSettings) => {
-    // NEUTRALIZED: All background logic disabled - global CSS handles everything
-    console.log('🔒 Site design background changes NEUTRALIZED - global CSS enforced');
-    return;
+    // Apply site background globally if it exists
+    if (pageSettings.siteBackground?.backgroundImage) {
+      const root = document.documentElement;
+      root.style.setProperty('--site-background', `url('${pageSettings.siteBackground.backgroundImage}')`);
+      console.log('🎨 Applied global site background:', pageSettings.siteBackground.backgroundImage);
+    }
+
+    // Add cache-busting parameter to hero media URL
+    let heroMediaWithCacheBust = pageSettings.hero?.backgroundMedia;
+    if (heroMediaWithCacheBust) {
+      const separator = heroMediaWithCacheBust.includes('?') ? '&' : '?';
+      heroMediaWithCacheBust = `${heroMediaWithCacheBust}${separator}t=${Date.now()}`;
+      console.log('🚫🗃️ Cache-busted hero media URL:', heroMediaWithCacheBust);
+    }
+
+    // Force component re-render by updating a timestamp
+    window.dispatchEvent(new CustomEvent('heroImageUpdate', { 
+      detail: { 
+        page: currentPage, 
+        timestamp: Date.now(),
+        heroMedia: heroMediaWithCacheBust,
+        siteBackground: pageSettings.siteBackground?.backgroundImage
+      } 
+    }));
   };
 
-  // Apply global black background everywhere EXCEPT admin dashboard
+  // Apply site background from any page settings that have it
   const applySiteBackgroundFromSettings = () => {
-    // NEUTRALIZED: All background logic disabled - global CSS handles everything
-    console.log('🔒 applySiteBackgroundFromSettings NEUTRALIZED - global CSS controls all backgrounds');
-    return;
+    // Look for site background in any page settings
+    for (const [pageName, pageSettings] of Object.entries(settings)) {
+      if (pageSettings.siteBackground?.backgroundImage) {
+        const root = document.documentElement;
+        root.style.setProperty('--site-background', `url('${pageSettings.siteBackground.backgroundImage}')`);
+        console.log('🎨 Applied site background from', pageName, ':', pageSettings.siteBackground.backgroundImage);
+        break; // Use the first one found
+      }
+    }
+    
+    // If no site background found in settings, ensure we fall back to the default black background
+    if (Object.keys(settings).length > 0) {
+      const hasAnySiteBackground = Object.values(settings).some(s => s.siteBackground?.backgroundImage);
+      if (!hasAnySiteBackground) {
+        const root = document.documentElement;
+        const defaultBackground = 'https://gytjgmeoepglbrjrbfie.supabase.co/storage/v1/object/public/design-assets/0aae1285-c95b-4818-bd0a-05feba50e724/1755732650367.png';
+        root.style.setProperty('--site-background', `url('${defaultBackground}')`);
+        console.log('🎨 Applied fallback site background:', defaultBackground);
+      }
+    }
   };
 
 
@@ -215,7 +239,6 @@ export const useSiteDesign = () => {
       events: heroEventsNew || heroEvents,
       shop: heroShopNew || heroShop,
       'talent-directory': heroTalentNew || heroTalent,
-      'business-events': businessEventsBackground,
       auth: heroHomeAlt
     };
 

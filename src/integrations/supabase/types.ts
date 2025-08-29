@@ -1960,15 +1960,6 @@ export type Database = {
           visible_event_titles: string[]
         }[]
       }
-      debug_business_visibility_consolidated: {
-        Args: { p_email: string }
-        Returns: {
-          details: string
-          ok: boolean
-          test_name: string
-          visible_events: string[]
-        }[]
-      }
       delete_calendar_year: {
         Args: { p_talent_id: string; p_year: number }
         Returns: number
@@ -2120,22 +2111,6 @@ export type Database = {
           details: string
           passed: boolean
           test_name: string
-        }[]
-      }
-      test_business_users_dropdown: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          business_account_id: string
-          business_account_name: string
-          business_contact_email: string
-          business_display_name: string
-          business_name: string
-          display_name: string
-          email: string
-          first_name: string
-          last_name: string
-          profile_id: string
-          user_id: string
         }[]
       }
       track_user_login: {

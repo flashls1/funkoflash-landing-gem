@@ -18,7 +18,7 @@ const NotFound = () => {
     <div 
       className="min-h-screen bg-background"
       style={{
-        // NEUTRALIZED: Global CSS background enforced
+        backgroundImage: 'var(--site-background)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

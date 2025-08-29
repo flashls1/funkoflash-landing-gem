@@ -205,16 +205,16 @@ const Auth = () => {
       <UnifiedHeroSection language={language} />
       
       {/* Main Content with Background */}
-        <div 
-          className="flex-1"
-          style={{
-            // NEUTRALIZED: Global CSS background enforced
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            backgroundAttachment: 'fixed'
-          }}
-        >
+      <div 
+        className="flex-1"
+        style={{
+          backgroundImage: 'var(--site-background)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
+        }}
+      >
         <div className="flex-1 flex items-center justify-center px-4 py-8">
           <Card className="w-full max-w-md relative overflow-hidden">
             <div 

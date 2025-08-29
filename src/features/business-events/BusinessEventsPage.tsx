@@ -176,7 +176,7 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
 
   return (
     <PageLayout language={language}>
-      <div className="min-h-screen relative">
+      <div className="min-h-screen bg-black relative" style={{ backgroundImage: `url(${funkoFlashLogo})`, backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: '300px', backgroundAttachment: 'fixed' }}>
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">

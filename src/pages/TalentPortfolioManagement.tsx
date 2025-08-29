@@ -7,10 +7,12 @@ import Footer from '@/components/Footer';
 import { TalentAssetsManager } from '@/features/talent-assets/TalentAssetsManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useBackgroundManager } from '@/hooks/useBackgroundManager';
 
 const TalentPortfolioManagement: React.FC = () => {
   const { profile } = useAuth();
   const { language, setLanguage } = useLanguage();
+  const { getBackgroundStyle } = useBackgroundManager();
   const navigate = useNavigate();
 
   const content = {
@@ -29,7 +31,7 @@ const TalentPortfolioManagement: React.FC = () => {
   const t = content[language];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={getBackgroundStyle()}>
       <Navigation language={language} setLanguage={setLanguage} />
       
       <div className="container mx-auto px-4 py-8">

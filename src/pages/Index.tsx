@@ -21,7 +21,7 @@ const Index = () => {
       <div 
         className="min-h-screen"
         style={{
-          // NEUTRALIZED: Global CSS background enforced
+          backgroundImage: 'var(--site-background)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

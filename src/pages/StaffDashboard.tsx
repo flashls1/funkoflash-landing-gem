@@ -192,7 +192,7 @@ const StaffDashboard = () => {
       <div 
         className="min-h-screen"
         style={{
-          // NEUTRALIZED: Global CSS background enforced
+          backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

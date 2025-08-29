@@ -245,13 +245,13 @@ const AdminDashboard = () => {
     <DndProvider backend={HTML5Backend}>
       <div 
         className="min-h-screen"
-        data-admin-page="true"
         style={{
           backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
+          backgroundAttachment: 'fixed',
+          backgroundColor: currentTheme.background
         }}
       >
         <Navigation language={language} setLanguage={setLanguage} />

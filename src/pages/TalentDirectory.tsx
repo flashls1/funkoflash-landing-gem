@@ -111,7 +111,7 @@ const TalentDirectory = () => {
       
       {/* Main Content with Background */}
       <div style={{
-        // NEUTRALIZED: Global CSS background enforced
+        backgroundImage: 'var(--site-background)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

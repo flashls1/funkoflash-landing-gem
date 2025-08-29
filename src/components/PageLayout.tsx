@@ -29,7 +29,7 @@ const PageLayout = ({
     <div 
       className={`min-h-screen bg-background ${className}`}
       style={{
-        // NEUTRALIZED: Global CSS background enforced
+        backgroundImage: 'var(--site-background)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
