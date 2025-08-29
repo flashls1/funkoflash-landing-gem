@@ -38,49 +38,23 @@ export const useBackgroundManager = () => {
   }, []);
 
   const getBackgroundStyle = () => {
-    const bgMode = settings.bgMode || 'siteImage';
-    
+    // DISABLED: Background manager is now disabled for consistency
+    // Force the hardcoded black background everywhere
     const styles: React.CSSProperties = {
+      backgroundImage: "url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png')",
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
       backgroundAttachment: 'fixed'
     };
 
-    switch (bgMode) {
-      case 'black':
-        styles.backgroundColor = '#000000';
-        styles.backgroundImage = 'none';
-        break;
-      case 'siteImage':
-        styles.backgroundImage = BACKGROUND_URLS.siteImage;
-        styles.backgroundColor = '#000000'; // Fallback to black
-        break;
-      case 'siteImage+watermark':
-        styles.backgroundImage = BACKGROUND_URLS.siteImageWatermark;
-        styles.backgroundColor = '#000000'; // Fallback to black
-        // Watermark will be handled by BackgroundManager component
-        break;
-      default:
-        styles.backgroundImage = BACKGROUND_URLS.siteImage;
-        styles.backgroundColor = '#000000';
-    }
-
     return styles;
   };
 
   const getBackgroundImageUrl = () => {
-    const bgMode = settings.bgMode || 'siteImage';
-    
-    switch (bgMode) {
-      case 'black':
-        return 'none';
-      case 'siteImage':
-      case 'siteImage+watermark':
-        return "url('/lovable-uploads/d0f4637c-55b5-42eb-af08-29eabb28b253.png')";
-      default:
-        return "url('/lovable-uploads/d0f4637c-55b5-42eb-af08-29eabb28b253.png')";
-    }
+    // DISABLED: Background manager is now disabled for consistency
+    // Return hardcoded black background URL
+    return "url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png')";
   };
 
   return {

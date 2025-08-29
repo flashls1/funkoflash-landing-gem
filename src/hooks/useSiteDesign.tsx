@@ -156,14 +156,19 @@ export const useSiteDesign = () => {
 
   // Apply settings to CSS for both hero images and site background
   const applySettingsToCSS = (pageSettings: SiteDesignSettings) => {
-    // Apply site background globally if it exists
-    if (pageSettings.siteBackground?.backgroundImage) {
-      const root = document.documentElement;
-      root.style.setProperty('--site-background', `url('${pageSettings.siteBackground.backgroundImage}')`);
-      console.log('🎨 Applied global site background:', pageSettings.siteBackground.backgroundImage);
+    const root = document.documentElement;
+    
+    // DISABLED: All dynamic site background changes are blocked
+    // Force the hardcoded black background for ALL pages (except admin dashboard)
+    const isAdminDashboard = window.location.pathname.includes('/dashboard/admin');
+    
+    if (!isAdminDashboard) {
+      // Force black background - NO OVERRIDES ALLOWED
+      root.style.setProperty('--site-background', "url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png')", 'important');
+      console.log('🔒 FORCED black background (site-design disabled)');
     }
 
-    // Add cache-busting parameter to hero media URL
+    // Add cache-busting parameter to hero media URL (still allowed for hero sections)
     let heroMediaWithCacheBust = pageSettings.hero?.backgroundMedia;
     if (heroMediaWithCacheBust) {
       const separator = heroMediaWithCacheBust.includes('?') ? '&' : '?';
@@ -177,7 +182,7 @@ export const useSiteDesign = () => {
         page: currentPage, 
         timestamp: Date.now(),
         heroMedia: heroMediaWithCacheBust,
-        siteBackground: pageSettings.siteBackground?.backgroundImage
+        siteBackground: isAdminDashboard ? null : "url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png')"
       } 
     }));
   };

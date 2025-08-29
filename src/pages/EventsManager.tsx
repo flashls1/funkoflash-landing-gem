@@ -366,7 +366,7 @@ export default function EventsManager() {
     <div 
       className="min-h-screen"
       style={{
-        backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
+        backgroundImage: 'var(--site-background)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
