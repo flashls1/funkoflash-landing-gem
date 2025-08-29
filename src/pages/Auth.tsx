@@ -208,7 +208,7 @@ const Auth = () => {
         <div 
           className="flex-1"
           style={{
-            backgroundImage: 'var(--site-background)',
+            // NEUTRALIZED: Global CSS background enforced
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',

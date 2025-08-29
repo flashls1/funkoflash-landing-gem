@@ -154,18 +154,17 @@ export const useSiteDesign = () => {
     }
   };
 
-  // Apply settings to CSS for both hero images and site background
+  // Apply settings to CSS for both hero images and site background  
   const applySettingsToCSS = (pageSettings: SiteDesignSettings) => {
-    // DISABLED: Site design background changes completely disabled
-    // Global black background is now enforced via CSS with !important
-    console.log('🔒 Site design background changes DISABLED - global black background enforced');
+    // NEUTRALIZED: All background logic disabled - global CSS handles everything
+    console.log('🔒 Site design background changes NEUTRALIZED - global CSS enforced');
     return;
   };
 
   // Apply global black background everywhere EXCEPT admin dashboard
   const applySiteBackgroundFromSettings = () => {
-    // DISABLED: Background application disabled - CSS handles all backgrounds now
-    console.log('🔒 applySiteBackgroundFromSettings DISABLED - CSS controls all backgrounds');
+    // NEUTRALIZED: All background logic disabled - global CSS handles everything
+    console.log('🔒 applySiteBackgroundFromSettings NEUTRALIZED - global CSS controls all backgrounds');
     return;
   };
 

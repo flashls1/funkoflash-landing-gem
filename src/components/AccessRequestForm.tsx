@@ -141,7 +141,7 @@ const AccessRequestForm = ({ onBack, language }: AccessRequestFormProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4"
          style={{
-           backgroundImage: 'var(--site-background)',
+           // NEUTRALIZED: Global CSS background enforced
            backgroundSize: 'cover',
            backgroundPosition: 'center',
            backgroundRepeat: 'no-repeat',

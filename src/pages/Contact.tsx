@@ -89,7 +89,7 @@ const Contact = () => {
       {/* Main Content with Background */}
       <div 
         style={{
-          backgroundImage: 'var(--site-background)',
+          // NEUTRALIZED: Global CSS background enforced
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

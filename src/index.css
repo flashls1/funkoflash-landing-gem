@@ -171,20 +171,21 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 
-  /* ABSOLUTE GLOBAL BACKGROUND OVERRIDE - FORCE BLACK BACKGROUND EVERYWHERE EXCEPT ADMIN */
+  /* GLOBAL BACKGROUND ENFORCER - SINGLE SOURCE OF TRUTH */
   html, body, #root {
     background-image: url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png') !important;
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
     background-attachment: fixed !important;
-    min-height: 100dvh !important;
+    min-height: 100vh !important;
   }
 
-  /* ALL PAGES AND COMPONENTS INHERIT BLACK BACKGROUND EXCEPT ADMIN */
-  body:not([data-admin-page]) *,
-  .min-h-screen:not([data-admin-page]),
-  div[class*="min-h-screen"]:not([data-admin-page]) {
+  /* FORCE BLACK BACKGROUND ON ALL COMPONENTS EXCEPT ADMIN DASHBOARD */
+  body:not([data-admin-page="true"]) .min-h-screen,
+  body:not([data-admin-page="true"]) div[class*="min-h-screen"],
+  body:not([data-admin-page="true"]) main,
+  body:not([data-admin-page="true"]) .page-container {
     background-image: url('/lovable-uploads/eea7beb6-23d0-4f03-b0c2-aabe83f9df0c.png') !important;
     background-size: cover !important;
     background-position: center !important;
@@ -193,8 +194,13 @@ All colors MUST be HSL.
   }
 
   /* ADMIN DASHBOARD EXCEPTION - PRESERVE ITS BACKGROUND */
-  [data-admin-page="true"] {
+  [data-admin-page="true"],
+  [data-admin-page="true"] .min-h-screen,
+  [data-admin-page="true"] div[class*="min-h-screen"] {
     background-image: url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
   }
 }
 

@@ -173,7 +173,7 @@ const BusinessDashboard = () => {
       <div 
         className="min-h-screen flex items-center justify-center"
         style={{
-          backgroundImage: 'var(--site-background)',
+           // NEUTRALIZED: Global CSS background enforced
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -198,7 +198,7 @@ const BusinessDashboard = () => {
       <div 
         className="min-h-screen"
         style={{
-          backgroundImage: 'var(--site-background)',
+          // NEUTRALIZED: Global CSS background enforced
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

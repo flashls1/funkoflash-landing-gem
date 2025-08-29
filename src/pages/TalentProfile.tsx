@@ -110,7 +110,7 @@ const TalentProfile = () => {
       <div 
         className="min-h-screen bg-background"
         style={{
-          backgroundImage: 'var(--site-background)',
+           // NEUTRALIZED: Global CSS background enforced
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
@@ -150,7 +150,7 @@ const TalentProfile = () => {
     <div 
       className="min-h-screen bg-background"
       style={{
-        backgroundImage: 'var(--site-background)',
+        // NEUTRALIZED: Global CSS background enforced
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'

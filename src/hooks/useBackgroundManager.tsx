@@ -38,13 +38,12 @@ export const useBackgroundManager = () => {
   }, []);
 
   const getBackgroundStyle = () => {
-    // DISABLED: Background manager completely disabled
-    // Global black background is enforced via CSS
+    // NEUTRALIZED: All background logic disabled - global CSS handles everything
     return {};
   };
 
   const getBackgroundImageUrl = () => {
-    // DISABLED: Background manager completely disabled
+    // NEUTRALIZED: All background logic disabled - global CSS handles everything
     return '';
   };
 
