@@ -1,6 +1,7 @@
 
 // Language context + hook, Spanish-first default
 import { createContext, useContext, useMemo, useState, ReactNode, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export type LanguageCode = "es" | "en";
 type LanguageContextType = {
@@ -63,8 +64,22 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem("ff.lang");
-      if (saved === "en" || saved === "es") setLang(saved);
+      if (saved === "en" || saved === "es") { 
+        setLang(saved); 
+        return; 
+      }
     } catch {}
+    
+    // Fall back to Supabase user metadata if present
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        const meta = (data?.user?.user_metadata ?? {}) as any;
+        const pref = meta.lang || meta.language || meta.locale;
+        if (pref === "en" || pref?.startsWith?.("en")) setLang("en");
+        else if (pref === "es" || pref?.startsWith?.("es")) setLang("es");
+      } catch {}
+    })();
   }, []);
 
   useEffect(() => {
