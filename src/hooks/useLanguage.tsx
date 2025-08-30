@@ -7,6 +7,8 @@ type LanguageContextType = {
   lang: LanguageCode;
   setLang: (l: LanguageCode) => void;
   t: (key: string) => string;
+  language: LanguageCode;
+  setLanguage: (l: LanguageCode) => void;
 };
 
 // Minimal in-file dictionary so we don't crash; project may swap in a fuller i18n later.
@@ -67,7 +69,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return (key: string) => DICT[lang]?.[key] ?? key;
   }, [lang]);
 
-  const value = useMemo(() => ({ lang, setLang, t }), [lang, t]);
+  const value = useMemo(() => ({ 
+    lang, 
+    setLang, 
+    t, 
+    language: lang, 
+    setLanguage: setLang 
+  }), [lang, t]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
