@@ -60,7 +60,7 @@ export function SiteDesignProvider({ children }: { children: ReactNode }) {
     error: null,
     savePageSettings: async () => {},
     uploadFile: async () => '',
-    settings: null,
+    settings: DEFAULT_PAGE_DESIGN,
     setCurrentPage: () => {},
   };
   return <SiteDesignContext.Provider value={api}>{children}</SiteDesignContext.Provider>;

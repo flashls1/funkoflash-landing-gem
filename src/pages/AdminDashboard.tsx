@@ -5,12 +5,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import AdminHeader from "@/components/AdminHeader";
 import AdminThemeProvider from "@/components/AdminThemeProvider";
-import AdminGreeting from "@/components/AdminGreeting";
 import LoginHistoryBox from "@/components/LoginHistoryBox";
 import AdminHero from "@/components/AdminHero";
-import PresenceToggle from "@/components/PresenceToggle";
 import BusinessEventsModule from "@/components/BusinessEventsModule";
 import { 
   Users, 
@@ -140,22 +137,9 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <AdminHero />
 
-        <AdminHeader
-          title={t.welcome}
-          description={t.description}
-          language={language}
-        >
-          <AdminGreeting language={language} className="text-accent" />
-        </AdminHeader>
-
-        {/* Status and Quick Overview Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-1">
-            <PresenceToggle />
-          </div>
-          <div className="lg:col-span-2">
-            <BusinessEventsModule />
-          </div>
+        {/* Business Events and Quick Overview */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <BusinessEventsModule />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">

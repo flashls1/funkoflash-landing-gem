@@ -15,7 +15,7 @@ type BizEvent = {
 };
 
 export default function BusinessEventsModule() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [rows, setRows] = React.useState<BizEvent[]>([]);
   const [err, setErr] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
@@ -55,9 +55,9 @@ export default function BusinessEventsModule() {
       <div className="bg-card p-4 rounded-lg border border-white/10">
         <div className="flex items-center gap-2 mb-4">
           <Calendar className="w-4 h-4" />
-          <h3 className="text-sm font-medium">Eventos de Negocio</h3>
+          <h3 className="text-sm font-medium">{lang === "en" ? "Business Events" : "Eventos de Negocio"}</h3>
         </div>
-        <div className="text-sm opacity-70">Cargando eventos…</div>
+        <div className="text-sm opacity-70">{lang === "en" ? "Loading events..." : "Cargando eventos…"}</div>
       </div>
     );
   }
@@ -67,7 +67,7 @@ export default function BusinessEventsModule() {
       <div className="bg-card p-4 rounded-lg border border-white/10">
         <div className="flex items-center gap-2 mb-4">
           <Calendar className="w-4 h-4" />
-          <h3 className="text-sm font-medium">Eventos de Negocio</h3>
+          <h3 className="text-sm font-medium">{lang === "en" ? "Business Events" : "Eventos de Negocio"}</h3>
         </div>
         <div className="text-red-400 text-sm">Error: {err}</div>
       </div>
@@ -79,9 +79,9 @@ export default function BusinessEventsModule() {
       <div className="bg-card p-4 rounded-lg border border-white/10">
         <div className="flex items-center gap-2 mb-4">
           <Calendar className="w-4 h-4" />
-          <h3 className="text-sm font-medium">Eventos de Negocio</h3>
+          <h3 className="text-sm font-medium">{lang === "en" ? "Business Events" : "Eventos de Negocio"}</h3>
         </div>
-        <div className="text-sm opacity-70">{t("dashboard.no_events") || "No hay eventos"}</div>
+        <div className="text-sm opacity-70">{t("dashboard.no_events") || (lang === "en" ? "No events available" : "No hay eventos")}</div>
       </div>
     );
   }
@@ -90,14 +90,14 @@ export default function BusinessEventsModule() {
     <div className="bg-card p-4 rounded-lg border border-white/10">
       <div className="flex items-center gap-2 mb-4">
         <Calendar className="w-4 h-4" />
-        <h3 className="text-sm font-medium">Eventos de Negocio</h3>
+        <h3 className="text-sm font-medium">{lang === "en" ? "Business Events" : "Eventos de Negocio"}</h3>
       </div>
       
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {rows.map(e => (
           <div key={e.id} className="flex items-center justify-between border border-white/10 rounded-md p-3 text-sm hover:bg-white/5 transition-colors">
             <div className="flex-1 min-w-0">
-              <div className="font-medium truncate">{e.title || "(sin título)"}</div>
+              <div className="font-medium truncate">{e.title || (lang === "en" ? "(untitled)" : "(sin título)")}</div>
               <div className="flex items-center gap-2 text-xs opacity-70 mt-1">
                 <MapPin className="w-3 h-3" />
                 <span>
@@ -111,14 +111,14 @@ export default function BusinessEventsModule() {
               <a 
                 href={`/events/${e.id}`} 
                 className="p-1 hover:bg-white/10 rounded transition-colors"
-                title="Ver evento"
+                title={lang === "en" ? "View event" : "Ver evento"}
               >
                 <ExternalLink className="w-3 h-3" />
               </a>
               <a 
                 href={`/admin/events/${e.id}`} 
                 className="p-1 hover:bg-white/10 rounded transition-colors"
-                title="Editar evento"
+                title={lang === "en" ? "Edit event" : "Editar evento"}
               >
                 <Edit className="w-3 h-3" />
               </a>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface LoginHistoryEntry {
   id: string;
@@ -25,6 +26,7 @@ const getLoc = (v: unknown): { city?: string; region?: string; country?: string 
 
 export default function LoginHistoryBox() {
   const { user } = useAuth();
+  const { t, lang: language } = useLanguage();
   const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -119,10 +121,10 @@ export default function LoginHistoryBox() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Historial de Acceso</CardTitle>
+          <CardTitle>{language === "en" ? "Login History" : "Historial de Acceso"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Cargando...</p>
+          <p>{language === "en" ? "Loading..." : "Cargando..."}</p>
         </CardContent>
       </Card>
     );
@@ -131,16 +133,16 @@ export default function LoginHistoryBox() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Historial de Acceso</CardTitle>
+        <CardTitle>{language === "en" ? "Login History" : "Historial de Acceso"}</CardTitle>
         <Button onClick={exportLoginHistory} size="sm" variant="outline">
           <Download className="h-4 w-4 mr-2" />
-          Exportar historial completo
+          {language === "en" ? "Export full history" : "Exportar historial completo"}
         </Button>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
           {loginHistory.length === 0 ? (
-            <p className="text-muted-foreground">No hay historial disponible</p>
+            <p className="text-muted-foreground">{t("dashboard.no_history") || (language === "en" ? "No history available" : "No hay historial disponible")}</p>
           ) : (
             loginHistory.map((entry) => {
               const loc = getLoc(entry.location_info);
