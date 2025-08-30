@@ -28,7 +28,7 @@ export type PageDesign = {
 };
 
 export type SiteDesignContextType = {
-  getCurrentPageSettings: (pathname?: string) => PageDesign | null;
+  getCurrentPageSettings: (pathname?: string) => PageDesign;
   loading?: boolean;
   currentPage?: string;
   error?: string | null;
@@ -38,11 +38,23 @@ export type SiteDesignContextType = {
   setCurrentPage?: (page: string) => void;
 };
 
+export const DEFAULT_PAGE_DESIGN: PageDesign = {
+  hero: {
+    backgroundMedia: '',
+    mediaType: 'image',
+    overlayOpacity: 0.5,
+    height: '240',
+    position: { x: 50, y: 50 },
+    scale: 100,
+  },
+  heroVariant: "1920x240",
+};
+
 export const SiteDesignContext = createContext<SiteDesignContextType | null>(null);
 
 export function SiteDesignProvider({ children }: { children: ReactNode }) {
   const api: SiteDesignContextType = {
-    getCurrentPageSettings: (_pathname?: string) => null,
+    getCurrentPageSettings: (_pathname?: string) => ({ ...DEFAULT_PAGE_DESIGN }),
     loading: false,
     currentPage: undefined,
     error: null,
