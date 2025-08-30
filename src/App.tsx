@@ -5,8 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/hooks/useLanguage";
-import { SiteDesignProvider } from "@/hooks/useSiteDesign";
-import { ColorThemeProvider } from "@/hooks/useColorTheme";
+import { ColorThemeProvider } from "@/contexts/ColorThemeContext";
+import { SiteDesignProvider } from "@/contexts/SiteDesignContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Import all pages
@@ -48,8 +48,8 @@ const App = () => {
         <TooltipProvider>
           <BrowserRouter>
             <LanguageProvider>
-              <SiteDesignProvider>
-                <ColorThemeProvider>
+              <ColorThemeProvider>
+                <SiteDesignProvider>
                   <AuthProvider>
                     <Routes>
                       {/* Public Routes */}
@@ -105,8 +105,8 @@ const App = () => {
                     <Toaster />
                     <Sonner />
                   </AuthProvider>
-                </ColorThemeProvider>
-              </SiteDesignProvider>
+                </SiteDesignProvider>
+              </ColorThemeProvider>
             </LanguageProvider>
           </BrowserRouter>
         </TooltipProvider>

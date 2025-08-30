@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,13 +12,9 @@ interface Message {
   sender_id: string;
   recipient_id: string;
   subject: string;
-  body: string;
+  content: string;
   is_read: boolean;
   created_at: string;
-  sender_profile: {
-    full_name: string;
-    avatar_url: string;
-  };
 }
 
 interface MessageCenterProps {
@@ -28,44 +25,41 @@ export default function MessageCenter({ language }: MessageCenterProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchMessages();
+    initializeMessageCenter();
   }, []);
 
-  const fetchMessages = async () => {
+  const initializeMessageCenter = async () => {
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData?.user) {
+        console.error('Error getting user:', userError);
+        setIsLoading(false);
+        return;
+      }
+      
+      setCurrentUserId(userData.user.id);
+      await fetchMessages(userData.user.id);
+    } catch (error) {
+      console.error('Error initializing message center:', error);
+      setIsLoading(false);
+    }
+  };
+
+  const fetchMessages = async (userId: string) => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('messages')
-        .select(`
-          id,
-          sender_id,
-          recipient_id,
-          subject,
-          body,
-          is_read,
-          created_at,
-          sender_profile:profiles (
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('recipient_id', supabase.auth.user()?.id)
+        .select('id, sender_id, recipient_id, subject, content, is_read, created_at')
+        .eq('recipient_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Flatten the sender_profile
-      const formattedMessages = data.map(message => ({
-        ...message,
-        sender_profile: message.sender_profile ? {
-          full_name: message.sender_profile.full_name,
-          avatar_url: message.sender_profile.avatar_url,
-        } : { full_name: 'Unknown', avatar_url: null },
-      }));
-
-      setMessages(formattedMessages as Message[]);
+      setMessages(data || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
     } finally {
@@ -126,11 +120,10 @@ export default function MessageCenter({ language }: MessageCenterProps) {
                   >
                     <div className="flex items-center space-x-4">
                       <Avatar>
-                        <AvatarImage src={message.sender_profile.avatar_url || ""} />
-                        <AvatarFallback>{message.sender_profile.full_name.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>U</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-medium">{message.sender_profile.full_name}</p>
+                        <p className="text-sm font-medium">Usuario</p>
                         <p className="text-xs text-muted-foreground truncate">{message.subject}</p>
                       </div>
                       {!message.is_read && (
@@ -168,17 +161,16 @@ export default function MessageCenter({ language }: MessageCenterProps) {
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-4">
                 <Avatar>
-                  <AvatarImage src={selectedMessage.sender_profile.avatar_url || ""} />
-                  <AvatarFallback>{selectedMessage.sender_profile.full_name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>U</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium">{selectedMessage.sender_profile.full_name}</p>
+                  <p className="text-sm font-medium">Usuario</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(selectedMessage.created_at).toLocaleString()}
                   </p>
                 </div>
               </div>
-              <p>{selectedMessage.body}</p>
+              <p>{selectedMessage.content}</p>
             </CardContent>
           </Card>
         ) : (

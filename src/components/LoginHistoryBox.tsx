@@ -14,7 +14,7 @@ interface LoginHistoryEntry {
     city?: string;
     region?: string;
     country?: string;
-  };
+  } | null;
 }
 
 export default function LoginHistoryBox() {
@@ -32,7 +32,7 @@ export default function LoginHistoryBox() {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('login_history')
+        .from('user_login_history')
         .select('id, ip_address, login_time, location_info')
         .eq('user_id', user?.id)
         .order('login_time', { ascending: false })
@@ -40,14 +40,13 @@ export default function LoginHistoryBox() {
 
       if (error) throw error;
 
-      // Transform the data to match our interface
       const transformedData: LoginHistoryEntry[] = (data || []).map(item => ({
         id: item.id,
         ip_address: item.ip_address,
         login_time: item.login_time,
-        location_info: typeof item.location_info === 'object' && item.location_info !== null 
+        location_info: item.location_info && typeof item.location_info === 'object' 
           ? item.location_info as { city?: string; region?: string; country?: string; }
-          : {}
+          : null
       }));
 
       setLoginHistory(transformedData);
@@ -62,14 +61,13 @@ export default function LoginHistoryBox() {
   const exportLoginHistory = async () => {
     try {
       const { data, error } = await supabase
-        .from('login_history')
+        .from('user_login_history')
         .select('*')
         .eq('user_id', user?.id)
         .order('login_time', { ascending: false });
 
       if (error) throw error;
 
-      // Create CSV content
       const headers = ['ID', 'IP Address', 'Login Time', 'City', 'Region', 'Country'];
       const csvContent = [
         headers.join(','),
@@ -77,13 +75,12 @@ export default function LoginHistoryBox() {
           row.id,
           row.ip_address,
           row.login_time,
-          (row.location_info as any)?.city || '',
-          (row.location_info as any)?.region || '',
-          (row.location_info as any)?.country || ''
+          row.location_info?.city || '',
+          row.location_info?.region || '',
+          row.location_info?.country || ''
         ].join(','))
       ].join('\n');
 
-      // Download CSV
       const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -143,8 +140,8 @@ export default function LoginHistoryBox() {
                 <div>
                   <p className="font-medium">{entry.ip_address}</p>
                   <p className="text-sm text-muted-foreground">
-                    {entry.location_info.city && `${entry.location_info.city}, `}
-                    {entry.location_info.region}
+                    {entry.location_info?.city && `${entry.location_info.city}, `}
+                    {entry.location_info?.region}
                   </p>
                 </div>
                 <p className="text-sm text-muted-foreground">
