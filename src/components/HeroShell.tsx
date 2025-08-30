@@ -2,19 +2,15 @@ import React from "react";
 
 type HeroShellProps = {
   imageUrl: string;
-  mode?: "auto" | "full"; // 'auto' recommended if app has sticky headers
   children?: React.ReactNode;
 };
 
-export default function HeroShell({ imageUrl, mode = "auto", children }: HeroShellProps) {
-  const base = "relative w-full bg-black rounded-2xl overflow-hidden isolate";
-  // Prevent "mini hero" on desktop by enforcing generous min-heights by breakpoint.
-  const autoHeights = "min-h-[48vh] sm:min-h-[56vh] md:min-h-[60vh] lg:min-h-[70vh] xl:min-h-screen";
-  const fullHeights = "min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] lg:min-h-[92vh] xl:min-h-screen";
-  const heightClass = mode === "full" ? fullHeights : autoHeights;
+export default function HeroShell({ imageUrl, children }: HeroShellProps) {
+  const heights =
+    "h-[180px] sm:h-[200px] md:h-[220px] lg:h-[240px] xl:h-[240px] 2xl:h-[260px]";
 
   return (
-    <section className={`${base} ${heightClass}`} aria-label="Hero section">
+    <section className={`relative w-full bg-black rounded-2xl overflow-hidden isolate ${heights}`} aria-label="Hero section">
       <img
         src={imageUrl}
         alt="Hero background"

@@ -219,19 +219,12 @@ const BusinessDashboard = () => {
                 name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Business',
                 avatarUrl: (profile as any)?.avatar_url,
                 isOnline: true,
-                businessName: (profile as any)?.business_name
+                businessName: (profile as any)?.business_name,
+                profileLocale: (profile as any)?.locale || null,
               }}
-              greeting={getGreeting()}
-              dateText={currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                timeZone: 'America/Chicago'
-              })}
               invisibleMode={false}
               onToggleInvisible={() => {}}
-              onBack={() => navigate('/')}
+              locale={language}
             />
           </HeroShell>
           

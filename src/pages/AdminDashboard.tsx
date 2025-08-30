@@ -271,7 +271,6 @@ const AdminDashboard = () => {
               }}
               invisibleMode={false}
               onToggleInvisible={() => {}}
-              onBack={() => navigate('/')}
             />
           </HeroShell>
           
