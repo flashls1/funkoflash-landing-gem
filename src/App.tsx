@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,7 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { SiteDesignProvider } from "@/hooks/useSiteDesign";
 import { ColorThemeProvider } from "@/hooks/useColorTheme";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Import all pages
 import Index from "./pages/Index";
@@ -77,7 +76,7 @@ const App = () => {
                       } />
                       <Route path="/admin/access-requests" element={
                         <div className="min-h-screen bg-background">
-                          <AccessRequestManager language="en" />
+                          <AccessRequestManager language="en" onBack={() => window.history.back()} />
                         </div>
                       } />
                       <Route path="/admin/message-center" element={
@@ -98,7 +97,7 @@ const App = () => {
                       
                       {/* Business Management Routes */}
                       <Route path="/business/bookings" element={<BusinessBookingManagement />} />
-                      <Route path="/business/logistics" element={<BusinessLogisticsManager />} />
+                      <Route path="/business/logistics" element={<BusinessLogisticsManager eventId="" onClose={() => {}} />} />
                       
                       {/* 404 Route */}
                       <Route path="*" element={<NotFound />} />

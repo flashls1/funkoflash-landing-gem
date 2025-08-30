@@ -1,289 +1,194 @@
-
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Send, Paperclip } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import SecureUserList from './SecureUserList';
-import Navigation from './Navigation';
-import Footer from './Footer';
-import AdminThemeProvider from './AdminThemeProvider';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { CheckCheck, Mail } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
   sender_id: string;
   recipient_id: string;
-  content: string;
+  subject: string;
+  body: string;
+  is_read: boolean;
   created_at: string;
-  read_at: string | null;
-  attachment_url: string | null;
-  sender_name: string;
-  recipient_name: string;
+  sender_profile: {
+    full_name: string;
+    avatar_url: string;
+  };
 }
 
 interface MessageCenterProps {
   language: 'en' | 'es';
 }
 
-const MessageCenter = ({ language }: MessageCenterProps) => {
-  const { user } = useAuth();
+export default function MessageCenter({ language }: MessageCenterProps) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-
-  const content = {
-    en: {
-      title: "Message Center",
-      selectUser: "Select a user to start messaging",
-      typeMessage: "Type your message...",
-      send: "Send",
-      noMessages: "No messages yet. Start a conversation!",
-      online: "Online",
-      offline: "Offline"
-    },
-    es: {
-      title: "Centro de Mensajes", 
-      selectUser: "Selecciona un usuario para comenzar a enviar mensajes",
-      typeMessage: "Escribe tu mensaje...",
-      send: "Enviar",
-      noMessages: "Aún no hay mensajes. ¡Inicia una conversación!",
-      online: "En línea",
-      offline: "Desconectado"
-    }
-  };
-
-  const t = content[language];
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (selectedUser?.id) {
-      fetchMessages();
-      markMessagesAsRead();
-    }
-  }, [selectedUser?.id]);
+    fetchMessages();
+  }, []);
 
   const fetchMessages = async () => {
-    if (!user || !selectedUser?.id) return;
-
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('messages')
         .select(`
-          *,
-          sender:sender_id(first_name, last_name),
-          recipient:recipient_id(first_name, last_name)
+          id,
+          sender_id,
+          recipient_id,
+          subject,
+          body,
+          is_read,
+          created_at,
+          sender_profile:profiles (
+            full_name,
+            avatar_url
+          )
         `)
-        .or(`and(sender_id.eq.${user.id},recipient_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},recipient_id.eq.${user.id})`)
-        .order('created_at', { ascending: true });
+        .eq('recipient_id', supabase.auth.user()?.id)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Map the data to include display names
-      const mappedMessages = (data || []).map((msg: any) => ({
-        ...msg,
-        sender_name: msg.sender?.first_name + ' ' + (msg.sender?.last_name || ''),
-        recipient_name: msg.recipient?.first_name + ' ' + (msg.recipient?.last_name || '')
+      // Flatten the sender_profile
+      const formattedMessages = data.map(message => ({
+        ...message,
+        sender_profile: message.sender_profile ? {
+          full_name: message.sender_profile.full_name,
+          avatar_url: message.sender_profile.avatar_url,
+        } : { full_name: 'Unknown', avatar_url: null },
       }));
 
-      setMessages(mappedMessages);
+      setMessages(formattedMessages as Message[]);
     } catch (error) {
       console.error('Error fetching messages:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  const markMessagesAsRead = async () => {
-    if (!user || !selectedUser?.id) return;
-
-    try {
-      await supabase
-        .from('messages')
-        .update({ read_at: new Date().toISOString() })
-        .eq('sender_id', selectedUser.id)
-        .eq('recipient_id', user.id)
-        .is('read_at', null);
-    } catch (error) {
-      console.error('Error marking messages as read:', error);
-    }
-  };
-
-  const sendMessage = async () => {
-    if (!user || !selectedUser?.id || !newMessage.trim()) return;
-
-    setLoading(true);
-    
+  
+  const markAsRead = async (messageId: string) => {
     try {
       const { error } = await supabase
         .from('messages')
-        .insert([{
-          sender_id: user.id,
-          recipient_id: selectedUser.id,
-          content: newMessage.trim()
-        }]);
+        .update({ is_read: true })
+        .eq('id', messageId);
 
       if (error) throw error;
 
-      setNewMessage('');
-      await fetchMessages();
-
-      toast({
-        title: language === 'es' ? 'Mensaje enviado' : 'Message sent',
-        description: language === 'es' ? 
-          'Tu mensaje ha sido enviado exitosamente' : 
-          'Your message has been sent successfully',
-      });
-    } catch (error: any) {
-      toast({
-        title: language === 'es' ? 'Error' : 'Error',
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+      setMessages(messages.map(msg => 
+        msg.id === messageId ? { ...msg, is_read: true } : msg
+      ));
+    } catch (error) {
+      console.error('Error marking message as read:', error);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+  const handleMessageClick = (message: Message) => {
+    setSelectedMessage(message);
+    if (!message.is_read) {
+      markAsRead(message.id);
     }
   };
+
+  if (isLoading) {
+    return <Card>
+      <CardHeader>
+        <CardTitle>Loading Messages...</CardTitle>
+      </CardHeader>
+    </Card>;
+  }
 
   return (
-    <AdminThemeProvider>
-      <Navigation language={language} setLanguage={() => {}} />
-      
-      <div className="container mx-auto px-4 py-8 h-screen flex flex-col">
-        <h1 className="text-3xl font-bold mb-6">{t.title}</h1>
-        
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
-          {/* Users List */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle>
-                {language === 'es' ? 'Usuarios' : 'Users'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-96">
-                <SecureUserList 
-                  onUserSelect={setSelectedUser}
-                  selectedUserId={selectedUser?.id}
-                  language={language}
-                />
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          {/* Messages Area */}
-          <Card className="lg:col-span-2 flex flex-col">
-            <CardHeader>
-              <CardTitle>
-                {selectedUser ? (
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-8 h-8">
-                      <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-medium text-primary">
-                          {selectedUser.display_name?.charAt(0)?.toUpperCase()}
-                        </span>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Message List */}
+      <div className="md:col-span-1">
+        <Card>
+          <CardHeader>
+            <CardTitle>Inbox</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ScrollArea className="h-[450px] w-full">
+              <div className="divide-y divide-border">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`px-4 py-3 hover:bg-secondary cursor-pointer ${
+                      selectedMessage?.id === message.id ? 'bg-secondary' : ''
+                    }`}
+                    onClick={() => handleMessageClick(message)}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <Avatar>
+                        <AvatarImage src={message.sender_profile.avatar_url || ""} />
+                        <AvatarFallback>{message.sender_profile.full_name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">{message.sender_profile.full_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{message.subject}</p>
                       </div>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">{selectedUser.display_name}</div>
-                      <Badge variant="secondary" className="text-xs">
-                        {selectedUser.role}
-                      </Badge>
+                      {!message.is_read && (
+                        <Badge variant="secondary" className="ml-auto">New</Badge>
+                      )}
                     </div>
                   </div>
-                ) : (
-                  t.selectUser
-                )}
-              </CardTitle>
-            </CardHeader>
-
-            {selectedUser ? (
-              <>
-                {/* Messages */}
-                <CardContent className="flex-1 min-h-0">
-                  <ScrollArea className="h-full pr-4">
-                    {messages.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        {t.noMessages}
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {messages.map((message) => (
-                          <div
-                            key={message.id}
-                            className={`flex ${
-                              message.sender_id === user?.id ? 'justify-end' : 'justify-start'
-                            }`}
-                          >
-                            <div
-                              className={`max-w-[70%] p-3 rounded-lg ${
-                                message.sender_id === user?.id
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted'
-                              }`}
-                            >
-                              <div className="text-sm">{message.content}</div>
-                              <div className="text-xs opacity-70 mt-1">
-                                {new Date(message.created_at).toLocaleString()}
-                                {message.sender_id === user?.id && message.read_at && (
-                                  <span className="ml-2">✓✓</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-
-                {/* Message Input */}
-                <div className="p-4 border-t">
-                  <div className="flex gap-2">
-                    <Textarea
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder={t.typeMessage}
-                      className="flex-1 min-h-[40px] max-h-32"
-                      disabled={loading}
-                    />
-                    <Button
-                      onClick={sendMessage}
-                      disabled={loading || !newMessage.trim()}
-                      size="sm"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <CardContent className="flex-1 flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  {t.selectUser}
-                </div>
-              </CardContent>
-            )}
-          </Card>
-        </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
       </div>
 
-      <Footer language={language} />
-    </AdminThemeProvider>
+      {/* Message Content */}
+      <div className="md:col-span-3">
+        {selectedMessage ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>{selectedMessage.subject}</CardTitle>
+              <div className="ml-auto flex items-center space-x-2">
+                {selectedMessage.is_read ? (
+                  <Badge variant="outline">
+                    <CheckCheck className="h-4 w-4 mr-2" />
+                    Read
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Unread
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  <AvatarImage src={selectedMessage.sender_profile.avatar_url || ""} />
+                  <AvatarFallback>{selectedMessage.sender_profile.full_name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium">{selectedMessage.sender_profile.full_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(selectedMessage.created_at).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              <p>{selectedMessage.body}</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="text-center p-24">
+              Select a message to view its content.
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
   );
-};
-
-export default MessageCenter;
+}

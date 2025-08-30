@@ -1,11 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { Download } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface LoginHistoryEntry {
   id: string;
@@ -15,163 +14,111 @@ interface LoginHistoryEntry {
     city?: string;
     region?: string;
     country?: string;
-  } | null;
-}
-
-interface LoginHistoryBoxProps {
-  language: 'en' | 'es';
-  targetUserId?: string; // For admin viewing other users
-}
-
-const LoginHistoryBox = ({ language, targetUserId }: LoginHistoryBoxProps) => {
-  const { user, profile } = useAuth();
-  const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  const content = {
-    en: {
-      title: "Recent Login History",
-      description: "Your last 15 login sessions",
-      noHistory: "No login history available",
-      exportFull: "Export Complete History",
-      ipAddress: "IP Address",
-      location: "Location", 
-      loginTime: "Login Time",
-      exportSuccess: "History exported successfully",
-      exportError: "Failed to export history"
-    },
-    es: {
-      title: "Historial de Inicios de Sesión Recientes",
-      description: "Tus últimas 15 sesiones",
-      noHistory: "No hay historial disponible",
-      exportFull: "Exportar Historial Completo",
-      ipAddress: "Dirección IP",
-      location: "Ubicación",
-      loginTime: "Hora de Inicio",
-      exportSuccess: "Historial exportado exitosamente",
-      exportError: "Error al exportar historial"
-    }
   };
+}
 
-  const t = content[language];
+export default function LoginHistoryBox() {
+  const { user } = useAuth();
+  const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user || targetUserId) {
+    if (user) {
       fetchLoginHistory();
     }
-  }, [user, targetUserId]);
+  }, [user]);
 
   const fetchLoginHistory = async () => {
     try {
-      setLoading(true);
-      const userIdToQuery = targetUserId || user?.id;
-      
-      if (!userIdToQuery) return;
-
+      setIsLoading(true);
       const { data, error } = await supabase
-        .from('user_login_history')
+        .from('login_history')
         .select('id, ip_address, login_time, location_info')
-        .eq('user_id', userIdToQuery)
+        .eq('user_id', user?.id)
         .order('login_time', { ascending: false })
         .limit(15);
 
       if (error) throw error;
-      
-      setLoginHistory(data || []);
+
+      // Transform the data to match our interface
+      const transformedData: LoginHistoryEntry[] = (data || []).map(item => ({
+        id: item.id,
+        ip_address: item.ip_address,
+        login_time: item.login_time,
+        location_info: typeof item.location_info === 'object' && item.location_info !== null 
+          ? item.location_info as { city?: string; region?: string; country?: string; }
+          : {}
+      }));
+
+      setLoginHistory(transformedData);
     } catch (error) {
       console.error('Error fetching login history:', error);
+      setLoginHistory([]);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const formatLocalTime = (utcTime: string) => {
-    const date = new Date(utcTime);
-    return date.toLocaleString('es-MX', {
-      timeZone: 'America/Chicago', // CST
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
-
-  const formatLocation = (locationInfo: any) => {
-    if (!locationInfo) return '-';
-    
-    const parts = [];
-    if (locationInfo.city) parts.push(locationInfo.city);
-    if (locationInfo.region) parts.push(locationInfo.region);
-    if (locationInfo.country) parts.push(locationInfo.country);
-    
-    return parts.join(', ') || '-';
-  };
-
-  const handleExportHistory = async () => {
+  const exportLoginHistory = async () => {
     try {
-      const userIdToQuery = targetUserId || user?.id;
-      
-      if (!userIdToQuery) return;
+      const { data, error } = await supabase
+        .from('login_history')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('login_time', { ascending: false });
 
-      // Get JWT token for authorization
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        throw new Error('No session found');
-      }
+      if (error) throw error;
 
-      // Call the export function
-      const response = await fetch(
-        `https://gytjgmeoepglbrjrbfie.supabase.co/functions/v1/export-login-history?user_id=${userIdToQuery}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-        }
-      );
+      // Create CSV content
+      const headers = ['ID', 'IP Address', 'Login Time', 'City', 'Region', 'Country'];
+      const csvContent = [
+        headers.join(','),
+        ...(data || []).map(row => [
+          row.id,
+          row.ip_address,
+          row.login_time,
+          (row.location_info as any)?.city || '',
+          (row.location_info as any)?.region || '',
+          (row.location_info as any)?.country || ''
+        ].join(','))
+      ].join('\n');
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.error || `HTTP ${response.status}`);
-      }
-
-      // Download the CSV file
-      const blob = await response.blob();
+      // Download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `login-history-${userIdToQuery}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}.csv`;
-      document.body.appendChild(a);
+      a.download = `login-history-${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
-      document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-
-      toast({
-        title: t.exportSuccess,
-        description: language === 'en' 
-          ? "Complete login history has been downloaded"
-          : "El historial completo de inicio de sesión ha sido descargado",
-      });
-    } catch (error: any) {
-      console.error('Export error:', error);
-      toast({
-        title: t.exportError,
-        description: error.message || "Unknown error occurred",
-        variant: "destructive",
-      });
+    } catch (error) {
+      console.error('Error exporting login history:', error);
     }
   };
 
-  if (loading) {
+  const formatLoginTime = (timeString: string) => {
+    try {
+      return new Date(timeString).toLocaleString('es-MX', {
+        timeZone: 'America/Chicago',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return timeString;
+    }
+  };
+
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t.title}</CardTitle>
+          <CardTitle>Historial de Acceso</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">Cargando...</div>
+          <p>Cargando...</p>
         </CardContent>
       </Card>
     );
@@ -179,50 +126,35 @@ const LoginHistoryBox = ({ language, targetUserId }: LoginHistoryBoxProps) => {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>{t.title}</CardTitle>
-            <CardDescription>{t.description}</CardDescription>
-          </div>
-          {loginHistory.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportHistory}
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              {t.exportFull}
-            </Button>
-          )}
-        </div>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Historial de Acceso</CardTitle>
+        <Button onClick={exportLoginHistory} size="sm" variant="outline">
+          <Download className="h-4 w-4 mr-2" />
+          Exportar historial completo
+        </Button>
       </CardHeader>
       <CardContent>
-        {loginHistory.length === 0 ? (
-          <div className="text-center py-4 text-muted-foreground">
-            {t.noHistory}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {loginHistory.map((entry) => (
-              <div key={entry.id} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                <div className="flex-1">
-                  <div className="font-medium">{entry.ip_address}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {formatLocation(entry.location_info)}
-                  </div>
+        <div className="space-y-2">
+          {loginHistory.length === 0 ? (
+            <p className="text-muted-foreground">No hay historial disponible</p>
+          ) : (
+            loginHistory.map((entry) => (
+              <div key={entry.id} className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                <div>
+                  <p className="font-medium">{entry.ip_address}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {entry.location_info.city && `${entry.location_info.city}, `}
+                    {entry.location_info.region}
+                  </p>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {formatLocalTime(entry.login_time)}
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  {formatLoginTime(entry.login_time)}
+                </p>
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </CardContent>
     </Card>
   );
-};
-
-export default LoginHistoryBox;
+}
