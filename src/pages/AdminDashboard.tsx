@@ -13,10 +13,10 @@ import TalentDirectoryCMS from './TalentDirectoryCMS';
 import { AdminTalentAssetsWrapper } from '@/features/talent-assets/AdminTalentAssetsWrapper';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
-import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Building, Lock, Unlock, ChevronDown, FolderOpen } from 'lucide-react';
+import HeroOverlay from '@/components/HeroOverlay';
 import { hasFeature } from '@/lib/features';
 import UserManagement from '@/components/UserManagement';
 import AccessRequestManager from '@/components/AccessRequestManager';
@@ -257,67 +257,20 @@ const AdminDashboard = () => {
         <Navigation language={language} setLanguage={setLanguage} />
         
         <div className="container mx-auto px-4 py-8">
-        {/* Combined Profile Header with Greeting and Date */}
+        {/* Hero Section with Overlay */}
         <div className="mb-6">
-          <Card 
-            className="border-2 rounded-2xl overflow-hidden"
-            style={{
-              backgroundColor: currentTheme.cardBackground,
-              borderColor: currentTheme.border,
-              color: currentTheme.cardForeground
+          <HeroOverlay
+            role="admin"
+            user={{
+              name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Admin',
+              avatarUrl: (profile as any)?.avatar_url,
+              isOnline: true
             }}
-          >
-            <div 
-              className="relative h-48 bg-cover bg-center bg-no-repeat"
-              style={{
-                backgroundImage: (profile as any)?.background_image_url 
-                  ? `url(${(profile as any).background_image_url})` 
-                  : "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')"
-              }}
-            >
-              {/* Overlay for better text visibility */}
-              <div className="absolute inset-0 bg-black/40"></div>
-              
-              {/* Profile content */}
-              <div className="relative flex items-end justify-between h-full p-6">
-                {/* Left side - Profile info */}
-                <div className="flex items-end gap-4">
-                  <Avatar className="h-20 w-20 border-4 border-white shadow-xl">
-                    <AvatarImage src={(profile as any)?.avatar_url || ''} />
-                    <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="text-white mb-2">
-                    <h2 className="text-2xl font-bold drop-shadow-lg">
-                      {profile?.first_name} {profile?.last_name}
-                    </h2>
-                    <p className="text-white/90 capitalize">{profile?.role}</p>
-                    <InvisibleModeToggle language={language} className="mt-2" />
-                  </div>
-                </div>
-                
-                {/* Right side - Greeting and Date */}
-                <div className="text-right text-white">
-                  <h1 className="text-3xl font-bold mb-1 drop-shadow-lg">
-                    {getGreeting()}
-                  </h1>
-                  <div className="flex items-center gap-2 justify-end">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <p className="text-lg font-medium drop-shadow-lg">
-                      {currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        timeZone: 'America/Chicago'
-                      })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
+            invisibleMode={false}
+            onToggleInvisible={() => {}}
+            onBack={() => navigate('/')}
+            backgroundImageUrl={(profile as any)?.background_image_url}
+          />
           
           {/* Control Bar - Module Layout and Dashboard Colors */}
           <Card 
