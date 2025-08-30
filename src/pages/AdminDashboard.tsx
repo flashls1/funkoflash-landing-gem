@@ -10,6 +10,9 @@ import AdminHeader from "@/components/AdminHeader";
 import AdminThemeProvider from "@/components/AdminThemeProvider";
 import AdminGreeting from "@/components/AdminGreeting";
 import LoginHistoryBox from "@/components/LoginHistoryBox";
+import AdminHero from "@/components/AdminHero";
+import PresenceToggle from "@/components/PresenceToggle";
+import BusinessEventsModule from "@/components/BusinessEventsModule";
 import { 
   Users, 
   Calendar, 
@@ -136,6 +139,8 @@ const AdminDashboard = () => {
       <Navigation language={language} setLanguage={setLanguage} />
       
       <div className="container mx-auto px-4 py-8">
+        <AdminHero />
+
         <AdminHeader
           title={t.welcome}
           description={t.description}
@@ -143,6 +148,16 @@ const AdminDashboard = () => {
         >
           <AdminGreeting language={language} className="text-accent" />
         </AdminHeader>
+
+        {/* Status and Quick Overview Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-1">
+            <PresenceToggle />
+          </div>
+          <div className="lg:col-span-2">
+            <BusinessEventsModule />
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
           {dashboardItems.map((item, index) => {

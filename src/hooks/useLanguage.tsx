@@ -27,6 +27,10 @@ const DICT: Record<LanguageCode, Record<string, string>> = {
     "login.greeting.morning": "Buenos días",
     "login.greeting.afternoon": "Buenas tardes",
     "login.greeting.evening": "Buenas noches",
+    "dashboard.title": "Panel de Administración",
+    "dashboard.subtitle": "",
+    "dashboard.no_history": "No hay historial disponible",
+    "dashboard.no_events": "No hay eventos",
   },
   en: {
     "nav.home": "Home",
@@ -42,6 +46,10 @@ const DICT: Record<LanguageCode, Record<string, string>> = {
     "login.greeting.morning": "Good morning",
     "login.greeting.afternoon": "Good afternoon",
     "login.greeting.evening": "Good evening",
+    "dashboard.title": "Admin Dashboard",
+    "dashboard.subtitle": "",
+    "dashboard.no_history": "No history available",
+    "dashboard.no_events": "No events",
   },
 };
 
