@@ -321,14 +321,14 @@ const AdminDashboard = () => {
           
           {/* Control Bar - Module Layout and Dashboard Colors */}
           <Card 
-            className="border-2 border-t-0 rounded-t-none"
+            className="border-2 border-t-0 rounded-t-none rounded-b-2xl shadow-lg"
             style={{
               backgroundColor: currentTheme.cardBackground,
               borderColor: currentTheme.border,
               color: currentTheme.cardForeground
             }}
           >
-            <CardContent className="p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-8">
                   {/* Module Layout Controls */}
