@@ -321,7 +321,7 @@ const AdminDashboard = () => {
           
           {/* Control Bar - Module Layout and Dashboard Colors */}
           <Card 
-            className="border-2 border-t-0 rounded-t-none rounded-b-2xl shadow-lg"
+            className="border-2 rounded-2xl shadow-lg"
             style={{
               backgroundColor: currentTheme.cardBackground,
               borderColor: currentTheme.border,
