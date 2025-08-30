@@ -14,6 +14,7 @@ import { useColorTheme } from '@/hooks/useColorTheme';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown, Building2, FolderOpen, Upload } from 'lucide-react';
 import HeroOverlay from '@/components/HeroOverlay';
+import HeroShell from '@/components/HeroShell';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { DndProvider } from 'react-dnd';
 import { ComingSoonModal } from '@/components/ui/ComingSoonModal';
@@ -211,26 +212,28 @@ const BusinessDashboard = () => {
         <div className="container mx-auto px-4 py-8">
         {/* Hero Section with Overlay */}
         <div className="mb-6">
-          <HeroOverlay
-            role="business"
-            user={{
-              name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Business',
-              avatarUrl: (profile as any)?.avatar_url,
-              isOnline: true
-            }}
-            greeting={getGreeting()}
-            dateText={currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              timeZone: 'America/Chicago'
-            })}
-            invisibleMode={false}
-            onToggleInvisible={() => {}}
-            onBack={() => navigate('/')}
-            backgroundImageUrl={(profile as any)?.background_image_url}
-          />
+          <HeroShell imageUrl={(profile as any)?.background_image_url || '/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png'}>
+            <HeroOverlay
+              role="business"
+              user={{
+                name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Business',
+                avatarUrl: (profile as any)?.avatar_url,
+                isOnline: true,
+                businessName: (profile as any)?.business_name
+              }}
+              greeting={getGreeting()}
+              dateText={currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                timeZone: 'America/Chicago'
+              })}
+              invisibleMode={false}
+              onToggleInvisible={() => {}}
+              onBack={() => navigate('/')}
+            />
+          </HeroShell>
           
           {/* Control Bar - Module Layout and Dashboard Colors */}
           <Card 

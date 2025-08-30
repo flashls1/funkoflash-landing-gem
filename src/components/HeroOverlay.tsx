@@ -1,150 +1,133 @@
 import React from "react";
 
-type Role = "admin" | "talent" | "business" | "staff";
+type Role = "admin" | "staff" | "business" | "talent";
+
+type User = {
+  name: string;
+  avatarUrl?: string;
+  isOnline?: boolean;
+  businessName?: string | null;
+};
 
 type Props = {
   role: Role;
-  user: { name: string; avatarUrl?: string; isOnline?: boolean };
-  greeting?: string;
-  dateText?: string;
+  user: User;
   invisibleMode: boolean;
   onToggleInvisible: () => void;
   onBack: () => void;
-  backgroundImageUrl?: string;
+  greeting?: string; // pass for non-admin roles (localized as needed)
+  dateText?: string; // pass for non-admin roles (localized as needed)
 };
 
-// Utility: Admin strings are forced to English.
-function getAdminStrings() {
+// Admin strings forced to English
+function getAdminStrings(name: string) {
   const now = new Date();
-  const cstTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Chicago"}));
-  const hours = cstTime.getHours();
-  const firstName = "Admin"; // Fallback, will be overridden by actual name
-  
-  const greeting = hours < 12 
-    ? `Good morning` 
-    : hours < 18 
-    ? `Good afternoon` 
-    : `Good evening`;
-    
-  const dateText = cstTime.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
+  const h = now.getHours();
+  const g = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  const d = now.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
     day: "numeric",
     year: "numeric",
-    timeZone: "America/Chicago"
   });
-  
-  return { greeting, dateText };
+  return { greeting: `${g}, ${name}`, dateText: d };
 }
 
 export default function HeroOverlay({
   role,
   user,
-  greeting,
-  dateText,
   invisibleMode,
   onToggleInvisible,
   onBack,
-  backgroundImageUrl
+  greeting,
+  dateText,
 }: Props) {
-  const enforced = role === "admin" ? getAdminStrings() : { greeting, dateText };
+  const { name, avatarUrl, isOnline, businessName } = user;
+  const enforced = role === "admin" ? getAdminStrings(name) : { greeting, dateText };
+  const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
 
   return (
-    <div className="relative w-full">
-      {/* Hero image container */}
-      <div 
-        className="relative rounded-2xl overflow-hidden aspect-[16/7] md:aspect-[16/6] bg-black h-48"
-        style={{
-          backgroundImage: backgroundImageUrl 
-            ? `url(${backgroundImageUrl})` 
-            : "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        {/* Gradient overlay for text readability */}
-        <div 
-          className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent rounded-2xl pointer-events-none" 
-          aria-hidden="true" 
-        />
-
-        {/* Overlay content */}
-        <div
-          className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8 text-white"
-          role="region"
-          aria-label="User header"
+    <div className="absolute inset-0 p-4 sm:p-6 md:p-8 text-white">
+      {/* Top bar: Back control (keep subtle but always present) */}
+      <div className="flex justify-between">
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back to Dashboard"
+          className="h-10 px-3 rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20 ring-1 ring-white/20 backdrop-blur text-sm font-medium"
         >
-          <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 md:grid-cols-3 items-center">
-            {/* Col 1: Avatar + Name + Online status */}
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative">
-                <img
-                  src={user.avatarUrl || '/images/avatar-fallback.png'}
-                  alt="Profile avatar"
-                  className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 rounded-full object-cover ring-2 ring-white/10"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`;
-                  }}
-                />
-                {user.isOnline && (
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full ring-2 ring-black"></div>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-base sm:text-lg md:text-xl font-semibold truncate text-white drop-shadow-lg">
-                    {user.name}
-                  </h1>
-                  {user.isOnline && (
-                    <span
-                      className="shrink-0 inline-flex items-center rounded-full px-2 py-0.5
-                                 text-[10px] sm:text-xs font-medium bg-emerald-500/20 text-emerald-200
-                                 ring-1 ring-emerald-400/30"
-                      aria-label="Online"
-                    >
-                      ● Online
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs sm:text-sm text-white/90 line-clamp-1 drop-shadow-lg">
-                  {enforced.greeting || greeting}
-                </div>
-              </div>
-            </div>
+          Back
+        </button>
+      </div>
 
-            {/* Col 2: Date */}
-            <div className="flex md:justify-center">
-              <div className="text-xs sm:text-sm md:text-base text-white/80 line-clamp-1 drop-shadow-lg">
-                {enforced.dateText || dateText}
-              </div>
-            </div>
+      {/* Core area */}
+      <div className="relative h-full w-full">
+        {/* Bottom-right greeting + date */}
+        <div className="absolute right-4 bottom-4 sm:right-6 sm:bottom-6 md:right-8 md:bottom-8 text-right space-y-1">
+          <div className="text-sm sm:text-base md:text-lg font-semibold leading-tight line-clamp-1">
+            {enforced.greeting || greeting}
+          </div>
+          <div className="text-xs sm:text-sm text-neutral-200/85 leading-tight line-clamp-1">
+            {enforced.dateText || dateText}
+          </div>
+        </div>
 
-            {/* Col 3: Actions */}
-            <div className="flex justify-between md:justify-end gap-3">
-              <button
-                type="button"
-                aria-label="Back to Dashboard"
-                onClick={onBack}
-                className="h-11 px-3 sm:px-4 rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20
-                           ring-1 ring-white/20 backdrop-blur transition-all
-                           text-sm sm:text-base font-medium text-white"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                aria-pressed={invisibleMode}
-                aria-label="Toggle Invisible Mode"
-                onClick={onToggleInvisible}
-                className="h-11 px-3 sm:px-4 rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20
-                           ring-1 ring-white/20 backdrop-blur transition-all
-                           text-sm sm:text-base font-medium text-white"
-              >
-                {invisibleMode ? "Invisible: On" : "Invisible: Off"}
-              </button>
+        {/* Centered avatar block with right-side status + invisible */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+                     flex items-start justify-center gap-3 sm:gap-4 md:gap-6"
+          style={{ maxWidth: "100%" }}
+        >
+          {/* Center stack: avatar + name + role + optional business */}
+          <div className="flex flex-col items-center text-center min-w-0">
+            <img
+              src={avatarUrl || "/images/avatar-fallback.png"}
+              alt="Profile avatar"
+              className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full object-cover ring-2 ring-white/10"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
+              }}
+            />
+            <div className="mt-3 space-y-0.5">
+              <div className="text-base sm:text-lg md:text-xl font-semibold leading-tight line-clamp-1 max-w-[70vw]">
+                {name}
+              </div>
+              <div className="text-[11px] sm:text-xs md:text-sm text-neutral-200/90 leading-tight">
+                {roleLabel}
+              </div>
+              {businessName && (
+                <div className="text-[11px] sm:text-xs md:text-sm text-neutral-200/85 leading-tight line-clamp-1 max-w-[72vw]">
+                  {businessName}
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Right column: status + invisible (compact, proportional) */}
+          <div className="flex flex-col items-start justify-start pt-1 gap-2 sm:gap-2.5">
+            <span
+              className="inline-flex items-center rounded-full px-2 py-1
+                         text-[11px] sm:text-xs font-medium
+                         bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/30"
+              aria-label={isOnline ? "Online" : "Offline"}
+              role="status"
+            >
+              <span className="mr-1 text-[10px]">●</span>
+              {isOnline ? "Online" : "Offline"}
+            </span>
+            <button
+              type="button"
+              aria-pressed={invisibleMode}
+              aria-label="Toggle Invisible Mode"
+              onClick={onToggleInvisible}
+              className="inline-flex items-center rounded-full px-2 py-1
+                         text-[11px] sm:text-xs font-medium
+                         bg-white/10 hover:bg-white/15 active:bg-white/20
+                         ring-1 ring-white/25 backdrop-blur"
+            >
+              Invisible: {invisibleMode ? "On" : "Off"}
+            </button>
           </div>
         </div>
       </div>

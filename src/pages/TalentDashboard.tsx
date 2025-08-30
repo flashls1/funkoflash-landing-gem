@@ -16,6 +16,7 @@ import { useColorTheme } from '@/hooks/useColorTheme';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown } from 'lucide-react';
 import HeroOverlay from '@/components/HeroOverlay';
+import HeroShell from '@/components/HeroShell';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import TalentProfileSettings from '@/components/TalentProfileSettings';
 import { DndProvider } from 'react-dnd';
@@ -250,26 +251,28 @@ const TalentDashboard = () => {
         <div className="container mx-auto px-4 py-8">
         {/* Hero Section with Overlay */}
         <div className="mb-6">
-          <HeroOverlay
-            role="talent"
-            user={{
-              name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Talent',
-              avatarUrl: (profile as any)?.avatar_url,
-              isOnline: true
-            }}
-            greeting={getGreeting()}
-            dateText={currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              timeZone: 'America/Chicago'
-            })}
-            invisibleMode={false}
-            onToggleInvisible={() => {}}
-            onBack={() => navigate('/')}
-            backgroundImageUrl={(profile as any)?.background_image_url}
-          />
+          <HeroShell imageUrl={(profile as any)?.background_image_url || '/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png'}>
+            <HeroOverlay
+              role="talent"
+              user={{
+                name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Talent',
+                avatarUrl: (profile as any)?.avatar_url,
+                isOnline: true,
+                businessName: null
+              }}
+              greeting={getGreeting()}
+              dateText={currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                timeZone: 'America/Chicago'
+              })}
+              invisibleMode={false}
+              onToggleInvisible={() => {}}
+              onBack={() => navigate('/')}
+            />
+          </HeroShell>
           
           {/* Control Bar - Module Layout and Dashboard Colors */}
           <Card 

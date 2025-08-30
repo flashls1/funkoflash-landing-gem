@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Building, Lock, Unlock, ChevronDown, FolderOpen } from 'lucide-react';
 import HeroOverlay from '@/components/HeroOverlay';
+import HeroShell from '@/components/HeroShell';
 import { hasFeature } from '@/lib/features';
 import UserManagement from '@/components/UserManagement';
 import AccessRequestManager from '@/components/AccessRequestManager';
@@ -259,18 +260,20 @@ const AdminDashboard = () => {
         <div className="container mx-auto px-4 py-8">
         {/* Hero Section with Overlay */}
         <div className="mb-6">
-          <HeroOverlay
-            role="admin"
-            user={{
-              name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Admin',
-              avatarUrl: (profile as any)?.avatar_url,
-              isOnline: true
-            }}
-            invisibleMode={false}
-            onToggleInvisible={() => {}}
-            onBack={() => navigate('/')}
-            backgroundImageUrl={(profile as any)?.background_image_url}
-          />
+          <HeroShell imageUrl={(profile as any)?.background_image_url || '/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png'}>
+            <HeroOverlay
+              role="admin"
+              user={{
+                name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Admin',
+                avatarUrl: (profile as any)?.avatar_url,
+                isOnline: true,
+                businessName: null
+              }}
+              invisibleMode={false}
+              onToggleInvisible={() => {}}
+              onBack={() => navigate('/')}
+            />
+          </HeroShell>
           
           {/* Control Bar - Module Layout and Dashboard Colors */}
           <Card 

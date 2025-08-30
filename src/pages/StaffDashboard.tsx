@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Calendar, MessageSquare, FileText, Users, BarChart3, Settings, ClipboardList, UserCheck, Wrench, ShoppingBag, Lock, Unlock, Palette, ChevronDown } from 'lucide-react';
 import HeroOverlay from '@/components/HeroOverlay';
+import HeroShell from '@/components/HeroShell';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -205,26 +206,28 @@ const StaffDashboard = () => {
         <div className="container mx-auto px-4 py-8">
         {/* Hero Section with Overlay */}
         <div className="mb-6">
-          <HeroOverlay
-            role="staff"
-            user={{
-              name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Staff',
-              avatarUrl: (profile as any)?.avatar_url,
-              isOnline: true
-            }}
-            greeting={getGreeting()}
-            dateText={currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              timeZone: 'America/Chicago'
-            })}
-            invisibleMode={false}
-            onToggleInvisible={() => {}}
-            onBack={() => navigate('/')}
-            backgroundImageUrl={(profile as any)?.background_image_url}
-          />
+          <HeroShell imageUrl={(profile as any)?.background_image_url || '/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png'}>
+            <HeroOverlay
+              role="staff"
+              user={{
+                name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Staff',
+                avatarUrl: (profile as any)?.avatar_url,
+                isOnline: true,
+                businessName: null
+              }}
+              greeting={getGreeting()}
+              dateText={currentTime.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                timeZone: 'America/Chicago'
+              })}
+              invisibleMode={false}
+              onToggleInvisible={() => {}}
+              onBack={() => navigate('/')}
+            />
+          </HeroShell>
           
           <Card 
             className="border-2 rounded-2xl shadow-lg"
