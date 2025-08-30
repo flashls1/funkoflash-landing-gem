@@ -11,6 +11,7 @@ import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import { TalentAssetsManager } from '@/features/talent-assets/TalentAssetsManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useInvisibleMode } from '@/hooks/useInvisibleMode';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
@@ -66,6 +67,7 @@ const TalentDashboard = () => {
   const { user, profile } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const { loading: siteDesignLoading } = useSiteDesign();
+  const { invisibleMode, toggleInvisible } = useInvisibleMode();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -261,8 +263,8 @@ const TalentDashboard = () => {
                 businessName: null,
                 profileLocale: (profile as any)?.locale || null,
               }}
-              invisibleMode={false}
-              onToggleInvisible={() => {}}
+              invisibleMode={invisibleMode}
+              onToggleInvisible={toggleInvisible}
               locale={language}
             />
           </HeroShell>

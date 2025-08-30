@@ -11,6 +11,7 @@ interface Profile {
   last_name?: string;
   phone?: string;
   role: 'admin' | 'staff' | 'talent' | 'business';
+  status?: string;
   created_at: string;
   updated_at: string;
 }

@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useInvisibleMode } from '@/hooks/useInvisibleMode';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Calendar, MessageSquare, FileText, Users, BarChart3, Settings, ClipboardList, UserCheck, Wrench, ShoppingBag, Lock, Unlock, Palette, ChevronDown } from 'lucide-react';
@@ -58,6 +59,7 @@ const StaffDashboard = () => {
   const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8]);
   const { user, profile } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
+  const { invisibleMode, toggleInvisible } = useInvisibleMode();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -216,8 +218,8 @@ const StaffDashboard = () => {
                 businessName: null,
                 profileLocale: (profile as any)?.locale || null,
               }}
-              invisibleMode={false}
-              onToggleInvisible={() => {}}
+              invisibleMode={invisibleMode}
+              onToggleInvisible={toggleInvisible}
               locale={language}
             />
           </HeroShell>

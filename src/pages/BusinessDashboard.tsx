@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useInvisibleMode } from '@/hooks/useInvisibleMode';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
@@ -67,6 +68,7 @@ const BusinessDashboard = () => {
   const { user, profile, loading } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const { loading: siteDesignLoading } = useSiteDesign();
+  const { invisibleMode, toggleInvisible } = useInvisibleMode();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -222,8 +224,8 @@ const BusinessDashboard = () => {
                 businessName: (profile as any)?.business_name,
                 profileLocale: (profile as any)?.locale || null,
               }}
-              invisibleMode={false}
-              onToggleInvisible={() => {}}
+              invisibleMode={invisibleMode}
+              onToggleInvisible={toggleInvisible}
               locale={language}
             />
           </HeroShell>

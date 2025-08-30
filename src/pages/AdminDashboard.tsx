@@ -13,6 +13,7 @@ import TalentDirectoryCMS from './TalentDirectoryCMS';
 import { AdminTalentAssetsWrapper } from '@/features/talent-assets/AdminTalentAssetsWrapper';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useInvisibleMode } from '@/hooks/useInvisibleMode';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Building, Lock, Unlock, ChevronDown, FolderOpen } from 'lucide-react';
@@ -66,6 +67,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { user, profile, loading } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
+  const { invisibleMode, toggleInvisible } = useInvisibleMode();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -269,8 +271,8 @@ const AdminDashboard = () => {
                 isOnline: true,
                 businessName: null
               }}
-              invisibleMode={false}
-              onToggleInvisible={() => {}}
+              invisibleMode={invisibleMode}
+              onToggleInvisible={toggleInvisible}
             />
           </HeroShell>
           

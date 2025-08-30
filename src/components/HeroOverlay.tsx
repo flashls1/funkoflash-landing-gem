@@ -72,10 +72,13 @@ export default function HeroOverlay({
             aria-pressed={invisibleMode}
             aria-label="Toggle Invisible Mode"
             onClick={onToggleInvisible}
-            className="inline-flex items-center rounded-full px-2 py-1
+            className={`inline-flex items-center rounded-full px-2 py-1
                        text-[11px] sm:text-xs font-medium
-                       bg-white/10 hover:bg-white/15 active:bg-white/20
-                       ring-1 ring-white/25 backdrop-blur"
+                       ring-1 backdrop-blur transition-colors
+                       ${invisibleMode 
+                         ? 'bg-blue-500/20 text-blue-200 ring-blue-400/30 hover:bg-blue-500/25' 
+                         : 'bg-white/10 text-white hover:bg-white/15 ring-white/25'
+                       } active:scale-95`}
           >
             {tInvisibleLabel(invisibleMode, effectiveLocale)}
           </button>
