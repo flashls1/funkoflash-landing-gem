@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,19 +28,8 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
   
   const { profile } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const canEdit = profile?.role === 'admin' || profile?.role === 'staff';
-
-  const handleBackToDashboard = () => {
-    if (profile?.role === 'admin') {
-      navigate('/dashboard/admin');
-    } else if (profile?.role === 'staff') {
-      navigate('/dashboard/staff');
-    } else {
-      navigate('/dashboard/business');
-    }
-  };
 
   useEffect(() => {
     loadEvents();
@@ -55,30 +43,75 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
     try {
       setLoading(true);
       
-      // For business users, load their assigned events (RLS will filter appropriately)
+      // For business users, only load their assigned events
       if (profile?.role === 'business') {
-        console.log('BusinessEventsPage: Loading events for business user');
+        // Get full profile data for business matching
+        const { data: fullProfile } = await supabase
+          .from('profiles')
+          .select('user_id, business_name, first_name, last_name, email')
+          .eq('user_id', profile.user_id)
+          .single();
+          
+        if (!fullProfile) throw new Error('Profile not found');
         
-        // Get business events assigned to this user - RLS policies will handle the filtering
-        const { data: businessEvents, error: businessEventsError } = await supabase
+        // Ensure business account exists for this user
+        await businessEventsApi.ensureBusinessAccountForUser(fullProfile.user_id);
+        
+        // Get business account ID for this user
+        const businessName = fullProfile.business_name || (fullProfile.first_name || '') + ' ' + (fullProfile.last_name || '');
+        console.log('Looking for business account with name:', businessName, 'or email:', fullProfile.email);
+        
+        // Try to find business account by name first, then by email
+        let businessAccount = null;
+        
+        // First try by name
+        if (businessName.trim()) {
+          const { data: accountByName } = await supabase
+            .from('business_account')
+            .select('id, name, contact_email')
+            .eq('name', businessName)
+            .maybeSingle();
+          businessAccount = accountByName;
+        }
+        
+        // If not found by name, try by email
+        if (!businessAccount && fullProfile.email) {
+          const { data: accountByEmail } = await supabase
+            .from('business_account')
+            .select('id, name, contact_email')
+            .eq('contact_email', fullProfile.email)
+            .maybeSingle();
+          businessAccount = accountByEmail;
+        }
+        
+        console.log('Business account query result:', businessAccount);
+        if (!businessAccount) throw new Error('Business account not found');
+        
+        // Get events assigned to this business account
+        // First get event IDs from business_event_account table
+        const { data: eventIds } = await supabase
+          .from('business_event_account')
+          .select('event_id')
+          .eq('business_account_id', businessAccount.id);
+          
+        if (!eventIds || eventIds.length === 0) {
+          setEvents([]);
+          return;
+        }
+        
+        // Then get the full event details
+        const { data, error } = await supabase
           .from('business_events')
           .select(`
             *,
             business_event_talent(
-              talent_id,
-              talent_profiles(name)
-            ),
-            business_event_account(
-              business_account_id,
-              business_account(name, contact_email)
+              talent_profiles(*)
             )
-          `);
-        
-        console.log('BusinessEventsPage: Business events data:', businessEvents);
-        console.log('BusinessEventsPage: Business events error:', businessEventsError);
-        
-        if (businessEventsError) throw businessEventsError;
-        setEvents(businessEvents || []);
+          `)
+          .in('id', eventIds.map(item => item.event_id));
+          
+        if (error) throw error;
+        setEvents(data || []);
       } else {
         // For admin/staff, load all events
         const data = await businessEventsApi.getEvents();
@@ -184,7 +217,7 @@ const BusinessEventsPage = ({ language = 'en' }: BusinessEventsPageProps) => {
               {/* Back Button */}
               <Button 
                 variant="outline" 
-                onClick={handleBackToDashboard}
+                onClick={() => window.history.back()}
                 className="w-fit"
               >
                 ← {language === 'es' ? 'Volver al Panel' : profile?.role === 'admin' ? 'Back to Admin Dashboard' : 'Back to Dashboard'}

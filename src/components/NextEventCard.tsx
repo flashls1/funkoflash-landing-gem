@@ -75,76 +75,165 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         .eq('user_id', user.id)
         .single();
 
+      // For business users, get next business event
       if (fullProfile?.role === 'business') {
-        console.log('NextEventCard: Loading events for business user');
+        const now = new Date().toISOString();
         
-        // Use server function instead of direct table access
-        const { getNextBusinessEvent } = await import('@/server/data/businessCalendar');
-        const nextCalendarEvent = await getNextBusinessEvent();
+        // Get business account ID for this user  
+        const businessName = fullProfile.business_name || fullProfile.first_name + ' ' + (fullProfile.last_name || '');
+        console.log('NextEventCard: Looking for business account with name:', businessName, 'or email:', fullProfile.email);
         
-        console.log('NextEventCard: Business calendar event:', nextCalendarEvent);
+        // Try to find business account by name first, then by email
+        let businessAccount = null;
         
-        if (!nextCalendarEvent) {
+        // First try by name
+        if (businessName.trim()) {
+          const { data: accountByName } = await supabase
+            .from('business_account')
+            .select('id, name, contact_email')
+            .eq('name', businessName)
+            .maybeSingle();
+          businessAccount = accountByName;
+        }
+        
+        // If not found by name, try by email
+        if (!businessAccount && fullProfile.email) {
+          const { data: accountByEmail } = await supabase
+            .from('business_account')
+            .select('id, name, contact_email')
+            .eq('contact_email', fullProfile.email)
+            .maybeSingle();
+          businessAccount = accountByEmail;
+        }
+        
+        console.log('NextEventCard: Business account query result:', businessAccount);
+          
+        if (!businessAccount) {
           setNextEvent(null);
           return;
         }
+        
+        // Get event IDs from business_event_account table first
+        const { data: eventIds } = await supabase
+          .from('business_event_account')
+          .select('event_id')
+          .eq('business_account_id', businessAccount.id);
+          
+        if (!eventIds || eventIds.length === 0) {
+          setNextEvent(null);
+          return;
+        }
+        
+        const { data, error } = await supabase
+          .from('business_events')
+          .select('*')
+          .in('id', eventIds.map(item => item.event_id))
+          .gte('start_ts', now)
+          .order('start_ts', { ascending: true })
+          .limit(1);
 
-        // Convert the view data to our CalendarEvent format
-        const convertedEvent: CalendarEvent = {
-          id: nextCalendarEvent.event_id,
-          event_title: nextCalendarEvent.title,
-          start_date: nextCalendarEvent.start_at ? nextCalendarEvent.start_at.split('T')[0] : '',
-          end_date: nextCalendarEvent.end_at ? nextCalendarEvent.end_at.split('T')[0] : '',
-          start_time: nextCalendarEvent.start_at ? nextCalendarEvent.start_at.split('T')[1]?.split('.')[0] : null,
-          end_time: nextCalendarEvent.end_at ? nextCalendarEvent.end_at.split('T')[1]?.split('.')[0] : null,
-          all_day: !nextCalendarEvent.start_at?.includes('T'),
-          status: nextCalendarEvent.status as 'booked' | 'hold' | 'available' | 'tentative' | 'cancelled' | 'not_available',
-          venue_name: nextCalendarEvent.venue,
-          location_city: nextCalendarEvent.city,
-          location_state: nextCalendarEvent.state,
-          location_country: nextCalendarEvent.country,
-          talent_profiles: null
-        };
-        setNextEvent(convertedEvent);
+        if (error) throw error;
+        
+        // Convert business event to calendar event format for display
+        if (data && data.length > 0) {
+          const businessEvent = data[0];
+          const convertedEvent: CalendarEvent = {
+            id: businessEvent.id,
+            start_date: businessEvent.start_ts ? businessEvent.start_ts.split('T')[0] : '',
+            end_date: businessEvent.end_ts ? businessEvent.end_ts.split('T')[0] : '',
+            start_time: businessEvent.start_ts ? businessEvent.start_ts.split('T')[1]?.split('.')[0] : null,
+            end_time: businessEvent.end_ts ? businessEvent.end_ts.split('T')[1]?.split('.')[0] : null,
+            all_day: !businessEvent.start_ts?.includes('T'),
+            event_title: businessEvent.title || 'Business Event',
+            status: businessEvent.status === 'published' ? 'booked' : 'tentative',
+            venue_name: businessEvent.venue,
+            location_city: businessEvent.city,
+            location_state: businessEvent.state,
+            location_country: businessEvent.country,
+            talent_profiles: null
+          };
+          setNextEvent(convertedEvent);
+        } else {
+          setNextEvent(null);
+        }
         return;
       }
       
-      // For talent users, use the secure talent calendar view
-      const { data: talentEvents, error: talentError } = await supabase
-        .from('v_talent_calendar_events')
-        .select('*')
-        .gte('start_at', new Date().toISOString())
-        .order('start_at', { ascending: true })
-        .limit(1);
+      // For talent users, get next calendar event AND business event assignments
+      const { data: talentProfile } = await supabase
+        .from('talent_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-      if (talentError) {
-        console.error('Error fetching talent events:', talentError);
+      if (!talentProfile) {
         setNextEvent(null);
         return;
       }
 
-      const nextTalentEvent = talentEvents?.[0] || null;
+      // Get next upcoming calendar event for this talent
+      const now = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
+      
+      const { data: calendarEvents, error: calendarError } = await supabase
+        .from('calendar_event')
+        .select(`
+          *,
+          talent_profiles(name)
+        `)
+        .eq('talent_id', talentProfile.id)
+        .gte('start_date', now)
+        .order('start_date', { ascending: true })
+        .order('created_at', { ascending: true })
+        .limit(1);
 
-      if (nextTalentEvent) {
-        const convertedEvent: CalendarEvent = {
-          id: nextTalentEvent.event_id,
-          event_title: nextTalentEvent.title,
-          start_date: nextTalentEvent.start_at ? nextTalentEvent.start_at.split('T')[0] : '',
-          end_date: nextTalentEvent.end_at ? nextTalentEvent.end_at.split('T')[0] : '',
-          start_time: nextTalentEvent.start_at ? nextTalentEvent.start_at.split('T')[1]?.split('.')[0] : null,
-          end_time: nextTalentEvent.end_at ? nextTalentEvent.end_at.split('T')[1]?.split('.')[0] : null,
-          all_day: !nextTalentEvent.start_at?.includes('T'),
-          status: nextTalentEvent.status as 'booked' | 'hold' | 'available' | 'tentative' | 'cancelled' | 'not_available',
-          venue_name: null, // talent view doesn't include venue info
-          location_city: null,
-          location_state: null,
-          location_country: null,
+      if (calendarError) throw calendarError;
+
+      // Get next upcoming business event for this talent
+      const nowISO = new Date().toISOString();
+      const { data: businessEvents, error: businessError } = await supabase
+        .from('business_events')
+        .select(`
+          *,
+          business_event_talent!inner(talent_id)
+        `)
+        .eq('business_event_talent.talent_id', talentProfile.id)
+        .gte('start_ts', nowISO)
+        .order('start_ts', { ascending: true })
+        .limit(1);
+
+      if (businessError) throw businessError;
+
+      // Compare dates and select the earliest event
+      let nextEvent = null;
+      const calendarEvent = calendarEvents && calendarEvents.length > 0 ? calendarEvents[0] : null;
+      const businessEvent = businessEvents && businessEvents.length > 0 ? businessEvents[0] : null;
+
+      if (calendarEvent && businessEvent) {
+        const calendarDate = new Date(calendarEvent.start_date);
+        const businessDate = new Date(businessEvent.start_ts);
+        nextEvent = calendarDate <= businessDate ? calendarEvent : businessEvent;
+      } else if (calendarEvent) {
+        nextEvent = calendarEvent;
+      } else if (businessEvent) {
+        // Convert business event to calendar event format
+        nextEvent = {
+          id: businessEvent.id,
+          start_date: businessEvent.start_ts ? businessEvent.start_ts.split('T')[0] : '',
+          end_date: businessEvent.end_ts ? businessEvent.end_ts.split('T')[0] : '',
+          start_time: businessEvent.start_ts ? businessEvent.start_ts.split('T')[1]?.split('.')[0] : null,
+          end_time: businessEvent.end_ts ? businessEvent.end_ts.split('T')[1]?.split('.')[0] : null,
+          all_day: !businessEvent.start_ts?.includes('T'),
+          event_title: businessEvent.title || 'Business Event',
+          status: businessEvent.status === 'published' ? 'booked' : 'tentative',
+          venue_name: businessEvent.venue,
+          location_city: businessEvent.city,
+          location_state: businessEvent.state,
+          location_country: businessEvent.country,
           talent_profiles: null
         };
-        setNextEvent(convertedEvent);
-      } else {
-        setNextEvent(null);
       }
+
+      setNextEvent(nextEvent as CalendarEvent);
     } catch (error) {
       console.error('Error loading next event:', error);
       setNextEvent(null);
@@ -253,7 +342,7 @@ export const NextEventCard = ({ language }: NextEventProps) => {
         {nextEvent ? (
           <div className="space-y-4">
             <div>
-              <h3 className="font-semibold text-lg" data-testid="next-event-title">{nextEvent.event_title}</h3>
+              <h3 className="font-semibold text-lg">{nextEvent.event_title}</h3>
               <p className="text-muted-foreground">
                 {formatDate(
                   nextEvent.start_date, 

@@ -84,12 +84,31 @@ const BusinessBookingManagement = () => {
     try {
       setLoading(true);
 
-      // Use standardized business account lookup
-      const { data: businessAccountId } = await supabase
-        .rpc('get_business_account_for_user', { p_user_id: user.id });
+      // Get business account for this user
+      const businessName = (profile as any).business_name || profile.first_name + ' ' + (profile.last_name || '');
+      
+      // Try to find business account by name first, then by email
+      let businessAccount = null;
+      
+      if (businessName.trim()) {
+        const { data: accountByName } = await supabase
+          .from('business_account')
+          .select('id, name, contact_email')
+          .eq('name', businessName)
+          .maybeSingle();
+        businessAccount = accountByName;
+      }
+      
+      if (!businessAccount && profile.email) {
+        const { data: accountByEmail } = await supabase
+          .from('business_account')
+          .select('id, name, contact_email')
+          .eq('contact_email', profile.email)
+          .maybeSingle();
+        businessAccount = accountByEmail;
+      }
 
-      if (!businessAccountId) {
-        console.log('No business account found for user:', user.id);
+      if (!businessAccount) {
         setEvents([]);
         return;
       }
@@ -98,7 +117,7 @@ const BusinessBookingManagement = () => {
       const { data: eventIds } = await supabase
         .from('business_event_account')
         .select('event_id')
-        .eq('business_account_id', businessAccountId);
+        .eq('business_account_id', businessAccount.id);
 
       if (!eventIds || eventIds.length === 0) {
         setEvents([]);
