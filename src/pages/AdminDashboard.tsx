@@ -8,6 +8,8 @@ import Footer from "@/components/Footer";
 import AdminThemeProvider from "@/components/AdminThemeProvider";
 import LoginHistoryBox from "@/components/LoginHistoryBox";
 import AdminHero from "@/components/AdminHero";
+import AdminTabs from "@/components/AdminTabs";
+import AdminStats from "@/components/AdminStats";
 import BusinessEventsModule from "@/components/BusinessEventsModule";
 import { 
   Users, 
@@ -18,7 +20,9 @@ import {
   MessageSquare,
   ShoppingBag,
   CalendarDays,
-  Mic2
+  Mic2,
+  BarChart3,
+  FileText
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -45,7 +49,13 @@ const AdminDashboard = () => {
       eventsManager: "Events Manager",
       eventsManagerDesc: "Manage public events and announcements",
       calendarManager: "Calendar Manager", 
-      calendarManagerDesc: "Manage calendar events and schedules"
+      calendarManagerDesc: "Manage calendar events and schedules",
+      systemSettings: "System Settings",
+      systemSettingsDesc: "Configure system preferences and settings",
+      reportsAnalytics: "Reports & Analytics", 
+      reportsAnalyticsDesc: "View detailed reports and analytics",
+      contentManagement: "Content Management",
+      contentManagementDesc: "Manage site content and media"
     },
     es: {
       welcome: "Panel de Administración",
@@ -65,7 +75,13 @@ const AdminDashboard = () => {
       eventsManager: "Gestor de Eventos",
       eventsManagerDesc: "Gestionar eventos públicos y anuncios", 
       calendarManager: "Gestor de Calendario",
-      calendarManagerDesc: "Gestionar eventos de calendario y horarios"
+      calendarManagerDesc: "Gestionar eventos de calendario y horarios",
+      systemSettings: "Configuración del Sistema",
+      systemSettingsDesc: "Configurar preferencias y ajustes del sistema",
+      reportsAnalytics: "Informes y Análisis",
+      reportsAnalyticsDesc: "Ver informes detallados y análisis",
+      contentManagement: "Gestión de Contenido", 
+      contentManagementDesc: "Gestionar contenido del sitio y medios"
     }
   };
 
@@ -127,6 +143,27 @@ const AdminDashboard = () => {
       icon: Calendar,
       path: "/admin/calendar",
       color: "text-indigo-600"
+    },
+    {
+      title: t.systemSettings,
+      description: t.systemSettingsDesc,
+      icon: Settings,
+      path: "/admin/system-settings",
+      color: "text-gray-600"
+    },
+    {
+      title: t.reportsAnalytics,
+      description: t.reportsAnalyticsDesc,
+      icon: BarChart3,
+      path: "/admin/reports",
+      color: "text-cyan-600"
+    },
+    {
+      title: t.contentManagement,
+      description: t.contentManagementDesc,
+      icon: FileText,
+      path: "/admin/content",
+      color: "text-teal-600"
     }
   ];
 
@@ -137,71 +174,44 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <AdminHero />
 
-        {/* Business Events and Quick Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <BusinessEventsModule />
-        </div>
+        <AdminTabs>
+          <AdminStats />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-          {dashboardItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <Card 
-                key={index} 
-                className="hover:shadow-lg transition-shadow cursor-pointer group"
-                onClick={() => navigate(item.path)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center space-x-2">
-                    <Icon className={`w-5 h-5 ${item.color} group-hover:scale-110 transition-transform`} />
-                    <CardTitle className="text-lg">{item.title}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{item.description}</CardDescription>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+          {/* Business Events Module */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <BusinessEventsModule />
+            <LoginHistoryBox language={language} />
+          </div>
 
-        {/* Login History Box */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <LoginHistoryBox language={language} />
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {language === 'es' ? 'Accesos Rápidos' : 'Quick Actions'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => navigate("/admin/user-management")}
-              >
-                <Users className="w-4 h-4 mr-2" />
-                {t.userManagement}
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => navigate("/admin/site-design")}
-              >
-                <Palette className="w-4 h-4 mr-2" />
-                {t.siteDesign}
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => navigate("/admin/talent-directory")}
-              >
-                <Mic2 className="w-4 h-4 mr-2" />
-                {t.talentDirectory}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+          {/* Main Module Grid - 3 columns to match original */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {dashboardItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <Card 
+                  key={index} 
+                  className="hover:shadow-lg transition-shadow cursor-pointer group h-full"
+                  onClick={() => navigate(item.path)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <Icon className={`w-8 h-8 ${item.color} group-hover:scale-110 transition-transform`} />
+                    </div>
+                    <CardTitle className="text-xl">{item.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col justify-between flex-1">
+                    <CardDescription className="text-sm mb-4">
+                      {item.description}
+                    </CardDescription>
+                    <Button variant="outline" className="w-full">
+                      {language === 'es' ? 'Abrir' : 'Open'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </AdminTabs>
       </div>
 
       <Footer language={language} />

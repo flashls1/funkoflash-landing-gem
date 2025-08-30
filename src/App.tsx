@@ -33,6 +33,9 @@ import TalentPortfolioManagement from "./pages/TalentPortfolioManagement";
 import TalentBookingManagement from "./pages/TalentBookingManagement";
 import BusinessBookingManagement from "./pages/BusinessBookingManagement";
 import BusinessLogisticsManager from "./pages/BusinessLogisticsManager";
+import AdminSystemSettings from "./pages/AdminSystemSettings";
+import AdminReports from "./pages/AdminReports";
+import AdminContentManagement from "./pages/AdminContentManagement";
 import NotFound from "./pages/NotFound";
 
 // Import CMS and management components
@@ -90,6 +93,9 @@ const App = () => {
                       <Route path="/admin/shop-manager" element={<ShopManager />} />
                       <Route path="/admin/events-manager" element={<EventsManager />} />
                       <Route path="/admin/calendar" element={<Calendar />} />
+                      <Route path="/admin/system-settings" element={<AdminSystemSettings />} />
+                      <Route path="/admin/reports" element={<AdminReports />} />
+                      <Route path="/admin/content" element={<AdminContentManagement />} />
                       
                       {/* Talent Management Routes */}
                       <Route path="/admin/talent-buildout/:talentId" element={<TalentBuildoutCMS />} />

@@ -31,16 +31,14 @@ function greeting(date: Date, lang: string) {
 }
 
 export default function AdminHero() {
-  const { t, lang } = useLanguage();
+  const { language } = useLanguage();
   const { pathname } = useLocation();
   const site = useSiteDesign();
-  const { currentTheme, colorThemes, changeTheme } = useColorTheme();
 
   const [raw, setRaw] = React.useState<RawSettings | null>(null);
   const [bg, setBg] = React.useState<string>("");
   const [name, setName] = React.useState<string>("");
   const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
-  const [presence, setPresence] = React.useState<Presence>("online");
 
   // Load page settings
   React.useEffect(() => {
@@ -52,7 +50,7 @@ export default function AdminHero() {
     }
   }, [pathname, site]);
 
-  // Load user profile (name, avatar, presence) and background fallback
+  // Load user profile and background
   React.useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
@@ -60,7 +58,7 @@ export default function AdminHero() {
       
       const { data } = await supabase
         .from("profiles")
-        .select("first_name,last_name,avatar_url,background_image_url,status")
+        .select("first_name,last_name,avatar_url,background_image_url")
         .eq("user_id", u.user.id)
         .maybeSingle();
       
@@ -68,7 +66,6 @@ export default function AdminHero() {
         const full = [data.first_name, data.last_name].filter(Boolean).join(" ");
         setName(full || u.user.user_metadata?.name || u.user.email || "User");
         setAvatarUrl(data.avatar_url ?? null);
-        setPresence((data.status as Presence) ?? "online");
         
         // Set background from page settings first, then profile fallback
         if (raw?.backgroundMedia) {
@@ -82,43 +79,11 @@ export default function AdminHero() {
 
   // Fixed hero height: 240px
   const heightClass = "h-[240px]";
-  const overlay = typeof raw?.overlayOpacity === "number" ? raw.overlayOpacity : 0.6;
-
   const nowCST = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
-  const greet = greeting(nowCST, lang);
-
-  const onPresence = async (next: Presence) => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u?.user?.id) return;
-    
-    const { error } = await supabase
-      .from("profiles")
-      .update({ status: next })
-      .eq("user_id", u.user.id);
-    
-    if (!error) setPresence(next);
-  };
-
-  const getPresenceLabel = (s: Presence) => {
-    if (lang === "es") {
-      switch (s) {
-        case "online": return "En línea";
-        case "offline": return "Desconectado";
-        case "invisible": return "Invisible";
-        default: return s;
-      }
-    } else {
-      switch (s) {
-        case "online": return "Online";
-        case "offline": return "Offline";
-        case "invisible": return "Invisible";
-        default: return s;
-      }
-    }
-  };
+  const greet = greeting(nowCST, language);
 
   return (
-    <section className="relative w-full rounded-xl overflow-hidden border border-white/10 mb-6">
+    <section className="relative w-full rounded-xl overflow-hidden border border-border mb-6">
       <div className={heightClass}>
         {bg ? (
           <img src={bg} alt="" className="w-full h-full object-cover" />
@@ -127,71 +92,37 @@ export default function AdminHero() {
         )}
       </div>
 
-      {/* OVERLAY */}
-      <div className="absolute inset-0">
-        <div 
-          className="w-full h-full bg-gradient-to-t from-black/60 to-transparent" 
-          style={{ opacity: overlay }} 
-        />
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-            {/* Left: avatar + greeting + name */}
-            <div className="flex items-center gap-3">
-              {avatarUrl ? (
-                <img 
-                  src={avatarUrl} 
-                  alt="avatar" 
-                  className="w-12 h-12 rounded-full object-cover border-2 border-white/20" 
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center">
-                  <span className="text-white/70 text-lg font-medium">
-                    {name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div className="leading-tight">
-                <div className="text-white/80 text-sm">{greet}</div>
-                <div className="text-white text-xl sm:text-2xl font-semibold">{name}</div>
-              </div>
-            </div>
-
-            {/* Right: theme dropdown + presence controls */}
-            <div className="flex items-center gap-3">
-              {/* Theme dropdown */}
-              <select
-                aria-label={lang === "es" ? "Tema del dashboard" : "Dashboard theme"}
-                className="bg-black/40 border border-white/20 rounded-md text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-                value={currentTheme.id}
-                onChange={(e) => changeTheme(e.target.value)}
-              >
-                {colorThemes.map(theme => (
-                  <option key={theme.id} value={theme.id} className="bg-gray-800">
-                    {theme.name}
-                  </option>
-                ))}
-              </select>
-
-              {/* Presence */}
-              <div className="flex items-center gap-1 bg-black/40 border border-white/20 rounded-md px-2 py-1">
-                {(["online", "offline", "invisible"] as Presence[]).map(s => (
-                  <button
-                    key={s}
-                    className={`text-xs px-2 py-1 rounded transition-colors ${
-                      presence === s 
-                        ? "bg-white/30 text-white" 
-                        : "text-white/70 hover:bg-white/10"
-                    }`}
-                    onClick={() => onPresence(s)}
-                    title={`${lang === "es" ? "Establecer estado" : "Set status"}: ${getPresenceLabel(s)}`}
-                  >
-                    {getPresenceLabel(s)}
-                  </button>
-                ))}
-              </div>
-            </div>
+      {/* Simple overlay with user info */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+      <div className="absolute bottom-4 left-4 flex items-center gap-3">
+        {avatarUrl ? (
+          <img 
+            src={avatarUrl} 
+            alt="avatar" 
+            className="w-16 h-16 rounded-full object-cover border-2 border-white/20" 
+          />
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center">
+            <span className="text-white/70 text-xl font-medium">
+              {name.charAt(0).toUpperCase()}
+            </span>
           </div>
+        )}
+        <div className="leading-tight">
+          <div className="text-white/80 text-sm">{greet}</div>
+          <div className="text-white text-2xl font-semibold">{name}</div>
+          <div className="text-white/60 text-sm">Admin</div>
         </div>
+      </div>
+
+      {/* Date in top right */}
+      <div className="absolute top-4 right-4 text-white/80 text-sm">
+        {nowCST.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+          weekday: 'long',
+          year: 'numeric', 
+          month: 'long',
+          day: 'numeric'
+        })}
       </div>
     </section>
   );
