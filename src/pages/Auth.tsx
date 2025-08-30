@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,42 +6,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import UnifiedHeroSection from '@/components/UnifiedHeroSection';
+import RequestAccessModal from '@/components/RequestAccessModal';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
-
-interface AccessRequestForm {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-}
 
 const Auth = () => {
   const { language, setLanguage } = useLanguage();
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
   const [showRequestAccess, setShowRequestAccess] = useState(false);
-  const [accessForm, setAccessForm] = useState<AccessRequestForm>({
-    name: '',
-    email: '',
-    phone: '',
-    message: ''
-  });
+  const [resetEmail, setResetEmail] = useState('');
 
-  const { signIn, signUp, resetPassword, user, profile } = useAuth();
+  const { signIn, resetPassword, user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { setCurrentPage } = useSiteDesign();
@@ -51,58 +35,28 @@ const Auth = () => {
 
   const content = {
     en: {
-      login: "Login",
-      signup: "Sign Up",
+      loginTitle: "Welcome Back",
+      loginDesc: "Sign in to your account",
       email: "Email",
       password: "Password",
-      firstName: "First Name",
-      lastName: "Last Name",
       loginButton: "Sign In",
-      signupButton: "Create Account",
       forgotPassword: "Forgot Password?",
       resetPassword: "Reset Password",
       sendReset: "Send Reset Email",
       cancel: "Cancel",
-      switchToSignup: "Don't have an account? Sign up",
-      switchToLogin: "Already have an account? Sign in",
-      requestAccess: "REQUEST ACCESS",
-      requestAccessTitle: "Request Access",
-      requestAccessDesc: "Fill out this form to request access to the platform",
-      name: "Name",
-      phone: "Phone Number",
-      message: "Message",
-      submitRequest: "Submit Request",
-      loginTitle: "Welcome Back",
-      loginDesc: "Sign in to your account",
-      signupTitle: "Create Account", 
-      signupDesc: "Join the FunkoFlash platform"
+      requestAccess: "REQUEST ACCESS"
     },
     es: {
-      login: "Iniciar Sesión",
-      signup: "Registrarse",
+      loginTitle: "Bienvenido de Nuevo",
+      loginDesc: "Inicia sesión en tu cuenta",
       email: "Correo Electrónico",
       password: "Contraseña",
-      firstName: "Nombre",
-      lastName: "Apellido",
       loginButton: "Iniciar Sesión",
-      signupButton: "Crear Cuenta",
       forgotPassword: "¿Olvidaste tu contraseña?",
       resetPassword: "Restablecer Contraseña",
       sendReset: "Enviar Email de Restablecimiento",
       cancel: "Cancelar",
-      switchToSignup: "¿No tienes cuenta? Regístrate",
-      switchToLogin: "¿Ya tienes cuenta? Inicia sesión",
-      requestAccess: "SOLICITAR ACCESO",
-      requestAccessTitle: "Solicitar Acceso",
-      requestAccessDesc: "Completa este formulario para solicitar acceso a la plataforma",
-      name: "Nombre",
-      phone: "Número de Teléfono",
-      message: "Mensaje",
-      submitRequest: "Enviar Solicitud",
-      loginTitle: "Bienvenido de Nuevo",
-      loginDesc: "Inicia sesión en tu cuenta",
-      signupTitle: "Crear Cuenta",
-      signupDesc: "Únete a la plataforma FunkoFlash"
+      requestAccess: "SOLICITAR ACCESO"
     }
   };
 
@@ -136,8 +90,8 @@ const Auth = () => {
 
     if (!email || !password) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
+        title: "Error de Validación",
+        description: "Por favor complete todos los campos requeridos",
         variant: "destructive",
       });
       setLoading(false);
@@ -145,15 +99,14 @@ const Auth = () => {
     }
 
     await signIn(email, password);
-
     setLoading(false);
   };
 
   const handleForgotPassword = async () => {
     if (!resetEmail) {
       toast({
-        title: "Validation Error",
-        description: "Please enter your email address",
+        title: "Error de Validación",
+        description: "Por favor ingrese su dirección de correo electrónico",
         variant: "destructive",
       });
       return;
@@ -162,39 +115,6 @@ const Auth = () => {
     await resetPassword(resetEmail);
     setShowForgotPassword(false);
     setResetEmail('');
-  };
-
-  const handleRequestAccess = async () => {
-    if (!accessForm.name || !accessForm.email || !accessForm.message) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('access_requests')
-        .insert([accessForm]);
-
-      if (error) throw error;
-
-      toast({
-        title: "Request Submitted",
-        description: "Your access request has been submitted. An admin will review it shortly.",
-      });
-
-      setShowRequestAccess(false);
-      setAccessForm({ name: '', email: '', phone: '', message: '' });
-    } catch (error: any) {
-      toast({
-        title: "Submission Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
   };
 
   return (
@@ -294,7 +214,7 @@ const Auth = () => {
           <DialogHeader>
             <DialogTitle>{t.resetPassword}</DialogTitle>
             <DialogDescription>
-              Enter your email address to receive password reset instructions.
+              Ingrese su dirección de correo electrónico para recibir instrucciones de restablecimiento de contraseña.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -320,67 +240,12 @@ const Auth = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Request Access Dialog */}
-      <Dialog open={showRequestAccess} onOpenChange={setShowRequestAccess}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t.requestAccessTitle}</DialogTitle>
-            <DialogDescription>
-              {t.requestAccessDesc}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="accessName">{t.name}</Label>
-              <Input
-                id="accessName"
-                type="text"
-                value={accessForm.name}
-                onChange={(e) => setAccessForm({...accessForm, name: e.target.value})}
-                placeholder={t.name}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="accessEmail">{t.email}</Label>
-              <Input
-                id="accessEmail"
-                type="email"
-                value={accessForm.email}
-                onChange={(e) => setAccessForm({...accessForm, email: e.target.value})}
-                placeholder={t.email}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="accessPhone">{t.phone}</Label>
-              <Input
-                id="accessPhone"
-                type="tel"
-                value={accessForm.phone}
-                onChange={(e) => setAccessForm({...accessForm, phone: e.target.value})}
-                placeholder={t.phone}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="accessMessage">{t.message}</Label>
-              <Textarea
-                id="accessMessage"
-                value={accessForm.message}
-                onChange={(e) => setAccessForm({...accessForm, message: e.target.value})}
-                placeholder={t.message}
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRequestAccess(false)}>
-              {t.cancel}
-            </Button>
-            <Button onClick={handleRequestAccess} variant="funko">
-              {t.submitRequest}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Request Access Modal */}
+      <RequestAccessModal
+        isOpen={showRequestAccess}
+        onClose={() => setShowRequestAccess(false)}
+        language={language}
+      />
     </div>
   );
 };

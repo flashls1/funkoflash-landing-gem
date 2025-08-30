@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +24,7 @@ interface NavigationProps {
 
 const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showLogoutOnHover, setShowLogoutOnHover] = useState(false);
   const { user, profile, signOut } = useAuth();
   const { hasPermission } = usePermissions();
   const navigate = useNavigate();
@@ -52,6 +54,29 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
   const loginText = {
     en: 'LOG IN',
     es: 'INICIAR SESIÓN'
+  };
+
+  const dashboardText = {
+    en: 'DASHBOARD',
+    es: 'PANEL'
+  };
+
+  const logoutText = {
+    en: 'LOG OUT',
+    es: 'CERRAR SESIÓN'
+  };
+
+  const handleDashboardClick = () => {
+    const dashboardPath = `/dashboard/${profile.role}`;
+    const currentPath = window.location.pathname;
+    
+    // If on dashboard or admin pages, logout. Otherwise, go to dashboard
+    if (currentPath.startsWith('/dashboard/') || currentPath.startsWith('/admin/')) {
+      signOut();
+      navigate('/');
+    } else {
+      navigate(dashboardPath);
+    }
   };
 
   return (
@@ -115,32 +140,21 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
               </button>
             </div>
 
-            {/* Login Button */}
+            {/* Login/Dashboard Button */}
             {user && profile ? (
-              <Button 
-                variant="funko" 
-                className="font-medium tracking-wide"
-                onClick={() => {
-                  const dashboardPath = `/dashboard/${profile.role}`;
-                  const currentPath = window.location.pathname;
-                  
-                  // If on dashboard or admin pages, logout. Otherwise, go to dashboard
-                  if (currentPath.startsWith('/dashboard/') || currentPath.startsWith('/admin/')) {
-                    signOut();
-                    navigate('/');
-                  } else {
-                    navigate(dashboardPath);
-                  }
-                }}
+              <div 
+                className="relative"
+                onMouseEnter={() => setShowLogoutOnHover(true)}
+                onMouseLeave={() => setShowLogoutOnHover(false)}
               >
-                {(() => {
-                  const currentPath = window.location.pathname;
-                  const isOnDashboard = currentPath.startsWith('/dashboard/') || currentPath.startsWith('/admin/');
-                  return isOnDashboard 
-                    ? (language === 'en' ? 'LOG OUT' : 'CERRAR SESIÓN')
-                    : (language === 'en' ? 'DASHBOARD' : 'PANEL');
-                })()}
-              </Button>
+                <Button 
+                  variant="funko" 
+                  className="font-medium tracking-wide transition-all duration-300"
+                  onClick={handleDashboardClick}
+                >
+                  {showLogoutOnHover ? logoutText[language] : dashboardText[language]}
+                </Button>
+              </div>
             ) : (
               <Button 
                 variant="funko" 
@@ -219,34 +233,37 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
               </div>
             </div>
 
-            {/* Mobile Login Button */}
+            {/* Mobile Login/Dashboard Button */}
             <div className="px-3 py-2">
               {user && profile ? (
-                <Button 
-                  variant="funko" 
-                  className="w-full font-medium tracking-wide"
-                  onClick={() => {
-                    const dashboardPath = `/dashboard/${profile.role}`;
-                    const currentPath = window.location.pathname;
-                    
-                    // If on dashboard or admin pages, logout. Otherwise, go to dashboard
-                    if (currentPath.startsWith('/dashboard/') || currentPath.startsWith('/admin/')) {
+                <div className="space-y-2">
+                  <Button 
+                    variant="funko" 
+                    className="w-full font-medium tracking-wide"
+                    onClick={() => {
+                      const dashboardPath = `/dashboard/${profile.role}`;
+                      const currentPath = window.location.pathname;
+                      
+                      if (!currentPath.startsWith('/dashboard/') && !currentPath.startsWith('/admin/')) {
+                        navigate(dashboardPath);
+                      }
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    {dashboardText[language]}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full font-medium tracking-wide"
+                    onClick={() => {
                       signOut();
                       navigate('/');
-                    } else {
-                      navigate(dashboardPath);
-                    }
-                    setIsMobileMenuOpen(false);
-                  }}
-                >
-                  {(() => {
-                    const currentPath = window.location.pathname;
-                    const isOnDashboard = currentPath.startsWith('/dashboard/') || currentPath.startsWith('/admin/');
-                    return isOnDashboard 
-                      ? (language === 'en' ? 'LOG OUT' : 'CERRAR SESIÓN')
-                      : (language === 'en' ? 'DASHBOARD' : 'PANEL');
-                  })()}
-                </Button>
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    {logoutText[language]}
+                  </Button>
+                </div>
               ) : (
                 <Button 
                   variant="funko" 
