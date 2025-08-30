@@ -10,12 +10,18 @@ interface LoginHistoryEntry {
   id: string;
   ip_address: string;
   login_time: string;
-  location_info: {
-    city?: string;
-    region?: string;
-    country?: string;
-  } | null;
+  location_info: unknown;
 }
+
+// Helper to safely parse location_info JSON
+const getLoc = (v: unknown): { city?: string; region?: string; country?: string } => {
+  if (!v) return {};
+  try {
+    if (typeof v === "string") return JSON.parse(v);
+    if (typeof v === "object") return v as any;
+  } catch {}
+  return {};
+};
 
 export default function LoginHistoryBox() {
   const { user } = useAuth();
@@ -44,9 +50,7 @@ export default function LoginHistoryBox() {
         id: item.id,
         ip_address: item.ip_address,
         login_time: item.login_time,
-        location_info: item.location_info && typeof item.location_info === 'object' 
-          ? item.location_info as { city?: string; region?: string; country?: string; }
-          : null
+        location_info: item.location_info
       }));
 
       setLoginHistory(transformedData);
@@ -71,14 +75,17 @@ export default function LoginHistoryBox() {
       const headers = ['ID', 'IP Address', 'Login Time', 'City', 'Region', 'Country'];
       const csvContent = [
         headers.join(','),
-        ...(data || []).map(row => [
-          row.id,
-          row.ip_address,
-          row.login_time,
-          row.location_info?.city || '',
-          row.location_info?.region || '',
-          row.location_info?.country || ''
-        ].join(','))
+        ...(data || []).map(row => {
+          const loc = getLoc(row.location_info);
+          return [
+            row.id,
+            row.ip_address,
+            row.login_time,
+            loc.city || '',
+            loc.region || '',
+            loc.country || ''
+          ].join(',');
+        })
       ].join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -135,20 +142,23 @@ export default function LoginHistoryBox() {
           {loginHistory.length === 0 ? (
             <p className="text-muted-foreground">No hay historial disponible</p>
           ) : (
-            loginHistory.map((entry) => (
-              <div key={entry.id} className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                <div>
-                  <p className="font-medium">{entry.ip_address}</p>
+            loginHistory.map((entry) => {
+              const loc = getLoc(entry.location_info);
+              return (
+                <div key={entry.id} className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                  <div>
+                    <p className="font-medium">{entry.ip_address}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {loc.city && `${loc.city}, `}
+                      {loc.region}
+                    </p>
+                  </div>
                   <p className="text-sm text-muted-foreground">
-                    {entry.location_info?.city && `${entry.location_info.city}, `}
-                    {entry.location_info?.region}
+                    {formatLoginTime(entry.login_time)}
                   </p>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {formatLoginTime(entry.login_time)}
-                </p>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </CardContent>
