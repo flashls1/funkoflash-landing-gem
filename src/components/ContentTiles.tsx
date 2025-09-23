@@ -14,15 +14,13 @@ interface ContentTilesProps {
 }
 
 const ContentTiles = ({ language }: ContentTilesProps) => {
-  const { getCurrentPageSettings } = useSiteDesign();
-  const homeSettings = getCurrentPageSettings();
-  const vtImageCms = homeSettings.tiles?.voiceTalent?.imageUrl;
-  const vtAltCms = homeSettings.tiles?.voiceTalent?.alt;
+  // Removed dependency on site design settings for tiles
+  // Using static images for better performance and reliability
   const content = {
     en: {
       tiles: [
         {
-          image: voiceTalentImage,
+          image: voiceTalentImage, // Always use static image
           title: "Voice Talent Directory",
           description: "Browse our exclusive roster of legendary voice actors. From anime dubbing to commercial work, find the perfect voice for your project.",
           buttonText: "Explore Talent",
@@ -124,8 +122,8 @@ const ContentTiles = ({ language }: ContentTilesProps) => {
               <div className="aspect-video relative overflow-hidden bg-muted">
                 {tile.image ? (
                   <img 
-                    src={index === 0 && vtImageCms ? vtImageCms : tile.image}
-                    alt={index === 0 && vtAltCms ? vtAltCms : tile.title}
+                    src={tile.image}
+                    alt={tile.title}
                     loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                   />

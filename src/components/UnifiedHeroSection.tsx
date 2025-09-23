@@ -32,13 +32,7 @@ export const UnifiedHeroSection = ({
   // Only show media when backgroundMedia is set
   const heroMedia = settings.hero?.backgroundMedia || '';
   const mediaType = settings.hero?.mediaType || 'image';
-  const overlayOpacity = settings.hero?.overlayOpacity || 0.5;
-  const heroHeight = settings.hero?.height || '240';
-  const position = settings.hero?.position || {
-    x: 50,
-    y: 50
-  };
-  const scale = settings.hero?.scale || 100;
+  
   console.log('🎬 UnifiedHeroSection render:', {
     currentPage,
     loading,
@@ -49,11 +43,8 @@ export const UnifiedHeroSection = ({
     settingsHasHero: !!settings.hero
   });
 
-  // Determine height based on page and settings
+  // Determine height based on page (fixed 240px for all pages now)
   const getHeightClass = () => {
-    if (currentPage === 'home') {
-      return heroHeight === '480' ? 'h-[480px]' : 'h-[240px]';
-    }
     return 'h-[240px]';
   };
   const heightClass = className || `relative ${getHeightClass()} flex items-center justify-center overflow-hidden`;
@@ -181,18 +172,28 @@ export const UnifiedHeroSection = ({
   return <section className={heightClass}>
       {/* Dynamic Background Media */}
       {currentMediaUrl && mediaLoaded && !imageLoadError && <>
-          {mediaType === 'video' ? <video className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline onLoadStart={() => console.log('🎥 Video started loading')} onCanPlay={() => console.log('🎥 Video can play')} onError={e => {
-        console.error('🎥 Video failed to load:', e);
-        setImageLoadError(true);
-      }}>
+          {mediaType === 'video' ? <video 
+              className="absolute inset-0 w-full h-full object-cover" 
+              autoPlay 
+              muted 
+              loop 
+              playsInline
+              preload="metadata"
+              onLoadStart={() => console.log('🎥 Video started loading')} 
+              onCanPlay={() => console.log('🎥 Video can play')} 
+              onError={e => {
+                console.error('🎥 Video failed to load:', e);
+                setImageLoadError(true);
+              }}>
               <source src={currentMediaUrl} type="video/mp4" />
               <source src={currentMediaUrl} type="video/webm" />
-            </video> : <div className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-500" style={{
-        backgroundImage: `url(${currentMediaUrl})`,
-        backgroundPosition: `${position.x}% ${position.y}%`,
-        transform: `scale(${scale / 100})`,
-        opacity: 1
-      }} />}
+            </video> : <img 
+              src={currentMediaUrl}
+              alt="Hero background"
+              className="absolute inset-0 h-full w-full object-cover object-center"
+              loading="lazy"
+              decoding="async"
+            />}
         </>}
       
       {/* Loading placeholder */}
@@ -209,10 +210,8 @@ export const UnifiedHeroSection = ({
           </div>
         </div>}
       
-      {/* Overlay */}
-      <div style={{
-      opacity: overlayOpacity
-    }} className="absolute inset-0 bg-black transition-opacity duration-500 z-10 my-0 rounded-b-lg" />
+      {/* Overlay - fixed 45% opacity */}
+      <div className="absolute inset-0 bg-black/45 transition-opacity duration-500 z-10 my-0 rounded-b-lg" />
       <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
         <span className="uppercase font-black tracking-wide text-white drop-shadow-md" style={{
         fontFamily: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif',

@@ -11,7 +11,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import StaffDashboard from "./pages/StaffDashboard"; 
 import TalentDashboard from "./pages/TalentDashboard";
 import BusinessDashboard from "./pages/BusinessDashboard";
-import SiteDesignModule from "./pages/SiteDesignModule";
+import SiteDesignModuleOptimized from "./pages/SiteDesignModuleOptimized";
 import TalentDirectory from "./pages/TalentDirectory";
 import TalentProfile from "./pages/TalentProfile";
 import TalentDirectoryCMS from "./pages/TalentDirectoryCMS";
@@ -50,7 +50,7 @@ const App = () => (
             <Route path="/dashboard/staff" element={<StaffDashboard />} />
             <Route path="/dashboard/talent" element={<TalentDashboard />} />
             <Route path="/dashboard/business" element={<BusinessDashboard />} />
-            <Route path="/admin/site-design" element={<SiteDesignModule />} />
+            <Route path="/admin/site-design" element={<SiteDesignModuleOptimized />} />
             <Route path="/talent-directory" element={<TalentDirectory />} />
             <Route path="/talent/:slug" element={<TalentProfile />} />
             <Route path="/admin/talent-directory" element={<TalentDirectoryCMS />} />

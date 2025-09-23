@@ -18,22 +18,6 @@ export interface SiteDesignSettings {
   hero: {
     backgroundMedia?: string;
     mediaType?: 'image' | 'video';
-    overlayOpacity?: number;
-    height?: '240' | '480'; // Only for home page
-    position?: { x: number; y: number };
-    scale?: number;
-  };
-  siteBackground?: {
-    backgroundImage?: string;
-    position?: { x: number; y: number };
-    scale?: number;
-  };
-  // Optional per-page content tiles configuration (used on home page)
-  tiles?: {
-    voiceTalent?: {
-      imageUrl?: string;
-      alt?: string;
-    };
   };
 }
 
@@ -140,57 +124,18 @@ export const useSiteDesign = () => {
     }
   };
 
-  // Apply settings to CSS for both hero images and site background
+  // Apply settings to CSS - simplified for hero only
   const applySettingsToCSS = (pageSettings: SiteDesignSettings) => {
-    // Apply site background globally if it exists
-    if (pageSettings.siteBackground?.backgroundImage) {
-      const root = document.documentElement;
-      root.style.setProperty('--site-background', `url('${pageSettings.siteBackground.backgroundImage}')`);
-      console.log('🎨 Applied global site background:', pageSettings.siteBackground.backgroundImage);
-    }
-
-    // Add cache-busting parameter to hero media URL
-    let heroMediaWithCacheBust = pageSettings.hero?.backgroundMedia;
-    if (heroMediaWithCacheBust) {
-      const separator = heroMediaWithCacheBust.includes('?') ? '&' : '?';
-      heroMediaWithCacheBust = `${heroMediaWithCacheBust}${separator}t=${Date.now()}`;
-      console.log('🚫🗃️ Cache-busted hero media URL:', heroMediaWithCacheBust);
-    }
-
     // Force component re-render by updating a timestamp
     window.dispatchEvent(new CustomEvent('heroImageUpdate', { 
       detail: { 
         page: currentPage, 
         timestamp: Date.now(),
-        heroMedia: heroMediaWithCacheBust,
-        siteBackground: pageSettings.siteBackground?.backgroundImage
+        heroMedia: pageSettings.hero?.backgroundMedia
       } 
     }));
   };
 
-  // Apply site background from any page settings that have it
-  const applySiteBackgroundFromSettings = () => {
-    // Look for site background in any page settings
-    for (const [pageName, pageSettings] of Object.entries(settings)) {
-      if (pageSettings.siteBackground?.backgroundImage) {
-        const root = document.documentElement;
-        root.style.setProperty('--site-background', `url('${pageSettings.siteBackground.backgroundImage}')`);
-        console.log('🎨 Applied site background from', pageName, ':', pageSettings.siteBackground.backgroundImage);
-        break; // Use the first one found
-      }
-    }
-    
-    // If no site background found in settings, ensure we fall back to the default black background
-    if (Object.keys(settings).length > 0) {
-      const hasAnySiteBackground = Object.values(settings).some(s => s.siteBackground?.backgroundImage);
-      if (!hasAnySiteBackground) {
-        const root = document.documentElement;
-        const defaultBackground = 'https://gytjgmeoepglbrjrbfie.supabase.co/storage/v1/object/public/design-assets/0aae1285-c95b-4818-bd0a-05feba50e724/1755732650367.png';
-        root.style.setProperty('--site-background', `url('${defaultBackground}')`);
-        console.log('🎨 Applied fallback site background:', defaultBackground);
-      }
-    }
-  };
 
 
   // Upload file to Supabase storage
@@ -222,7 +167,7 @@ export const useSiteDesign = () => {
     return data.publicUrl;
   };
 
-  // Get current page settings with debugging
+  // Get current page settings - simplified
   const getCurrentPageSettings = (): SiteDesignSettings => {
     const pageSettings = settings[currentPage];
     console.log(`🎯 Getting settings for page: ${currentPage}`, {
@@ -231,53 +176,33 @@ export const useSiteDesign = () => {
       mediaType: pageSettings?.hero?.mediaType,
       loading: loading
     });
-    
-    const defaultHeroByPage: Record<string, string> = {
-      home: heroHomeNew || heroHome || heroHomeAlt,
-      about: heroAboutNew || heroAbout,
-      contact: heroContactNew || heroContact,
-      events: heroEventsNew || heroEvents,
-      shop: heroShopNew || heroShop,
-      'talent-directory': heroTalentNew || heroTalent,
-      auth: heroHomeAlt
-    };
 
-    // Defaults honoring the requested spec (1920x240 images, white overlay)
+    // Simple defaults - fallback to gradient if no media
     const defaults: SiteDesignSettings = {
       hero: {
-        backgroundMedia: defaultHeroByPage[currentPage] || heroHomeAlt,
-        mediaType: 'image',
-        overlayOpacity: 0.45,
-        height: currentPage === 'home' ? '240' : undefined,
-        position: { x: 50, y: 50 },
-        scale: 100,
-      },
+        backgroundMedia: '',
+        mediaType: 'image'
+      }
     };
 
     if (!pageSettings) return defaults;
 
-    // Merge with defaults and prefer default image when saved value is missing/empty
-    const merged: SiteDesignSettings = {
-      ...defaults,
-      ...pageSettings,
+    return {
       hero: {
-        ...defaults.hero,
-        ...pageSettings.hero,
-      },
+        backgroundMedia: pageSettings.hero?.backgroundMedia || '',
+        mediaType: pageSettings.hero?.mediaType || 'image'
+      }
     };
-    const finalBackground = (pageSettings.hero?.backgroundMedia || '').trim() || (defaults.hero.backgroundMedia as string);
-    merged.hero.backgroundMedia = finalBackground;
-
-    return merged;
   };
 
-  // Update current page settings
+  // Update current page settings - simplified
   const updateCurrentPageSettings = (newSettings: Partial<SiteDesignSettings>) => {
     const currentSettings = getCurrentPageSettings();
     const updatedSettings = {
-      ...currentSettings,
-      ...newSettings,
-      hero: { ...currentSettings.hero, ...newSettings.hero }
+      hero: { 
+        ...currentSettings.hero, 
+        ...newSettings.hero 
+      }
     };
 
     setSettings(prev => ({
@@ -311,123 +236,13 @@ export const useSiteDesign = () => {
     loadSettings();
   }, []);
 
-  // Admin-only auto-install of 1920x240 hero images into CMS with overwrite and cache-bust
-  useEffect(() => {
-    const run = async () => {
-      if (loading) return;
-      if (typeof window === 'undefined') return;
-      // Prevent repeated installs on the same client session
-      if (localStorage.getItem('heroes_seeded_1920x240_v3')) return;
-
-      // Require authenticated user to avoid anonymous writes
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      try {
-        // Ensure uploaded images are exactly 1920x240 by resizing client-side
-        const resizeTo1920x240 = (sourceBlob: Blob, filename: string): Promise<File> => {
-          return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => {
-              const canvas = document.createElement('canvas');
-              canvas.width = 1920;
-              canvas.height = 240;
-              const ctx = canvas.getContext('2d');
-              if (!ctx) return reject(new Error('Canvas not supported'));
-              const scale = Math.max(1920 / img.naturalWidth, 240 / img.naturalHeight);
-              const drawW = img.naturalWidth * scale;
-              const drawH = img.naturalHeight * scale;
-              const dx = (1920 - drawW) / 2;
-              const dy = (240 - drawH) / 2;
-              ctx.drawImage(img, dx, dy, drawW, drawH);
-              canvas.toBlob((b) => {
-                if (!b) return reject(new Error('Failed to create blob'));
-                resolve(new File([b], filename, { type: 'image/jpeg' }));
-              }, 'image/jpeg', 0.9);
-            };
-            img.onerror = () => reject(new Error('Failed to load source image for resize'));
-            img.src = URL.createObjectURL(sourceBlob);
-          });
-        };
-
-        const assetMap: Record<string, { url: string; filename: string }> = {
-          home: { url: heroHomeNew, filename: 'hero-home-1920x240.jpg' },
-          shop: { url: heroShopNew, filename: 'hero-shop-1920x240.jpg' },
-          'talent-directory': { url: heroTalentNew, filename: 'hero-talent-directory-1920x240.jpg' },
-          events: { url: heroEventsNew, filename: 'hero-events-1920x240.jpg' },
-          about: { url: heroAboutNew, filename: 'hero-about-1920x240.jpg' },
-          contact: { url: heroContactNew, filename: 'hero-contact-1920x240.jpg' }
-        };
-
-        for (const pageName of Object.keys(assetMap)) {
-          const asset = assetMap[pageName];
-          const res = await fetch(asset.url, { cache: 'no-store' });
-          const srcBlob = await res.blob();
-          let file: File;
-          try {
-            file = await resizeTo1920x240(srcBlob, asset.filename);
-          } catch {
-            file = new File([srcBlob], asset.filename, { type: 'image/jpeg' });
-          }
-
-          const publicUrl = await uploadFile(file, 'design-assets');
-
-          // Verify the uploaded image is accessible and correct dimensions
-          try {
-            await new Promise<void>((resolve, reject) => {
-              const img = new Image();
-              img.onload = () => {
-                const ok = (img.naturalWidth === 1920 && img.naturalHeight === 240);
-                if (!ok) return reject(new Error(`Unexpected dimensions ${img.naturalWidth}x${img.naturalHeight} for ${pageName}`));
-                resolve();
-              };
-              img.onerror = () => reject(new Error(`Failed to load uploaded image for ${pageName}`));
-              img.src = publicUrl + `?t=${Date.now()}`;
-            });
-          } catch (verifyErr) {
-            console.warn('⚠️ Verification issue for', pageName, verifyErr);
-          }
-
-          await savePageSettings(pageName, {
-            hero: {
-              backgroundMedia: publicUrl,
-              mediaType: 'image',
-              overlayOpacity: 0.45,
-              height: '240',
-              position: { x: 50, y: 50 },
-              scale: 100
-            }
-          });
-        }
-
-        // Mark as seeded and force UI to refresh
-        localStorage.setItem('heroes_seeded_1920x240_v3', '1');
-        window.dispatchEvent(new CustomEvent('heroImageUpdate', { detail: { page: currentPage, timestamp: Date.now() } }));
-        console.log('✅ Hero images (1920x240) installed into CMS for all pages.');
-      } catch (e) {
-        console.error('❌ Failed to auto-install hero images:', e);
-      }
-    };
-
-    run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading]);
 
   // Apply current page settings when page changes
   useEffect(() => {
     if (settings[currentPage]) {
       applySettingsToCSS(settings[currentPage]);
     }
-    // Always apply site background from any available settings
-    applySiteBackgroundFromSettings();
   }, [currentPage, settings]);
-
-  // Apply site background on settings load
-  useEffect(() => {
-    if (Object.keys(settings).length > 0) {
-      applySiteBackgroundFromSettings();
-    }
-  }, [settings]);
 
   return {
     settings,

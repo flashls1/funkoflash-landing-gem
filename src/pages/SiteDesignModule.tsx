@@ -101,11 +101,7 @@ export const SiteDesignModule = () => {
           await savePageSettings(pageId, {
             hero: {
               backgroundMedia: publicUrl,
-              mediaType: 'image',
-              overlayOpacity: 0.45,
-              height: '240',
-              position: { x: 50, y: 50 },
-              scale: 100
+              mediaType: 'image'
             }
           });
         }
@@ -180,11 +176,7 @@ export const SiteDesignModule = () => {
     return pageSettings || {
       hero: { 
         backgroundMedia: '',
-        mediaType: 'image',
-        overlayOpacity: 0.5,
-        height: selectedPage === 'home' ? '240' : undefined,
-        position: { x: 50, y: 50 },
-        scale: 100
+        mediaType: 'image'
       }
     };
   };
@@ -383,11 +375,7 @@ export const SiteDesignModule = () => {
         await savePageSettings(pageId, {
           hero: {
             backgroundMedia: publicUrl,
-            mediaType: 'image',
-            overlayOpacity: 0.45,
-            height: '240',
-            position: { x: 50, y: 50 },
-            scale: 100
+            mediaType: 'image'
           }
         });
       }
