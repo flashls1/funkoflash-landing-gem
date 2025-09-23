@@ -562,21 +562,29 @@ export default function TalentQuickView() {
                     <span className="text-sm text-white/80 min-w-0">Passport:</span>
                     <span className="text-white font-medium">{selectedTalent.passport_number}</span>
                   </div>
-                  {selectedTalent.passport_image_url && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setImageViewer({
-                        isOpen: true,
-                        imageUrl: selectedTalent.passport_image_url,
-                        title: 'Passport Image'
-                      })}
-                      className="border-white/20 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
-                    >
-                      <Eye className="w-3 h-3 mr-1" />
-                      View Image
-                    </Button>
-                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (selectedTalent.passport_image_url) {
+                        setImageViewer({
+                          isOpen: true,
+                          imageUrl: selectedTalent.passport_image_url,
+                          title: 'Passport Image'
+                        });
+                      } else {
+                        toast({
+                          title: 'No Image Available',
+                          description: 'No passport image has been uploaded for this talent.',
+                          variant: 'destructive'
+                        });
+                      }
+                    }}
+                    className="border-white/20 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
+                  >
+                    <Eye className="w-3 h-3 mr-1" />
+                    View Image
+                  </Button>
                 </div>
               )}
 
@@ -587,21 +595,29 @@ export default function TalentQuickView() {
                     <span className="text-sm text-white/80 min-w-0">Visa:</span>
                     <span className="text-white font-medium">{selectedTalent.visa_number}</span>
                   </div>
-                  {selectedTalent.visa_image_url && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setImageViewer({
-                        isOpen: true,
-                        imageUrl: selectedTalent.visa_image_url,
-                        title: 'Visa Image'
-                      })}
-                      className="border-white/20 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
-                    >
-                      <Eye className="w-3 h-3 mr-1" />
-                      View Image
-                    </Button>
-                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (selectedTalent.visa_image_url) {
+                        setImageViewer({
+                          isOpen: true,
+                          imageUrl: selectedTalent.visa_image_url,
+                          title: 'Visa Image'
+                        });
+                      } else {
+                        toast({
+                          title: 'No Image Available',
+                          description: 'No visa image has been uploaded for this talent.',
+                          variant: 'destructive'
+                        });
+                      }
+                    }}
+                    className="border-white/20 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
+                  >
+                    <Eye className="w-3 h-3 mr-1" />
+                    View Image
+                  </Button>
                 </div>
               )}
 
