@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import ModuleHeader from '@/components/ModuleHeader';
+import { TalentImageUpload } from '@/components/TalentImageUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -406,16 +407,11 @@ export default function TalentQuickView() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="headshot_url">Headshot URL</Label>
-                  <Input
-                    id="headshot_url"
-                    value={formData.headshot_url || ''}
-                    onChange={(e) => setFormData({ ...formData, headshot_url: e.target.value })}
-                    className="bg-white/10 border-white/20 text-white"
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
+                <TalentImageUpload
+                  currentImageUrl={formData.headshot_url}
+                  onImageUploaded={(imageUrl) => setFormData({ ...formData, headshot_url: imageUrl })}
+                  onImageRemoved={() => setFormData({ ...formData, headshot_url: null })}
+                />
 
                 <div className="space-y-2">
                   <Label htmlFor="popular_roles">Popular Roles</Label>
