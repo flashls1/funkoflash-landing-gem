@@ -476,15 +476,13 @@ export default function TalentQuickView() {
           <CardContent className="p-4 sm:p-6">
             {/* Mobile-optimized header with photo and back button */}
             <div className="flex items-start justify-between mb-6">
-              <div className="flex items-start gap-4">
-                <div className="flex flex-col items-center">
-                  <img
-                    src={selectedTalent.headshot_url || '/placeholder.svg'}
-                    alt={selectedTalent.name}
-                    className="w-[100px] h-[100px] rounded-lg object-cover flex-shrink-0"
-                  />
-                  <h1 className="text-lg sm:text-xl font-bold text-white mt-3 text-center">{selectedTalent.name}</h1>
-                </div>
+              <div className="flex flex-col">
+                <img
+                  src={selectedTalent.headshot_url || '/placeholder.svg'}
+                  alt={selectedTalent.name}
+                  className="w-[100px] h-[100px] rounded-lg object-cover flex-shrink-0 border-2 border-blue-400"
+                />
+                <h1 className="text-lg sm:text-xl font-bold text-white mt-3">{selectedTalent.name}</h1>
               </div>
               
               {/* Back button positioned in top right with black text */}
@@ -605,7 +603,7 @@ export default function TalentQuickView() {
                     setShowForm(true);
                   }}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
+                  className="border-white/20 bg-white text-black hover:bg-gray-100"
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Profile
