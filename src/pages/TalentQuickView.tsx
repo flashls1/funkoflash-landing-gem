@@ -235,7 +235,7 @@ export default function TalentQuickView() {
             profileLocale={profile?.first_name}
           />
 
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-white/5 border-sky-400">
             <CardHeader>
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <CardTitle className="text-white">Talent Directory</CardTitle>
@@ -533,7 +533,7 @@ export default function TalentQuickView() {
   return (
     <div className="min-h-screen bg-black text-white p-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        <Card className="bg-white/5 border-white/10">
+        <Card className="bg-white/5 border-sky-400">
           <CardContent className="p-4 sm:p-6">
             {/* Mobile-optimized header with photo and back button */}
             <div className="flex items-start justify-between mb-6">
