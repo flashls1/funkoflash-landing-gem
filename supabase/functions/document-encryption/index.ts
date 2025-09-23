@@ -133,9 +133,58 @@ serve(async (req) => {
       );
 
     } else if (action === 'decrypt') {
-      // Construct the encrypted filename (same pattern as during encryption)
-      const fileExtension = fileName.split('.').pop();
-      const encryptedFileName = `encrypted_${documentType}_${talentId}.${fileExtension}`;
+      // Sanitize fileName to remove query parameters and get base filename
+      const sanitizedFileName = fileName.split('?')[0].split('/').pop() || fileName;
+      console.log('Sanitized fileName:', sanitizedFileName);
+      
+      // Extract file extension from sanitized filename
+      const fileExtensionMatch = sanitizedFileName.match(/\.([^.]+)$/);
+      const fileExtension = fileExtensionMatch ? fileExtensionMatch[1] : 'jpg'; // Default to jpg
+      
+      console.log('Determined file extension:', fileExtension);
+      
+      // First, try to find the correct encrypted file by listing objects
+      const { data: listData, error: listError } = await supabase.storage
+        .from('talent-documents')
+        .list('', {
+          search: `encrypted_${documentType}_${talentId}`
+        });
+      
+      if (listError) {
+        console.error('Error listing storage objects:', listError);
+      }
+      
+      let encryptedFileName: string;
+      
+      if (listData && listData.length > 0) {
+        // Find the best matching file
+        const matchingFile = listData.find(file => 
+          file.name.includes(`encrypted_${documentType}_${talentId}`)
+        );
+        
+        if (matchingFile) {
+          encryptedFileName = matchingFile.name;
+          console.log('Found matching file:', encryptedFileName);
+        } else {
+          // Fallback to constructed filename
+          encryptedFileName = `encrypted_${documentType}_${talentId}.${fileExtension}`;
+          console.log('Using fallback filename:', encryptedFileName);
+        }
+      } else {
+        // Try common extensions if list failed
+        const commonExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
+        encryptedFileName = `encrypted_${documentType}_${talentId}.${fileExtension}`;
+        
+        // Try different extensions if the primary one doesn't work
+        for (const ext of commonExtensions) {
+          if (ext !== fileExtension) {
+            console.log(`Trying alternative extension: ${ext}`);
+            // We'll handle this in the download error section
+          }
+        }
+      }
+      
+      console.log('Attempting to download:', encryptedFileName);
       
       // Download encrypted file from storage
       const { data: fileData, error: downloadError } = await supabase.storage
@@ -143,7 +192,38 @@ serve(async (req) => {
         .download(encryptedFileName);
 
       if (downloadError) {
-        throw downloadError;
+        console.error('Download error for', encryptedFileName, ':', downloadError);
+        
+        // Try alternative extensions if the primary download failed
+        const commonExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
+        let alternativeSuccess = false;
+        let alternativeFileData: Blob | null = null;
+        
+        for (const ext of commonExtensions) {
+          if (ext !== fileExtension) {
+            const altFileName = `encrypted_${documentType}_${talentId}.${ext}`;
+            console.log('Trying alternative filename:', altFileName);
+            
+            const { data: altFileData, error: altError } = await supabase.storage
+              .from('talent-documents')
+              .download(altFileName);
+              
+            if (!altError && altFileData) {
+              console.log('Successfully downloaded with alternative extension:', ext);
+              alternativeFileData = altFileData;
+              encryptedFileName = altFileName;
+              alternativeSuccess = true;
+              break;
+            }
+          }
+        }
+        
+        if (!alternativeSuccess) {
+          throw new Error(`File not found: ${encryptedFileName}. Original error: ${downloadError.message}`);
+        }
+        
+        // Use the alternative file data
+        fileData = alternativeFileData;
       }
 
       // Convert file data to ArrayBuffer

@@ -158,7 +158,10 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
 
       // Decrypt the image
       if (imageUrl && iv && documentType) {
-        const fileName = imageUrl.split('/').pop();
+        // Sanitize filename by stripping query parameters
+        const fileName = imageUrl.split('?')[0].split('/').pop() || imageUrl;
+        console.log('SecureImageViewer - Original imageUrl:', imageUrl);
+        console.log('SecureImageViewer - Sanitized fileName:', fileName);
         
         const { data: decryptData, error: decryptError } = await supabase.functions.invoke('document-encryption', {
           body: {
@@ -170,9 +173,17 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
           }
         });
 
-        if (decryptError) throw decryptError;
+        if (decryptError) {
+          console.error('Supabase function error in SecureImageViewer:', decryptError);
+          throw decryptError;
+        }
 
-        setDecryptedImageUrl(decryptData.decryptedDataUrl);
+        if (decryptData.success) {
+          setDecryptedImageUrl(decryptData.decryptedDataUrl);
+        } else {
+          console.error('Decryption function returned error in SecureImageViewer:', decryptData);
+          throw new Error(decryptData.error || 'Decryption failed');
+        }
       }
 
       setShowImage(true);
