@@ -180,8 +180,8 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
       setPasscode('');
       
       toast({
-        title: 'Access Granted',
-        description: 'You can view the encrypted document for 5 minutes.',
+        title: '🔒 Access Granted - Military-Grade Security',
+        description: 'AES-256-GCM encrypted document unlocked. You can view this secure document for 5 minutes.',
       });
     } catch (error) {
       console.error('Error during decryption:', error);
