@@ -22,7 +22,7 @@ export default function ModuleHeader({
     role === "admin" ? "en" : resolvePreferredLocale(localeOverride, profileLocale);
 
   return (
-    <header className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-white/5 ring-1 ring-white/10 text-white">
+    <header className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-white/5 ring-1 ring-sky-400 text-white">
       <div className="flex items-center gap-3">
         <button
           type="button"
