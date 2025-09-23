@@ -241,12 +241,13 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
                   Time remaining: <span className="font-mono text-orange-400">{formatTime(timeLeft)}</span>
                 </p>
               </div>
-              <div className="flex justify-center">
+              <div className="flex justify-center items-center min-h-0 
+                           landscape:min-h-[60vh] landscape:flex landscape:items-center landscape:justify-center">
                 <img
                   src={decryptedImageUrl || imageUrl}
                   alt={title}
                   className="max-w-full max-h-[60vh] object-contain rounded-lg 
-                           landscape:max-h-[75vh] landscape:max-w-[85vw]
+                           landscape:max-h-[70vh] landscape:max-w-[80vw] landscape:object-contain
                            transition-all duration-300 ease-in-out"
                 />
               </div>
