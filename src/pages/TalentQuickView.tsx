@@ -262,7 +262,7 @@ export default function TalentQuickView() {
                       className="w-12 h-12 rounded-full object-cover"
                     />
                     <div className="flex-1">
-                      <h3 className="font-semibold">{talent.name}</h3>
+                      <h3 className="font-semibold text-blue-300">{talent.name}</h3>
                       <p className="text-sm text-white/60">
                         {talent.email || 'No email provided'}
                       </p>
