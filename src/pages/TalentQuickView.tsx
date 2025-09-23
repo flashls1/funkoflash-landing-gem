@@ -472,39 +472,27 @@ export default function TalentQuickView() {
   return (
     <div className="min-h-screen bg-black text-white p-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        <ModuleHeader
-          title="Talent Profile"
-          onBack={() => setSelectedTalent(null)}
-          role={profile?.role}
-          profileLocale={profile?.first_name}
-        />
-
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-4 sm:p-6">
             {/* Mobile-optimized header with photo and back button */}
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-start gap-4">
-                <img
-                  src={selectedTalent.headshot_url || '/placeholder.svg'}
-                  alt={selectedTalent.name}
-                  className="w-[150px] h-[150px] rounded-lg object-cover flex-shrink-0"
-                />
-                <div className="flex-1">
-                  <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">{selectedTalent.name}</h1>
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs ${
-                    selectedTalent.active ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
-                  }`}>
-                    {selectedTalent.active ? 'Active' : 'Inactive'}
-                  </span>
+                <div className="flex flex-col items-center">
+                  <img
+                    src={selectedTalent.headshot_url || '/placeholder.svg'}
+                    alt={selectedTalent.name}
+                    className="w-[100px] h-[100px] rounded-lg object-cover flex-shrink-0"
+                  />
+                  <h1 className="text-lg sm:text-xl font-bold text-white mt-3 text-center">{selectedTalent.name}</h1>
                 </div>
               </div>
               
-              {/* Back button positioned in top right */}
+              {/* Back button positioned in top right with black text */}
               <Button
                 onClick={() => setSelectedTalent(null)}
                 variant="outline"
                 size="sm"
-                className="border-white/20 text-white hover:bg-white/10 flex-shrink-0"
+                className="border-white/20 bg-white text-black hover:bg-gray-100 flex-shrink-0"
               >
                 ← Back
               </Button>
