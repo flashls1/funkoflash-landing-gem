@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { format, parseISO } from 'date-fns';
 import ModuleHeader from '@/components/ModuleHeader';
 import { TalentImageUpload } from '@/components/TalentImageUpload';
 import { DocumentImageUpload } from '@/components/DocumentImageUpload';
@@ -203,7 +204,11 @@ export default function TalentQuickView() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not provided';
-    return new Date(dateString).toLocaleDateString();
+    try {
+      return format(parseISO(dateString), 'M/d/yyyy');
+    } catch (error) {
+      return 'Invalid date';
+    }
   };
 
   if (loading) {
