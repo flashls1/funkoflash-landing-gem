@@ -1401,6 +1401,7 @@ export type Database = {
           instagram: string | null
           local_airport: string | null
           name: string
+          passport_image_url: string | null
           passport_number: string | null
           phone: string | null
           popular_roles: string | null
@@ -1409,6 +1410,7 @@ export type Database = {
           tiktok: string | null
           updated_at: string
           updated_by: string | null
+          visa_image_url: string | null
           visa_number: string | null
         }
         Insert: {
@@ -1423,6 +1425,7 @@ export type Database = {
           instagram?: string | null
           local_airport?: string | null
           name: string
+          passport_image_url?: string | null
           passport_number?: string | null
           phone?: string | null
           popular_roles?: string | null
@@ -1431,6 +1434,7 @@ export type Database = {
           tiktok?: string | null
           updated_at?: string
           updated_by?: string | null
+          visa_image_url?: string | null
           visa_number?: string | null
         }
         Update: {
@@ -1445,6 +1449,7 @@ export type Database = {
           instagram?: string | null
           local_airport?: string | null
           name?: string
+          passport_image_url?: string | null
           passport_number?: string | null
           phone?: string | null
           popular_roles?: string | null
@@ -1453,6 +1458,7 @@ export type Database = {
           tiktok?: string | null
           updated_at?: string
           updated_by?: string | null
+          visa_image_url?: string | null
           visa_number?: string | null
         }
         Relationships: [

@@ -5,13 +5,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import ModuleHeader from '@/components/ModuleHeader';
 import { TalentImageUpload } from '@/components/TalentImageUpload';
+import { DocumentImageUpload } from '@/components/DocumentImageUpload';
+import { ImageViewer } from '@/components/ImageViewer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Phone, Mail, Facebook, Instagram, User, Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Phone, Mail, Facebook, Instagram, User, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 
 interface TalentQuickViewRecord {
   id: string;
@@ -21,6 +23,8 @@ interface TalentQuickViewRecord {
   phone: string | null;
   passport_number: string | null;
   visa_number: string | null;
+  passport_image_url: string | null;
+  visa_image_url: string | null;
   local_airport: string | null;
   facebook: string | null;
   instagram: string | null;
@@ -45,6 +49,11 @@ export default function TalentQuickView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<Partial<TalentQuickViewRecord>>({});
+  const [imageViewer, setImageViewer] = useState<{
+    isOpen: boolean;
+    imageUrl: string | null;
+    title: string;
+  }>({ isOpen: false, imageUrl: null, title: '' });
 
   const isAdmin = profile?.role === 'admin';
   const isStaff = profile?.role === 'staff';
@@ -413,6 +422,25 @@ export default function TalentQuickView() {
                   onImageRemoved={() => setFormData({ ...formData, headshot_url: null })}
                 />
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <DocumentImageUpload
+                    currentImageUrl={formData.passport_image_url}
+                    onImageUploaded={(imageUrl) => setFormData({ ...formData, passport_image_url: imageUrl })}
+                    onImageRemoved={() => setFormData({ ...formData, passport_image_url: null })}
+                    label="Passport"
+                    documentType="passport"
+                  />
+                  
+                  <DocumentImageUpload
+                    currentImageUrl={formData.visa_image_url}
+                    onImageUploaded={(imageUrl) => setFormData({ ...formData, visa_image_url: imageUrl })}
+                    onImageRemoved={() => setFormData({ ...formData, visa_image_url: null })}
+                    label="Visa"
+                    documentType="visa"
+                  />
+                </div>
+
+                <Separator className="bg-white/20" />
                 <div className="space-y-2">
                   <Label htmlFor="popular_roles">Popular Roles</Label>
                   <Textarea
@@ -528,18 +556,52 @@ export default function TalentQuickView() {
               )}
 
               {selectedTalent.passport_number && (
-                <div className="flex items-center gap-3">
-                  <User className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                  <span className="text-sm text-white/80 min-w-0">Passport:</span>
-                  <span className="text-white font-medium">{selectedTalent.passport_number}</span>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <User className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                    <span className="text-sm text-white/80 min-w-0">Passport:</span>
+                    <span className="text-white font-medium">{selectedTalent.passport_number}</span>
+                  </div>
+                  {selectedTalent.passport_image_url && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setImageViewer({
+                        isOpen: true,
+                        imageUrl: selectedTalent.passport_image_url,
+                        title: 'Passport Image'
+                      })}
+                      className="border-white/20 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      View Image
+                    </Button>
+                  )}
                 </div>
               )}
 
               {selectedTalent.visa_number && (
-                <div className="flex items-center gap-3">
-                  <User className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                  <span className="text-sm text-white/80 min-w-0">Visa:</span>
-                  <span className="text-white font-medium">{selectedTalent.visa_number}</span>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <User className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                    <span className="text-sm text-white/80 min-w-0">Visa:</span>
+                    <span className="text-white font-medium">{selectedTalent.visa_number}</span>
+                  </div>
+                  {selectedTalent.visa_image_url && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setImageViewer({
+                        isOpen: true,
+                        imageUrl: selectedTalent.visa_image_url,
+                        title: 'Visa Image'
+                      })}
+                      className="border-white/20 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      View Image
+                    </Button>
+                  )}
                 </div>
               )}
 
@@ -612,6 +674,14 @@ export default function TalentQuickView() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Image Viewer Modal */}
+        <ImageViewer
+          isOpen={imageViewer.isOpen}
+          onClose={() => setImageViewer({ isOpen: false, imageUrl: null, title: '' })}
+          imageUrl={imageViewer.imageUrl}
+          title={imageViewer.title}
+        />
       </div>
     </div>
   );
