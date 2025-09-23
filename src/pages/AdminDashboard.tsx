@@ -70,6 +70,15 @@ const AdminDashboard = () => {
   const { invisibleMode, toggleInvisible } = useInvisibleMode();
   const navigate = useNavigate();
 
+  // Default background image URL - matches useBackgroundManager hook
+  const defaultBackgroundUrl = '/lovable-uploads/d0f4637c-55b5-42eb-af08-29eabb28b253.png';
+
+  // Preload the background image immediately to prevent ghost background
+  useEffect(() => {
+    const img = new Image();
+    img.src = defaultBackgroundUrl;
+  }, []);
+
   useEffect(() => {
     // Update time every minute
     const timer = setInterval(() => {
@@ -250,12 +259,12 @@ const AdminDashboard = () => {
       <div 
         className="min-h-screen"
         style={{
-          backgroundImage: "url('/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png')",
+          backgroundImage: `url('${defaultBackgroundUrl}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
           backgroundAttachment: 'fixed',
-          backgroundColor: currentTheme.background
+          backgroundColor: '#000000' // Immediate black fallback to prevent white flash
         }}
       >
         <Navigation language={language} setLanguage={setLanguage} />
@@ -263,7 +272,7 @@ const AdminDashboard = () => {
         <div className="container mx-auto px-4 py-8">
         {/* Hero Section with Overlay */}
         <div className="mb-8">
-          <HeroShell imageUrl={(profile as any)?.background_image_url || '/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png'}>
+          <HeroShell imageUrl={(profile as any)?.background_image_url || defaultBackgroundUrl}>
             <HeroOverlay
               role="admin"
               user={{
