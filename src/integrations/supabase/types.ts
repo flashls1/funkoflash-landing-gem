@@ -105,13 +105,6 @@ export type Database = {
             referencedRelation: "v_business_travel_finance"
             referencedColumns: ["business_event_id"]
           },
-          {
-            foreignKeyName: "bookings_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["event_id"]
-          },
         ]
       }
       business_account: {
@@ -277,13 +270,6 @@ export type Database = {
             referencedRelation: "v_business_travel_finance"
             referencedColumns: ["business_event_id"]
           },
-          {
-            foreignKeyName: "business_event_account_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["event_id"]
-          },
         ]
       }
       business_event_contact: {
@@ -423,13 +409,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_business_travel_finance"
             referencedColumns: ["business_event_id"]
-          },
-          {
-            foreignKeyName: "business_event_talent_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "business_event_talent_talent_id_fkey"
@@ -663,13 +642,6 @@ export type Database = {
             referencedColumns: ["business_event_id"]
           },
           {
-            foreignKeyName: "fk_business_talent_access_event_id"
-            columns: ["business_event_id"]
-            isOneToOne: false
-            referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["event_id"]
-          },
-          {
             foreignKeyName: "fk_business_talent_access_talent_id"
             columns: ["talent_id"]
             isOneToOne: false
@@ -820,13 +792,6 @@ export type Database = {
             referencedRelation: "v_business_travel_finance"
             referencedColumns: ["business_event_id"]
           },
-          {
-            foreignKeyName: "fk_ce_business_event"
-            columns: ["business_event_id"]
-            isOneToOne: false
-            referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["event_id"]
-          },
         ]
       }
       directory_settings: {
@@ -860,169 +825,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      event_participants: {
-        Row: {
-          created_at: string | null
-          event_id: string
-          id: string
-          role: string | null
-          talent_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          event_id: string
-          id?: string
-          role?: string | null
-          talent_id: string
-        }
-        Update: {
-          created_at?: string | null
-          event_id?: string
-          id?: string
-          role?: string | null
-          talent_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_participants_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "business_events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_participants_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_business_calendar_events"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "event_participants_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_business_events"
-            referencedColumns: ["business_event_id"]
-          },
-          {
-            foreignKeyName: "event_participants_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_business_travel_finance"
-            referencedColumns: ["business_event_id"]
-          },
-          {
-            foreignKeyName: "event_participants_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "event_participants_talent_id_fkey"
-            columns: ["talent_id"]
-            isOneToOne: false
-            referencedRelation: "talent_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      event_talent_assignments: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: string
-          status: string | null
-          talent_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: string
-          status?: string | null
-          talent_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: string
-          status?: string | null
-          talent_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_talent_assignments_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_talent_assignments_talent_id_fkey"
-            columns: ["talent_id"]
-            isOneToOne: false
-            referencedRelation: "talent_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      events: {
-        Row: {
-          active: boolean
-          category: string | null
-          created_at: string
-          created_by: string | null
-          description: string | null
-          event_date: string
-          external_url: string | null
-          hero_image_url: string | null
-          id: string
-          location: string | null
-          tags: string[] | null
-          title: string
-          updated_at: string
-          updated_by: string | null
-          visibility_end: string | null
-          visibility_start: string | null
-        }
-        Insert: {
-          active?: boolean
-          category?: string | null
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          event_date: string
-          external_url?: string | null
-          hero_image_url?: string | null
-          id?: string
-          location?: string | null
-          tags?: string[] | null
-          title: string
-          updated_at?: string
-          updated_by?: string | null
-          visibility_end?: string | null
-          visibility_start?: string | null
-        }
-        Update: {
-          active?: boolean
-          category?: string | null
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          event_date?: string
-          external_url?: string | null
-          hero_image_url?: string | null
-          id?: string
-          location?: string | null
-          tags?: string[] | null
-          title?: string
-          updated_at?: string
-          updated_by?: string | null
-          visibility_end?: string | null
-          visibility_start?: string | null
-        }
-        Relationships: []
       }
       gcal_connections: {
         Row: {
@@ -1257,6 +1059,63 @@ export type Database = {
         }
         Relationships: []
       }
+      public_events: {
+        Row: {
+          active: boolean
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_date: string
+          external_url: string | null
+          hero_image_url: string | null
+          id: string
+          location: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+          visibility_end: string | null
+          visibility_start: string | null
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_date: string
+          external_url?: string | null
+          hero_image_url?: string | null
+          id?: string
+          location?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          visibility_end?: string | null
+          visibility_start?: string | null
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_date?: string
+          external_url?: string | null
+          hero_image_url?: string | null
+          id?: string
+          location?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          visibility_end?: string | null
+          visibility_start?: string | null
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           created_at: string
@@ -1459,73 +1318,6 @@ export type Database = {
           },
         ]
       }
-      talent_event: {
-        Row: {
-          assigned_order: number | null
-          created_at: string | null
-          event_id: string
-          id: string
-          talent_id: string
-        }
-        Insert: {
-          assigned_order?: number | null
-          created_at?: string | null
-          event_id: string
-          id?: string
-          talent_id: string
-        }
-        Update: {
-          assigned_order?: number | null
-          created_at?: string | null
-          event_id?: string
-          id?: string
-          talent_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "talent_event_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "business_events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "talent_event_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_business_calendar_events"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "talent_event_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_business_events"
-            referencedColumns: ["business_event_id"]
-          },
-          {
-            foreignKeyName: "talent_event_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_business_travel_finance"
-            referencedColumns: ["business_event_id"]
-          },
-          {
-            foreignKeyName: "talent_event_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "talent_event_talent_id_fkey"
-            columns: ["talent_id"]
-            isOneToOne: false
-            referencedRelation: "talent_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       talent_profiles: {
         Row: {
           active: boolean
@@ -1572,6 +1364,7 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          created_by: string | null
           dob: string | null
           email: string | null
           facebook: string | null
@@ -1584,13 +1377,16 @@ export type Database = {
           phone: string | null
           popular_roles: string | null
           special_notes: string | null
+          talent_profile_id: string | null
           tiktok: string | null
           updated_at: string
+          updated_by: string | null
           visa_number: string | null
         }
         Insert: {
           active?: boolean
           created_at?: string
+          created_by?: string | null
           dob?: string | null
           email?: string | null
           facebook?: string | null
@@ -1603,13 +1399,16 @@ export type Database = {
           phone?: string | null
           popular_roles?: string | null
           special_notes?: string | null
+          talent_profile_id?: string | null
           tiktok?: string | null
           updated_at?: string
+          updated_by?: string | null
           visa_number?: string | null
         }
         Update: {
           active?: boolean
           created_at?: string
+          created_by?: string | null
           dob?: string | null
           email?: string | null
           facebook?: string | null
@@ -1622,11 +1421,21 @@ export type Database = {
           phone?: string | null
           popular_roles?: string | null
           special_notes?: string | null
+          talent_profile_id?: string | null
           tiktok?: string | null
           updated_at?: string
+          updated_by?: string | null
           visa_number?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_talent_quick_view_talent_profile"
+            columns: ["talent_profile_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       travel_segments: {
         Row: {
@@ -1696,13 +1505,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_business_travel_finance"
             referencedColumns: ["business_event_id"]
-          },
-          {
-            foreignKeyName: "travel_segments_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "v_talent_calendar_events"
-            referencedColumns: ["event_id"]
           },
           {
             foreignKeyName: "travel_segments_talent_id_fkey"
@@ -1951,25 +1753,6 @@ export type Database = {
           total_cost_cents: number | null
         }
         Relationships: []
-      }
-      v_talent_calendar_events: {
-        Row: {
-          end_at: string | null
-          event_id: string | null
-          start_at: string | null
-          status: string | null
-          talent_id: string | null
-          title: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_participants_talent_id_fkey"
-            columns: ["talent_id"]
-            isOneToOne: false
-            referencedRelation: "talent_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Functions: {
