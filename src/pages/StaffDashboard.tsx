@@ -13,7 +13,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useInvisibleMode } from '@/hooks/useInvisibleMode';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
-import { Calendar, MessageSquare, FileText, Users, BarChart3, Settings, ClipboardList, UserCheck, Wrench, ShoppingBag, Lock, Unlock, Palette, ChevronDown } from 'lucide-react';
+import { Calendar, MessageSquare, FileText, Users, BarChart3, Settings, ClipboardList, UserCheck, Wrench, ShoppingBag, Lock, Unlock, Palette, ChevronDown, User } from 'lucide-react';
 import HeroOverlay from '@/components/HeroOverlay';
 import HeroShell from '@/components/HeroShell';
 import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
@@ -188,7 +188,8 @@ const StaffDashboard = () => {
     { id: 'resource-management', icon: Wrench, color: 'text-gray-500', title: t.resourceManagement, desc: t.resourceManagementDesc, action: t.manageResources },
     { id: 'talent-directory', icon: Users, color: 'text-cyan-500', title: language === 'en' ? 'Talent Directory' : 'Directorio de Talento', desc: language === 'en' ? 'Manage talent profiles and directory banner' : 'Gestionar perfiles de talento y banner del directorio', action: language === 'en' ? 'Manage Talent Directory' : 'Gestionar Directorio de Talento', onClick: () => window.location.href = '/admin/talent-directory' },
     { id: 'shop-manager', icon: ShoppingBag, color: 'text-emerald-500', title: language === 'en' ? 'Shop Manager' : 'Gestor de Tienda', desc: language === 'en' ? 'Manage products, images, and shop inventory' : 'Gestionar productos, imágenes e inventario de la tienda', action: language === 'en' ? 'Manage Shop' : 'Gestionar Tienda', onClick: () => window.location.href = '/admin/shop-manager' },
-    { id: 'events-manager', icon: Calendar, color: 'text-red-500', title: language === 'en' ? 'Events Manager' : 'Gestor de Eventos', desc: language === 'en' ? 'Create, manage, and publish events with talent assignments' : 'Crear, gestionar y publicar eventos con asignaciones de talento', action: language === 'en' ? 'Manage Events' : 'Gestionar Eventos', onClick: () => window.location.href = '/admin/events-manager' }
+    { id: 'events-manager', icon: Calendar, color: 'text-red-500', title: language === 'en' ? 'Events Manager' : 'Gestor de Eventos', desc: language === 'en' ? 'Create, manage, and publish events with talent assignments' : 'Crear, gestionar y publicar eventos con asignaciones de talento', action: language === 'en' ? 'Manage Events' : 'Gestionar Eventos', onClick: () => window.location.href = '/admin/events-manager' },
+    { id: 'talent-quick-view', icon: User, color: 'text-blue-400', title: language === 'en' ? 'Talent Quick View' : 'Vista Rápida de Talento', desc: language === 'en' ? 'Quick access to talent contact and travel information' : 'Acceso rápido a información de contacto y viaje de talento', action: language === 'en' ? 'Open Quick View' : 'Abrir Vista Rápida', onClick: () => navigate('/dashboard/talent-quick-view') }
   ];
 
   return (
