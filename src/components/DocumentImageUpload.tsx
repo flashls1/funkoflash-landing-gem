@@ -114,7 +114,7 @@ export const DocumentImageUpload: React.FC<DocumentImageUploadProps> = ({
 
   return (
     <div className="space-y-2">
-      <Label>{label} Image</Label>
+      <Label className="text-blue-300">{label} Image</Label>
       
       <div className="flex flex-col gap-3">
         {/* Image Preview */}
