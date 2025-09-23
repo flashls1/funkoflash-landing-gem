@@ -53,7 +53,7 @@ export default function HeroOverlay({
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
 
   return (
-    <div className="absolute inset-0 p-3 sm:p-4 md:p-5 text-white">
+    <div className={`absolute inset-0 p-3 sm:p-4 md:p-5 text-white ${role === 'admin' ? 'border-2 border-white' : ''}`}>
       <div className="relative h-full w-full">
         {/* TOP-RIGHT: Online + Invisible (equal right margin as greeting/date) */}
         <div className="absolute right-3 top-3 sm:right-4 sm:top-4 md:right-5 md:top-5 flex flex-col items-end gap-2 sm:gap-2.5">
