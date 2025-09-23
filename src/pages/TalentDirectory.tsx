@@ -141,7 +141,7 @@ const TalentDirectory = () => {
               {talents.map(talent => (
                 <div key={talent.id} className="relative group">
                   {/* Talent Image */}
-                  <div className="aspect-[3/4] relative overflow-hidden rounded-lg">
+                  <div className="aspect-[3/4] relative overflow-hidden rounded-lg border border-black">
                     {talent.headshot_url ? (
                       <img 
                         src={getImageUrl(talent.headshot_url)} 
