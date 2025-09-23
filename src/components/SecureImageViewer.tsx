@@ -202,8 +202,7 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] bg-black/95 border-white/20 
-                               portrait:max-w-[95vw] portrait:max-h-[80vh]
-                               landscape:max-w-[90vw] landscape:max-h-[95vh]
+                               landscape:max-w-[95vw] landscape:max-h-[95vh]
                                transition-all duration-300 ease-in-out">
         <DialogHeader>
           <div className="flex items-center justify-between">
@@ -247,8 +246,7 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
                   src={decryptedImageUrl || imageUrl}
                   alt={title}
                   className="max-w-full max-h-[60vh] object-contain rounded-lg 
-                           portrait:max-h-[50vh] portrait:max-w-[90vw]
-                           landscape:max-h-[70vh] landscape:max-w-[80vw]
+                           landscape:max-h-[75vh] landscape:max-w-[85vw]
                            transition-all duration-300 ease-in-out"
                 />
               </div>
