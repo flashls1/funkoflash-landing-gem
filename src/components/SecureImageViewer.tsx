@@ -91,8 +91,8 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
     
     if (!birthYear) {
       toast({
-        title: 'Error',
-        description: 'Birth year not set for this talent. Please contact admin.',
+        title: 'Access Denied',
+        description: 'Authentication credentials not configured. Please contact admin.',
         variant: 'destructive'
       });
       return;
