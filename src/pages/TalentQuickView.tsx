@@ -279,7 +279,7 @@ export default function TalentQuickView() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-8 w-8 p-0"
+                          className="h-8 w-8 p-0 text-white hover:text-gray-200"
                           onClick={(e) => {
                             e.stopPropagation();
                             setFormData(talent);
