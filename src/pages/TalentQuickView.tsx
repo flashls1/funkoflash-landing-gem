@@ -580,9 +580,8 @@ export default function TalentQuickView() {
                         });
                       }
                     }}
-                    className="border-white/20 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
+                    className="border-blue-400 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
                   >
-                    <Eye className="w-3 h-3 mr-1" />
                     View Image
                   </Button>
                 </div>
@@ -613,9 +612,8 @@ export default function TalentQuickView() {
                         });
                       }
                     }}
-                    className="border-white/20 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
+                    className="border-blue-400 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
                   >
-                    <Eye className="w-3 h-3 mr-1" />
                     View Image
                   </Button>
                 </div>
