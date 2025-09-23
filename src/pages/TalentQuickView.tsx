@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Phone, Mail, Facebook, Instagram, User, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { TalentCard } from '@/components/ui/TalentCard';
 
 interface TalentQuickViewRecord {
   id: string;
@@ -251,58 +252,19 @@ export default function TalentQuickView() {
 
               <div className="grid gap-4">
                 {filteredTalents.map((talent) => (
-                  <div
+                  <TalentCard
                     key={talent.id}
-                    className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors border border-yellow-500"
+                    name={talent.name}
+                    email={talent.email}
+                    headshotUrl={talent.headshot_url}
+                    active={talent.active}
+                    onEdit={() => {
+                      setFormData(talent);
+                      setShowForm(true);
+                    }}
+                    onToggleActive={() => toggleActive(talent)}
                     onClick={() => setSelectedTalent(talent)}
-                  >
-                    <div className="flex items-center gap-3 w-full sm:w-auto">
-                      <img
-                        src={talent.headshot_url || '/placeholder.svg'}
-                        alt={talent.name}
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-blue-300 truncate">{talent.name}</h3>
-                        <p className="text-sm text-white/60 truncate">
-                          {talent.email || 'No email provided'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between w-full sm:w-auto gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs flex-shrink-0 ${
-                        talent.active ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
-                      }`}>
-                        {talent.active ? 'Active' : 'Inactive'}
-                      </span>
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0 text-white hover:text-gray-200"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFormData(talent);
-                            setShowForm(true);
-                          }}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-500 hover:text-red-600 hover:bg-red-500/10 text-xs px-2 h-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleActive(talent);
-                          }}
-                        >
-                          <span className="hidden sm:inline">{talent.active ? 'Deactivate' : 'Activate'}</span>
-                          <span className="sm:hidden">{talent.active ? 'Off' : 'On'}</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  />
                 ))}
               </div>
             </CardContent>
