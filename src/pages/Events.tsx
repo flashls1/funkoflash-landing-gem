@@ -49,7 +49,7 @@ export default function Events() {
   const fetchEvents = async () => {
     try {
       const { data, error } = await supabase
-        .from("events")
+        .from("public_events")
         .select("*")
         .eq("active", true)
         .order("event_date", { ascending: true });

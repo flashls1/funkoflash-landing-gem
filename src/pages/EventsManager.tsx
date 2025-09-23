@@ -94,7 +94,7 @@ export default function EventsManager() {
   const fetchEvents = async () => {
     try {
       const { data, error } = await supabase
-        .from('events')
+        .from('public_events')
         .select('*')
         .order('event_date', { ascending: false });
 
@@ -196,7 +196,7 @@ export default function EventsManager() {
       let result;
       if (isEditing && currentEventId) {
         const { data, error } = await supabase
-          .from('events')
+          .from('public_events')
           .update(eventData)
           .eq('id', currentEventId)
           .select()
@@ -206,7 +206,7 @@ export default function EventsManager() {
         result = data;
       } else {
         const { data, error } = await supabase
-          .from('events')
+          .from('public_events')
           .insert([eventData])
           .select()
           .single();
@@ -218,11 +218,8 @@ export default function EventsManager() {
       // Handle talent assignments
       if (result) {
         if (isEditing) {
-          // Remove existing assignments
-          await supabase
-            .from('event_talent_assignments')
-            .delete()
-            .eq('event_id', result.id);
+          // Note: event_talent_assignments table was removed - using business_event_talent instead
+          // This functionality needs to be updated to work with the new schema
         }
 
         // Add new assignments
@@ -233,9 +230,8 @@ export default function EventsManager() {
             status: 'assigned'
           }));
 
-          await supabase
-            .from('event_talent_assignments')
-            .insert(assignments);
+          // Note: event_talent_assignments table was removed - using business_event_talent instead
+          // This functionality needs to be updated to work with the new schema
         }
       }
 
@@ -264,7 +260,7 @@ export default function EventsManager() {
 
     try {
       const { error } = await supabase
-        .from('events')
+        .from('public_events')
         .delete()
         .eq('id', eventId);
 
@@ -302,17 +298,9 @@ export default function EventsManager() {
       hero_image_url: event.hero_image_url || "",
     });
 
-    // Fetch existing talent assignments
-    try {
-      const { data } = await supabase
-        .from('event_talent_assignments')
-        .select('talent_id')
-        .eq('event_id', event.id);
-      
-      setSelectedTalent(data?.map(a => a.talent_id) || []);
-    } catch (error) {
-      console.error('Error fetching talent assignments:', error);
-    }
+    // Note: event_talent_assignments table was removed
+    // This functionality needs to be updated to work with the new schema
+    setSelectedTalent([]);
 
     setIsDialogOpen(true);
   };
