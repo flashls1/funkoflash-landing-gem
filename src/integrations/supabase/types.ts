@@ -2043,11 +2043,7 @@ export type Database = {
       }
       validate_business_visibility: {
         Args: { business_account_id: string; uid: string } | { p_email: string }
-        Returns: {
-          details: string
-          ok: boolean
-          test_name: string
-        }[]
+        Returns: boolean
       }
     }
     Enums: {
