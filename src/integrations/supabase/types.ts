@@ -1397,6 +1397,7 @@ export type Database = {
           dob: string | null
           email: string | null
           facebook: string | null
+          full_name: string | null
           headshot_url: string | null
           id: string
           image_view_failed_attempts: number | null
@@ -1427,6 +1428,7 @@ export type Database = {
           dob?: string | null
           email?: string | null
           facebook?: string | null
+          full_name?: string | null
           headshot_url?: string | null
           id?: string
           image_view_failed_attempts?: number | null
@@ -1457,6 +1459,7 @@ export type Database = {
           dob?: string | null
           email?: string | null
           facebook?: string | null
+          full_name?: string | null
           headshot_url?: string | null
           id?: string
           image_view_failed_attempts?: number | null
