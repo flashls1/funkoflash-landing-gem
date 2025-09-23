@@ -232,7 +232,17 @@ export const SiteDesignModuleOptimized = () => {
         <AdminHeader 
           title="Site Design Manager"
           language={language}
-        />
+        >
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => window.location.href = '/admin'}
+            className="text-white border-white/20 hover:bg-white/10"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </AdminHeader>
         
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto space-y-8">

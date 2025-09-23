@@ -23,7 +23,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   return (
     <div className="mb-8">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-6 ml-4">
         <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>
         {description && (
           <p className="text-white/80">{description}</p>
@@ -32,14 +32,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
       {/* Control Bar */}
       <Card 
-        className="border-2 rounded-2xl"
+        className="border-2 rounded-2xl max-w-2xl"
         style={{
           backgroundColor: currentTheme.cardBackground,
           borderColor: currentTheme.border,
           color: currentTheme.cardForeground
         }}
       >
-        <CardContent className="p-4">
+        <CardContent className="p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {children}
