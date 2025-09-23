@@ -294,7 +294,7 @@ export default function TalentQuickView() {
             <CardContent className="p-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Display Name *</Label>
+                  <Label htmlFor="name" className="text-blue-300">Display Name *</Label>
                   <Input
                     id="name"
                     value={formData.name || ''}
@@ -306,7 +306,7 @@ export default function TalentQuickView() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="full_name">Full Legal Name (for airline tickets)</Label>
+                  <Label htmlFor="full_name" className="text-blue-300">Full Legal Name (for airline tickets)</Label>
                   <Input
                     id="full_name"
                     value={formData.full_name || ''}
@@ -319,7 +319,7 @@ export default function TalentQuickView() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="dob">Date of Birth</Label>
+                    <Label htmlFor="dob" className="text-blue-300">Date of Birth</Label>
                     <Input
                       id="dob"
                       type="date"
@@ -329,7 +329,7 @@ export default function TalentQuickView() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="birth_year">Birth Year (for document security)</Label>
+                    <Label htmlFor="birth_year" className="text-blue-300">Birth Year (for document security)</Label>
                     <Input
                       id="birth_year"
                       type="number"
@@ -345,7 +345,7 @@ export default function TalentQuickView() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="text-blue-300">Email</Label>
                     <Input
                       id="email"
                       type="email"
@@ -355,7 +355,7 @@ export default function TalentQuickView() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone</Label>
+                    <Label htmlFor="phone" className="text-blue-300">Phone</Label>
                     <Input
                       id="phone"
                       value={formData.phone || ''}
@@ -367,7 +367,7 @@ export default function TalentQuickView() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="passport_number">Passport Number</Label>
+                    <Label htmlFor="passport_number" className="text-blue-300">Passport Number</Label>
                     <Input
                       id="passport_number"
                       value={formData.passport_number || ''}
@@ -376,7 +376,7 @@ export default function TalentQuickView() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="visa_number">Visa Number</Label>
+                    <Label htmlFor="visa_number" className="text-blue-300">Visa Number</Label>
                     <Input
                       id="visa_number"
                       value={formData.visa_number || ''}
@@ -387,7 +387,7 @@ export default function TalentQuickView() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="local_airport">Local Airport</Label>
+                  <Label htmlFor="local_airport" className="text-blue-300">Local Airport</Label>
                   <Input
                     id="local_airport"
                     value={formData.local_airport || ''}
@@ -398,7 +398,7 @@ export default function TalentQuickView() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="facebook">Facebook</Label>
+                    <Label htmlFor="facebook" className="text-blue-300">Facebook</Label>
                     <Input
                       id="facebook"
                       value={formData.facebook || ''}
@@ -407,7 +407,7 @@ export default function TalentQuickView() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="instagram">Instagram</Label>
+                    <Label htmlFor="instagram" className="text-blue-300">Instagram</Label>
                     <Input
                       id="instagram"
                       value={formData.instagram || ''}
@@ -416,7 +416,7 @@ export default function TalentQuickView() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="tiktok">TikTok</Label>
+                    <Label htmlFor="tiktok" className="text-blue-300">TikTok</Label>
                     <Input
                       id="tiktok"
                       value={formData.tiktok || ''}
@@ -470,7 +470,7 @@ export default function TalentQuickView() {
 
                 <Separator className="bg-white/20" />
                 <div className="space-y-2">
-                  <Label htmlFor="popular_roles">Popular Roles</Label>
+                  <Label htmlFor="popular_roles" className="text-blue-300">Popular Roles</Label>
                   <Textarea
                     id="popular_roles"
                     value={formData.popular_roles || ''}
@@ -481,7 +481,7 @@ export default function TalentQuickView() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="special_notes">Special Notes</Label>
+                  <Label htmlFor="special_notes" className="text-blue-300">Special Notes</Label>
                   <Textarea
                     id="special_notes"
                     value={formData.special_notes || ''}
