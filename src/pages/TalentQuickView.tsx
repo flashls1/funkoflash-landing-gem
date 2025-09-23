@@ -121,6 +121,12 @@ export default function TalentQuickView() {
           .update(formData)
           .eq('id', formData.id);
         if (error) throw error;
+        
+        // Update selectedTalent if we're editing the currently viewed talent
+        if (selectedTalent?.id === formData.id) {
+          setSelectedTalent({ ...selectedTalent, ...formData });
+        }
+        
         toast({ title: 'Success', description: 'Talent updated successfully' });
       } else {
         const { error } = await supabase
