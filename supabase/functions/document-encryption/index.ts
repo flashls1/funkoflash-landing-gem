@@ -64,22 +64,40 @@ serve(async (req) => {
     const encryptionKey = await keyFromString(keyString);
 
     if (action === 'encrypt') {
-      // Convert base64 file data to ArrayBuffer
-      const binaryString = atob(fileData.split(',')[1]);
+      // Convert base64 file data to ArrayBuffer more efficiently
+      const base64Data = fileData.split(',')[1];
+      const binaryString = atob(base64Data);
       const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+      
+      // Use batch processing to avoid stack overflow
+      const chunkSize = 65536; // Process in 64KB chunks
+      for (let i = 0; i < binaryString.length; i += chunkSize) {
+        const end = Math.min(i + chunkSize, binaryString.length);
+        for (let j = i; j < end; j++) {
+          bytes[j] = binaryString.charCodeAt(j);
+        }
       }
 
       // Encrypt the file data
       const { encrypted, iv } = await encryptData(bytes.buffer, encryptionKey);
       
-      // Convert encrypted data to base64 for storage
+      // Convert encrypted data to base64 for storage more efficiently
       const encryptedArray = new Uint8Array(encrypted);
       const ivArray = new Uint8Array(iv);
       
-      const encryptedBase64 = btoa(String.fromCharCode(...encryptedArray));
-      const ivBase64 = btoa(String.fromCharCode(...ivArray));
+      // Convert to base64 using chunks to avoid stack overflow
+      function arrayToBase64(array: Uint8Array): string {
+        const chunkSize = 32768; // 32KB chunks
+        let result = '';
+        for (let i = 0; i < array.length; i += chunkSize) {
+          const chunk = array.slice(i, i + chunkSize);
+          result += String.fromCharCode(...chunk);
+        }
+        return btoa(result);
+      }
+      
+      const encryptedBase64 = arrayToBase64(encryptedArray);
+      const ivBase64 = arrayToBase64(ivArray);
 
       // Upload encrypted file to Supabase Storage
       const fileExtension = fileName.split('.').pop();
@@ -131,9 +149,21 @@ serve(async (req) => {
       // Decrypt the data
       const decryptedData = await decryptData(encryptedBuffer, encryptionKey, ivBuffer);
       
-      // Convert decrypted data to base64 data URL
+      // Convert decrypted data to base64 data URL more efficiently
       const decryptedArray = new Uint8Array(decryptedData);
-      const decryptedBase64 = btoa(String.fromCharCode(...decryptedArray));
+      
+      // Convert to base64 using chunks to avoid stack overflow  
+      function arrayToBase64(array: Uint8Array): string {
+        const chunkSize = 32768; // 32KB chunks
+        let result = '';
+        for (let i = 0; i < array.length; i += chunkSize) {
+          const chunk = array.slice(i, i + chunkSize);
+          result += String.fromCharCode(...chunk);
+        }
+        return btoa(result);
+      }
+      
+      const decryptedBase64 = arrayToBase64(decryptedArray);
       
       // Determine MIME type based on file extension
       const fileExtension = fileName.split('.').pop()?.toLowerCase();
