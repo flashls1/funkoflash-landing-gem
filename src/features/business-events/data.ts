@@ -162,6 +162,9 @@ export const businessEventsApi = {
 
   // Assign talent to event
   async assignTalent(eventId: string, talentId: string) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { error } = await supabase
       .from('business_event_talent')
       .insert([{ event_id: eventId, talent_id: talentId }]);
@@ -169,7 +172,7 @@ export const businessEventsApi = {
     if (error) throw error;
 
     // Create corresponding calendar events for the talent
-    await this.createCalendarEventsForBusinessEvent(eventId, talentId);
+    await this.createCalendarEventsForBusinessEvent(eventId, talentId, user.id);
   },
 
   // Remove talent from event
@@ -188,6 +191,9 @@ export const businessEventsApi = {
 
   // Assign business account to event
   async assignBusinessAccount(eventId: string, businessAccountId: string) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { error } = await supabase
       .from('business_event_account')
       .insert([{ event_id: eventId, business_account_id: businessAccountId }]);
@@ -195,7 +201,7 @@ export const businessEventsApi = {
     if (error) throw error;
 
     // Create corresponding calendar events for the business user
-    await this.createCalendarEventsForBusinessUser(eventId, businessAccountId);
+    await this.createCalendarEventsForBusinessUser(eventId, businessAccountId, user.id);
   },
 
   // Remove business account from event
@@ -293,7 +299,7 @@ export const businessEventsApi = {
   },
 
   // Create calendar events when talent is assigned to business event
-  async createCalendarEventsForBusinessEvent(eventId: string, talentId: string) {
+  async createCalendarEventsForBusinessEvent(eventId: string, talentId: string, createdBy: string) {
     // Get the business event details
     const { data: businessEvent, error: eventError } = await supabase
       .from('business_events')
@@ -332,7 +338,8 @@ export const businessEventsApi = {
             notes_internal: `Business Event: ${businessEvent.title}`,
             notes_public: `Day ${day.day} of ${businessEvent.title}`,
             source_file: 'business_event',
-            source_row_id: eventId
+            source_row_id: eventId,
+            created_by: createdBy
           };
 
           const { error } = await supabase
@@ -367,7 +374,8 @@ export const businessEventsApi = {
           url: businessEvent.website,
           notes_internal: `Business Event: ${businessEvent.title}`,
           source_file: 'business_event',
-          source_row_id: eventId
+          source_row_id: eventId,
+          created_by: createdBy
         };
 
         const { error } = await supabase
@@ -396,7 +404,7 @@ export const businessEventsApi = {
   },
 
   // Create calendar events for business user when assigned to business event
-  async createCalendarEventsForBusinessUser(eventId: string, businessAccountId: string) {
+  async createCalendarEventsForBusinessUser(eventId: string, businessAccountId: string, createdBy: string) {
     // Get the business event details
     const { data: businessEvent, error: eventError } = await supabase
       .from('business_events')
@@ -488,7 +496,8 @@ export const businessEventsApi = {
             notes_internal: `Business Event Management: ${businessEvent.title}`,
             notes_public: `Day ${day.day} of ${businessEvent.title} (Business Management)`,
             source_file: 'business_event_management',
-            source_row_id: eventId
+            source_row_id: eventId,
+            created_by: createdBy
           };
 
           const { error } = await supabase
@@ -523,7 +532,8 @@ export const businessEventsApi = {
           url: businessEvent.website,
           notes_internal: `Business Event Management: ${businessEvent.title}`,
           source_file: 'business_event_management',
-          source_row_id: eventId
+          source_row_id: eventId,
+          created_by: createdBy
         };
 
         const { error } = await supabase

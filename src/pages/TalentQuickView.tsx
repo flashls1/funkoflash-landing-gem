@@ -88,6 +88,15 @@ export default function TalentQuickView() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name) {
+      toast({
+        title: 'Error',
+        description: 'Name is required',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     try {
       if (formData.id) {
         const { error } = await supabase
@@ -99,7 +108,10 @@ export default function TalentQuickView() {
       } else {
         const { error } = await supabase
           .from('talent_quick_view')
-          .insert(formData);
+          .insert({
+            ...formData,
+            name: formData.name // Ensure name is always present
+          });
         if (error) throw error;
         toast({ title: 'Success', description: 'Talent added successfully' });
       }
@@ -190,7 +202,7 @@ export default function TalentQuickView() {
             title="Talent Quick View"
             onBack={() => navigate(isAdmin ? '/dashboard/admin' : '/dashboard/staff')}
             role={profile?.role}
-            profileLocale={profile?.locale}
+            profileLocale={profile?.first_name}
           />
 
           <Card className="bg-white/5 border-white/10">
@@ -282,7 +294,7 @@ export default function TalentQuickView() {
               setFormData({});
             }}
             role={profile?.role}
-            profileLocale={profile?.locale}
+            profileLocale={profile?.first_name}
           />
 
           <Card className="bg-white/5 border-white/10">
@@ -468,7 +480,7 @@ export default function TalentQuickView() {
           title={selectedTalent.name}
           onBack={() => setSelectedTalent(null)}
           role={profile?.role}
-          profileLocale={profile?.locale}
+          profileLocale={profile?.first_name}
         />
 
         <Card className="bg-white/5 border-white/10">
