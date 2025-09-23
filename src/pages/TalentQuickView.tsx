@@ -13,12 +13,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Phone, Mail, Facebook, Instagram, User, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Calendar, Phone, Mail, Facebook, Instagram, User, Plus, Search, Edit, Trash2, Eye, IdCard } from 'lucide-react';
 import { TalentCard } from '@/components/ui/TalentCard';
 
 interface TalentQuickViewRecord {
   id: string;
   name: string;
+  full_name?: string | null;
   dob: string | null;
   email: string | null;
   phone: string | null;
@@ -293,7 +294,7 @@ export default function TalentQuickView() {
             <CardContent className="p-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
+                  <Label htmlFor="name">Display Name *</Label>
                   <Input
                     id="name"
                     value={formData.name || ''}
@@ -301,6 +302,18 @@ export default function TalentQuickView() {
                     maxLength={80}
                     required
                     className="bg-white/10 border-white/20 text-white"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="full_name">Full Legal Name (for airline tickets)</Label>
+                  <Input
+                    id="full_name"
+                    value={formData.full_name || ''}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    maxLength={120}
+                    className="bg-white/10 border-white/20 text-white"
+                    placeholder="Complete name as it appears on passport"
                   />
                 </div>
 
@@ -542,6 +555,14 @@ export default function TalentQuickView() {
             <Separator className="bg-white/20 mb-6" />
 
             <div className="space-y-4">
+              {selectedTalent.full_name && (
+                <div className="flex items-center gap-3">
+                  <IdCard className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                  <span className="text-sm text-white/80 min-w-0">Full Legal Name:</span>
+                  <span className="text-white font-medium">{selectedTalent.full_name}</span>
+                </div>
+              )}
+
               {selectedTalent.dob && (
                 <div className="flex items-center gap-3">
                   <Calendar className="w-4 h-4 text-orange-400 flex-shrink-0" />
