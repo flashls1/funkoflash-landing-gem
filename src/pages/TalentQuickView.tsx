@@ -253,7 +253,7 @@ export default function TalentQuickView() {
                 {filteredTalents.map((talent) => (
                   <div
                     key={talent.id}
-                    className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
+                    className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors border border-yellow-500"
                     onClick={() => setSelectedTalent(talent)}
                   >
                     <div className="flex items-center gap-3 w-full sm:w-auto">
