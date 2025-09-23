@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import ModuleHeader from '@/components/ModuleHeader';
 import { TalentImageUpload } from '@/components/TalentImageUpload';
 import { DocumentImageUpload } from '@/components/DocumentImageUpload';
-import { ImageViewer } from '@/components/ImageViewer';
+import { SecureImageViewer } from '@/components/SecureImageViewer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +25,10 @@ interface TalentQuickViewRecord {
   visa_number: string | null;
   passport_image_url: string | null;
   visa_image_url: string | null;
+  birth_year: number | null;
+  image_view_failed_attempts: number;
+  image_view_locked_until: string | null;
+  image_view_locked_by_admin: boolean;
   local_airport: string | null;
   facebook: string | null;
   instagram: string | null;
@@ -53,7 +57,8 @@ export default function TalentQuickView() {
     isOpen: boolean;
     imageUrl: string | null;
     title: string;
-  }>({ isOpen: false, imageUrl: null, title: '' });
+    documentType: 'passport' | 'visa' | null;
+  }>({ isOpen: false, imageUrl: null, title: '', documentType: null });
 
   const isAdmin = profile?.role === 'admin';
   const isStaff = profile?.role === 'staff';
@@ -322,15 +327,30 @@ export default function TalentQuickView() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="dob">Date of Birth</Label>
-                  <Input
-                    id="dob"
-                    type="date"
-                    value={formData.dob || ''}
-                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                    className="bg-white/10 border-white/20 text-white"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dob">Date of Birth</Label>
+                    <Input
+                      id="dob"
+                      type="date"
+                      value={formData.dob || ''}
+                      onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                      className="bg-white/10 border-white/20 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="birth_year">Birth Year (for document security)</Label>
+                    <Input
+                      id="birth_year"
+                      type="number"
+                      min="1900"
+                      max="2100"
+                      value={formData.birth_year || ''}
+                      onChange={(e) => setFormData({ ...formData, birth_year: parseInt(e.target.value) || null })}
+                      className="bg-white/10 border-white/20 text-white"
+                      placeholder="e.g., 1962"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -570,7 +590,8 @@ export default function TalentQuickView() {
                         setImageViewer({
                           isOpen: true,
                           imageUrl: selectedTalent.passport_image_url,
-                          title: 'Passport Image'
+                          title: 'Passport Image',
+                          documentType: 'passport'
                         });
                       } else {
                         toast({
@@ -602,7 +623,8 @@ export default function TalentQuickView() {
                         setImageViewer({
                           isOpen: true,
                           imageUrl: selectedTalent.visa_image_url,
-                          title: 'Visa Image'
+                          title: 'Visa Image',
+                          documentType: 'visa'
                         });
                       } else {
                         toast({
@@ -689,12 +711,18 @@ export default function TalentQuickView() {
           </CardContent>
         </Card>
 
-        {/* Image Viewer Modal */}
-        <ImageViewer
+        {/* Secure Image Viewer Modal */}
+        <SecureImageViewer
           isOpen={imageViewer.isOpen}
-          onClose={() => setImageViewer({ isOpen: false, imageUrl: null, title: '' })}
+          onClose={() => setImageViewer({ isOpen: false, imageUrl: null, title: '', documentType: null })}
           imageUrl={imageViewer.imageUrl}
           title={imageViewer.title}
+          talentId={selectedTalent.id}
+          birthYear={selectedTalent.birth_year}
+          failedAttempts={selectedTalent.image_view_failed_attempts}
+          isLocked={selectedTalent.image_view_locked_until ? new Date(selectedTalent.image_view_locked_until) > new Date() : false}
+          lockedUntil={selectedTalent.image_view_locked_until}
+          lockedByAdmin={selectedTalent.image_view_locked_by_admin}
         />
       </div>
     </div>

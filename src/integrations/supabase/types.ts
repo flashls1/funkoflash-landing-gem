@@ -1391,6 +1391,7 @@ export type Database = {
       talent_quick_view: {
         Row: {
           active: boolean
+          birth_year: number | null
           created_at: string
           created_by: string | null
           dob: string | null
@@ -1398,6 +1399,9 @@ export type Database = {
           facebook: string | null
           headshot_url: string | null
           id: string
+          image_view_failed_attempts: number | null
+          image_view_locked_by_admin: boolean | null
+          image_view_locked_until: string | null
           instagram: string | null
           local_airport: string | null
           name: string
@@ -1415,6 +1419,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          birth_year?: number | null
           created_at?: string
           created_by?: string | null
           dob?: string | null
@@ -1422,6 +1427,9 @@ export type Database = {
           facebook?: string | null
           headshot_url?: string | null
           id?: string
+          image_view_failed_attempts?: number | null
+          image_view_locked_by_admin?: boolean | null
+          image_view_locked_until?: string | null
           instagram?: string | null
           local_airport?: string | null
           name: string
@@ -1439,6 +1447,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          birth_year?: number | null
           created_at?: string
           created_by?: string | null
           dob?: string | null
@@ -1446,6 +1455,9 @@ export type Database = {
           facebook?: string | null
           headshot_url?: string | null
           id?: string
+          image_view_failed_attempts?: number | null
+          image_view_locked_by_admin?: boolean | null
+          image_view_locked_until?: string | null
           instagram?: string | null
           local_airport?: string | null
           name?: string
