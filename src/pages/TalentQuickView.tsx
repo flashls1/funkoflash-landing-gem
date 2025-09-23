@@ -25,6 +25,8 @@ interface TalentQuickViewRecord {
   visa_number: string | null;
   passport_image_url: string | null;
   visa_image_url: string | null;
+  passport_image_iv: string | null;
+  visa_image_iv: string | null;
   birth_year: number | null;
   image_view_failed_attempts: number;
   image_view_locked_until: string | null;
@@ -445,18 +447,36 @@ export default function TalentQuickView() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <DocumentImageUpload
                     currentImageUrl={formData.passport_image_url}
-                    onImageUploaded={(imageUrl) => setFormData({ ...formData, passport_image_url: imageUrl })}
-                    onImageRemoved={() => setFormData({ ...formData, passport_image_url: null })}
+                    onImageUploaded={(imageUrl, iv) => setFormData({ 
+                      ...formData, 
+                      passport_image_url: imageUrl,
+                      passport_image_iv: iv 
+                    })}
+                    onImageRemoved={() => setFormData({ 
+                      ...formData, 
+                      passport_image_url: null,
+                      passport_image_iv: null 
+                    })}
                     label="Passport"
                     documentType="passport"
+                    talentId={formData.id}
                   />
                   
                   <DocumentImageUpload
                     currentImageUrl={formData.visa_image_url}
-                    onImageUploaded={(imageUrl) => setFormData({ ...formData, visa_image_url: imageUrl })}
-                    onImageRemoved={() => setFormData({ ...formData, visa_image_url: null })}
+                    onImageUploaded={(imageUrl, iv) => setFormData({ 
+                      ...formData, 
+                      visa_image_url: imageUrl,
+                      visa_image_iv: iv 
+                    })}
+                    onImageRemoved={() => setFormData({ 
+                      ...formData, 
+                      visa_image_url: null,
+                      visa_image_iv: null 
+                    })}
                     label="Visa"
                     documentType="visa"
+                    talentId={formData.id}
                   />
                 </div>
 
@@ -723,6 +743,8 @@ export default function TalentQuickView() {
           isLocked={selectedTalent.image_view_locked_until ? new Date(selectedTalent.image_view_locked_until) > new Date() : false}
           lockedUntil={selectedTalent.image_view_locked_until}
           lockedByAdmin={selectedTalent.image_view_locked_by_admin}
+          documentType={imageViewer.documentType}
+          iv={imageViewer.documentType === 'passport' ? selectedTalent.passport_image_iv : selectedTalent.visa_image_iv}
         />
       </div>
     </div>

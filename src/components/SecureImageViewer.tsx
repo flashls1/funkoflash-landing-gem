@@ -18,6 +18,8 @@ interface SecureImageViewerProps {
   isLocked: boolean;
   lockedUntil: string | null;
   lockedByAdmin: boolean;
+  documentType: 'passport' | 'visa' | null;
+  iv: string | null;
 }
 
 export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
@@ -31,11 +33,15 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
   isLocked,
   lockedUntil,
   lockedByAdmin,
+  documentType,
+  iv,
 }) => {
   const [passcode, setPasscode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [showImage, setShowImage] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [decryptedImageUrl, setDecryptedImageUrl] = useState<string | null>(null);
+  const [isDecrypting, setIsDecrypting] = useState(false);
   const { toast } = useToast();
 
   // Auto-hide image after 5 minutes (300 seconds)
@@ -70,6 +76,7 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
       setPasscode('');
       setShowImage(false);
       setTimeLeft(0);
+      setDecryptedImageUrl(null);
     }
   }, [isOpen]);
 
@@ -134,9 +141,12 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
       return;
     }
 
-    // Correct passcode - reset failed attempts and show image
+    // Correct passcode - decrypt and show image
     try {
-      const { error } = await supabase
+      setIsDecrypting(true);
+      
+      // Reset failed attempts in database
+      const { error: resetError } = await supabase
         .from('talent_quick_view')
         .update({
           image_view_failed_attempts: 0,
@@ -144,7 +154,26 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
         })
         .eq('id', talentId);
 
-      if (error) throw error;
+      if (resetError) throw resetError;
+
+      // Decrypt the image
+      if (imageUrl && iv && documentType) {
+        const fileName = imageUrl.split('/').pop();
+        
+        const { data: decryptData, error: decryptError } = await supabase.functions.invoke('document-encryption', {
+          body: {
+            action: 'decrypt',
+            fileName,
+            talentId,
+            documentType,
+            iv
+          }
+        });
+
+        if (decryptError) throw decryptError;
+
+        setDecryptedImageUrl(decryptData.decryptedDataUrl);
+      }
 
       setShowImage(true);
       setTimeLeft(300); // 5 minutes
@@ -152,15 +181,17 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
       
       toast({
         title: 'Access Granted',
-        description: 'You can view the image for 5 minutes.',
+        description: 'You can view the encrypted document for 5 minutes.',
       });
     } catch (error) {
-      console.error('Error resetting failed attempts:', error);
+      console.error('Error during decryption:', error);
       toast({
         title: 'Error',
-        description: 'Authentication successful but failed to update records.',
+        description: 'Authentication successful but failed to decrypt document.',
         variant: 'destructive'
       });
+    } finally {
+      setIsDecrypting(false);
     }
   };
 
@@ -209,7 +240,7 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
                 </p>
               </div>
               <img
-                src={imageUrl}
+                src={decryptedImageUrl || imageUrl}
                 alt={title}
                 className="max-w-full max-h-[60vh] object-contain rounded-lg"
               />
@@ -246,10 +277,10 @@ export const SecureImageViewer: React.FC<SecureImageViewerProps> = ({
                 
                 <Button
                   type="submit"
-                  disabled={passcode.length !== 4 || isVerifying}
+                  disabled={passcode.length !== 4 || isVerifying || isDecrypting}
                   className="w-full bg-orange-500 hover:bg-orange-600"
                 >
-                  {isVerifying ? 'Verifying...' : 'View Document'}
+                  {isDecrypting ? 'Decrypting...' : isVerifying ? 'Verifying...' : 'View Document'}
                 </Button>
               </form>
             </div>

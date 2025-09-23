@@ -7,10 +7,11 @@ import { Upload, X, FileText } from 'lucide-react';
 
 interface DocumentImageUploadProps {
   currentImageUrl?: string | null;
-  onImageUploaded: (imageUrl: string) => void;
+  onImageUploaded: (imageUrl: string, iv: string) => void;
   onImageRemoved: () => void;
   label: string;
   documentType: 'passport' | 'visa';
+  talentId?: string;
 }
 
 export const DocumentImageUpload: React.FC<DocumentImageUploadProps> = ({
@@ -19,6 +20,7 @@ export const DocumentImageUpload: React.FC<DocumentImageUploadProps> = ({
   onImageRemoved,
   label,
   documentType,
+  talentId = 'temp'
 }) => {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImageUrl || null);
@@ -30,10 +32,10 @@ export const DocumentImageUpload: React.FC<DocumentImageUploadProps> = ({
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
       toast({
         title: 'Error',
-        description: 'Please select an image file',
+        description: 'Please select an image or PDF file',
         variant: 'destructive'
       });
       return;
@@ -49,37 +51,47 @@ export const DocumentImageUpload: React.FC<DocumentImageUploadProps> = ({
       return;
     }
 
-    // Create preview
-    const previewUrl = URL.createObjectURL(file);
-    setPreview(previewUrl);
+    // Create preview for images only
+    if (file.type.startsWith('image/')) {
+      const previewUrl = URL.createObjectURL(file);
+      setPreview(previewUrl);
+    }
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${documentType}-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `documents/${fileName}`;
+      // Convert file to base64
+      const fileData = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
 
-      const { error: uploadError } = await supabase.storage
-        .from('talent-headshots')
-        .upload(filePath, file);
+      // Encrypt the file using the edge function
+      const { data, error } = await supabase.functions.invoke('document-encryption', {
+        body: {
+          action: 'encrypt',
+          fileData,
+          fileName: file.name,
+          talentId,
+          documentType
+        }
+      });
 
-      if (uploadError) throw uploadError;
+      if (error) throw error;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('talent-headshots')
-        .getPublicUrl(filePath);
+      const { fileUrl, iv } = data;
 
-      onImageUploaded(publicUrl);
+      onImageUploaded(fileUrl, iv);
       
       toast({
         title: 'Success',
-        description: `${label} uploaded successfully`
+        description: `${label} uploaded and encrypted successfully`
       });
     } catch (error) {
       console.error('Error uploading document:', error);
       toast({
         title: 'Error',
-        description: `Failed to upload ${label.toLowerCase()}`,
+        description: `Failed to upload and encrypt ${label.toLowerCase()}`,
         variant: 'destructive'
       });
       setPreview(currentImageUrl || null);
@@ -156,7 +168,7 @@ export const DocumentImageUpload: React.FC<DocumentImageUploadProps> = ({
         />
 
         <p className="text-xs text-white/60">
-          Supported formats: JPEG, PNG, PDF scan. Maximum size: 10MB
+          AES-256 encrypted • Supported formats: JPEG, PNG, PDF scan • Maximum size: 10MB
         </p>
       </div>
     </div>

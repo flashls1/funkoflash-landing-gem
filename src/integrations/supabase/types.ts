@@ -1405,6 +1405,7 @@ export type Database = {
           instagram: string | null
           local_airport: string | null
           name: string
+          passport_image_iv: string | null
           passport_image_url: string | null
           passport_number: string | null
           phone: string | null
@@ -1414,6 +1415,7 @@ export type Database = {
           tiktok: string | null
           updated_at: string
           updated_by: string | null
+          visa_image_iv: string | null
           visa_image_url: string | null
           visa_number: string | null
         }
@@ -1433,6 +1435,7 @@ export type Database = {
           instagram?: string | null
           local_airport?: string | null
           name: string
+          passport_image_iv?: string | null
           passport_image_url?: string | null
           passport_number?: string | null
           phone?: string | null
@@ -1442,6 +1445,7 @@ export type Database = {
           tiktok?: string | null
           updated_at?: string
           updated_by?: string | null
+          visa_image_iv?: string | null
           visa_image_url?: string | null
           visa_number?: string | null
         }
@@ -1461,6 +1465,7 @@ export type Database = {
           instagram?: string | null
           local_airport?: string | null
           name?: string
+          passport_image_iv?: string | null
           passport_image_url?: string | null
           passport_number?: string | null
           phone?: string | null
@@ -1470,6 +1475,7 @@ export type Database = {
           tiktok?: string | null
           updated_at?: string
           updated_by?: string | null
+          visa_image_iv?: string | null
           visa_image_url?: string | null
           visa_number?: string | null
         }
