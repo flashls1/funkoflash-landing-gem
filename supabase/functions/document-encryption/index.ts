@@ -170,13 +170,13 @@ serve(async (req) => {
       const decryptedBase64 = arrayToBase64(decryptedArray);
       
       // Determine MIME type based on file extension
-      const fileExtension = fileName.split('.').pop()?.toLowerCase();
+      const ext = (fileExtension || fileName.split('.').pop() || '').toLowerCase();
       let mimeType = 'application/octet-stream';
-      if (fileExtension === 'jpg' || fileExtension === 'jpeg') {
+      if (ext === 'jpg' || ext === 'jpeg') {
         mimeType = 'image/jpeg';
-      } else if (fileExtension === 'png') {
+      } else if (ext === 'png') {
         mimeType = 'image/png';
-      } else if (fileExtension === 'pdf') {
+      } else if (ext === 'pdf') {
         mimeType = 'application/pdf';
       }
 
