@@ -122,9 +122,6 @@ const TalentDirectory = () => {
             <h2 className="text-4xl font-bold text-foreground mb-4">
               {content[language].title}
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              {content[language].description}
-            </p>
           </div>
 
           {loading ? (
