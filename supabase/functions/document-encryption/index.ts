@@ -133,10 +133,14 @@ serve(async (req) => {
       );
 
     } else if (action === 'decrypt') {
+      // Construct the encrypted filename (same pattern as during encryption)
+      const fileExtension = fileName.split('.').pop();
+      const encryptedFileName = `encrypted_${documentType}_${talentId}.${fileExtension}`;
+      
       // Download encrypted file from storage
       const { data: fileData, error: downloadError } = await supabase.storage
         .from('talent-documents')
-        .download(fileName);
+        .download(encryptedFileName);
 
       if (downloadError) {
         throw downloadError;
