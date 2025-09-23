@@ -231,7 +231,7 @@ export default function TalentQuickView() {
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <CardTitle>Talent Directory</CardTitle>
+                <CardTitle className="text-white">Talent Directory</CardTitle>
                 <Button onClick={() => setShowForm(true)} className="bg-orange-500 hover:bg-orange-600">
                   <Plus className="w-4 h-4 mr-2" />
                   Add New Talent
