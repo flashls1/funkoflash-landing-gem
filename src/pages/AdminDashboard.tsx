@@ -262,7 +262,7 @@ const AdminDashboard = () => {
         
         <div className="container mx-auto px-4 py-8">
         {/* Hero Section with Overlay */}
-        <div className="mb-6">
+        <div className="mb-8">
           <HeroShell imageUrl={(profile as any)?.background_image_url || '/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png'}>
             <HeroOverlay
               role="admin"
@@ -279,7 +279,7 @@ const AdminDashboard = () => {
           
           {/* Control Bar - Module Layout and Dashboard Colors */}
           <Card 
-            className="border-2 rounded-2xl shadow-lg"
+            className="border-2 rounded-2xl shadow-lg mt-4"
             style={{
               backgroundColor: currentTheme.cardBackground,
               borderColor: currentTheme.border,
