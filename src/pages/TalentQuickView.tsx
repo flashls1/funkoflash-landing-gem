@@ -287,6 +287,7 @@ export default function TalentQuickView() {
                       <Button
                         size="sm"
                         variant="ghost"
+                        className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleActive(talent);
