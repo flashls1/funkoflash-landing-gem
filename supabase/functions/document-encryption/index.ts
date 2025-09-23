@@ -133,110 +133,122 @@ serve(async (req) => {
       );
 
     } else if (action === 'decrypt') {
-      // Sanitize fileName to remove query parameters and get base filename
+      // Sanitize input filename and determine primary extension (if any)
       const sanitizedFileName = fileName.split('?')[0].split('/').pop() || fileName;
       console.log('Sanitized fileName:', sanitizedFileName);
-      
-      // Extract file extension from sanitized filename
-      const fileExtensionMatch = sanitizedFileName.match(/\.([^.]+)$/);
-      const fileExtension = fileExtensionMatch ? fileExtensionMatch[1] : 'jpg'; // Default to jpg
-      
-      console.log('Determined file extension:', fileExtension);
-      
-      // First, try to find the correct encrypted file by listing objects
-      const { data: listData, error: listError } = await supabase.storage
-        .from('talent-documents')
-        .list('', {
-          search: `encrypted_${documentType}_${talentId}`
-        });
-      
-      if (listError) {
-        console.error('Error listing storage objects:', listError);
-      }
-      
-      let encryptedFileName: string;
-      
-      if (listData && listData.length > 0) {
-        // Find the best matching file
-        const matchingFile = listData.find(file => 
-          file.name.includes(`encrypted_${documentType}_${talentId}`)
-        );
-        
-        if (matchingFile) {
-          encryptedFileName = matchingFile.name;
-          console.log('Found matching file:', encryptedFileName);
-        } else {
-          // Fallback to constructed filename
-          encryptedFileName = `encrypted_${documentType}_${talentId}.${fileExtension}`;
-          console.log('Using fallback filename:', encryptedFileName);
-        }
-      } else {
-        // Try common extensions if list failed
-        const commonExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
-        encryptedFileName = `encrypted_${documentType}_${talentId}.${fileExtension}`;
-        
-        // Try different extensions if the primary one doesn't work
-        for (const ext of commonExtensions) {
-          if (ext !== fileExtension) {
-            console.log(`Trying alternative extension: ${ext}`);
-            // We'll handle this in the download error section
-          }
-        }
-      }
-      
-      console.log('Attempting to download:', encryptedFileName);
-      
-      // Download encrypted file from storage
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from('talent-documents')
-        .download(encryptedFileName);
 
-      if (downloadError) {
-        console.error('Download error for', encryptedFileName, ':', downloadError);
-        
-        // Try alternative extensions if the primary download failed
-        const commonExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
-        let alternativeSuccess = false;
-        let alternativeFileData: Blob | null = null;
-        
-        for (const ext of commonExtensions) {
-          if (ext !== fileExtension) {
-            const altFileName = `encrypted_${documentType}_${talentId}.${ext}`;
-            console.log('Trying alternative filename:', altFileName);
-            
-            const { data: altFileData, error: altError } = await supabase.storage
-              .from('talent-documents')
-              .download(altFileName);
-              
-            if (!altError && altFileData) {
-              console.log('Successfully downloaded with alternative extension:', ext);
-              alternativeFileData = altFileData;
-              encryptedFileName = altFileName;
-              alternativeSuccess = true;
-              break;
-            }
+      const fileExtensionMatch = sanitizedFileName.match(/\.([^.]+)$/);
+      const primaryExt = fileExtensionMatch ? fileExtensionMatch[1].toLowerCase() : null;
+      const commonExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
+      const candidateExts = primaryExt
+        ? [primaryExt, ...commonExtensions.filter((e) => e !== primaryExt)]
+        : commonExtensions;
+
+      console.log('Determined candidate extensions:', candidateExts.join(', '));
+
+      const basePrefix = `encrypted_${documentType}_${talentId}`;
+      const legacyPrefix = `encrypted_${documentType}_temp`;
+
+      // Build an ordered list of candidate filenames to try
+      const candidateNames: string[] = [];
+
+      // 1) Try the exact sanitized filename first (covers legacy uploads like *_temp.*)
+      if (sanitizedFileName && sanitizedFileName.includes('.')) {
+        candidateNames.push(sanitizedFileName);
+      }
+
+      // 2) Try to find matches via storage listing (best-effort)
+      try {
+        const { data: listData } = await supabase.storage
+          .from('talent-documents')
+          .list('', { search: basePrefix });
+        if (listData && listData.length > 0) {
+          for (const f of listData) {
+            if (!candidateNames.includes(f.name)) candidateNames.unshift(f.name);
           }
         }
-        
-        if (!alternativeSuccess) {
-          throw new Error(`File not found: ${encryptedFileName}. Original error: ${downloadError.message}`);
+      } catch (e) {
+        console.error('Error listing objects for basePrefix:', e);
+      }
+      try {
+        const { data: listLegacy } = await supabase.storage
+          .from('talent-documents')
+          .list('', { search: legacyPrefix });
+        if (listLegacy && listLegacy.length > 0) {
+          for (const f of listLegacy) {
+            if (!candidateNames.includes(f.name)) candidateNames.push(f.name);
+          }
         }
-        
-        // Use the alternative file data
-        fileData = alternativeFileData;
+      } catch (e) {
+        console.error('Error listing objects for legacyPrefix:', e);
+      }
+
+      // 3) Construct filename variants for both current and legacy patterns
+      for (const ext of candidateExts) {
+        const current = `${basePrefix}.${ext}`;
+        if (!candidateNames.includes(current)) candidateNames.push(current);
+      }
+      for (const ext of candidateExts) {
+        const legacy = `${legacyPrefix}.${ext}`;
+        if (!candidateNames.includes(legacy)) candidateNames.push(legacy);
+      }
+
+      // De-duplicate while preserving order
+      const uniqueCandidateNames = Array.from(new Set(candidateNames));
+      console.log('Decryption candidates:', uniqueCandidateNames);
+
+      // Try downloads in order
+      let resolvedFileName: string | null = null;
+      let downloadedBlob: Blob | null = null;
+      const tried: string[] = [];
+
+      for (const name of uniqueCandidateNames) {
+        console.log('Attempting to download:', name);
+        const { data: blob, error } = await supabase.storage
+          .from('talent-documents')
+          .download(name);
+        if (!error && blob) {
+          resolvedFileName = name;
+          downloadedBlob = blob;
+          console.log('Downloaded:', name);
+          break;
+        } else {
+          console.error('Download failed for', name, ':', error);
+          tried.push(name);
+        }
+      }
+
+      if (!downloadedBlob || !resolvedFileName) {
+        throw new Error(`File not found. Tried: ${tried.join(', ')}`);
       }
 
       // Convert file data to ArrayBuffer
-      const encryptedBuffer = await fileData.arrayBuffer();
-      const ivBuffer = Uint8Array.from(atob(iv), c => c.charCodeAt(0)).buffer;
+      const encryptedBuffer = await downloadedBlob.arrayBuffer();
+      const ivBuffer = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0)).buffer;
 
-      // Decrypt the data
-      const decryptedData = await decryptData(encryptedBuffer, encryptionKey, ivBuffer);
-      
-      // Convert decrypted data to base64 data URL more efficiently
+      // Try decryption with multiple key variants for backward compatibility
+      const secret = Deno.env.get('ENCRYPTION_SECRET_KEY') || 'default-secret-key';
+      const keyCandidates: CryptoKey[] = [];
+      keyCandidates.push(await keyFromString(`${secret}-${talentId}-${documentType}`));
+      keyCandidates.push(await keyFromString(`${secret}-temp-${documentType}`)); // legacy uploads with talentId='temp'
+
+      let decryptedData: ArrayBuffer | null = null;
+      for (let i = 0; i < keyCandidates.length; i++) {
+        try {
+          decryptedData = await decryptData(encryptedBuffer, keyCandidates[i], ivBuffer);
+          console.log('Decryption succeeded with key candidate', i);
+          break;
+        } catch (e) {
+          console.error('Decryption failed with key candidate', i, e);
+        }
+      }
+
+      if (!decryptedData) {
+        throw new Error('Unable to decrypt with available keys');
+      }
+
+      // Convert decrypted data to base64 data URL efficiently
       const decryptedArray = new Uint8Array(decryptedData);
-      
-      // Convert to base64 using chunks to avoid stack overflow  
       function arrayToBase64(array: Uint8Array): string {
         const chunkSize = 32768; // 32KB chunks
         let result = '';
@@ -246,11 +258,10 @@ serve(async (req) => {
         }
         return btoa(result);
       }
-      
       const decryptedBase64 = arrayToBase64(decryptedArray);
-      
-      // Determine MIME type based on file extension
-      const ext = (fileExtension || fileName.split('.').pop() || '').toLowerCase();
+
+      // Determine MIME type based on the resolved filename
+      const ext = (resolvedFileName.split('.').pop() || primaryExt || '').toLowerCase();
       let mimeType = 'application/octet-stream';
       if (ext === 'jpg' || ext === 'jpeg') {
         mimeType = 'image/jpeg';
@@ -263,10 +274,7 @@ serve(async (req) => {
       const dataUrl = `data:${mimeType};base64,${decryptedBase64}`;
 
       return new Response(
-        JSON.stringify({
-          success: true,
-          decryptedDataUrl: dataUrl
-        }),
+        JSON.stringify({ success: true, decryptedDataUrl: dataUrl }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
