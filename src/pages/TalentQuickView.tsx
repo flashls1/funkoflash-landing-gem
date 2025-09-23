@@ -473,126 +473,140 @@ export default function TalentQuickView() {
     <div className="min-h-screen bg-black text-white p-4">
       <div className="max-w-2xl mx-auto space-y-6">
         <ModuleHeader
-          title={selectedTalent.name}
+          title="Talent Profile"
           onBack={() => setSelectedTalent(null)}
           role={profile?.role}
           profileLocale={profile?.first_name}
         />
 
         <Card className="bg-white/5 border-white/10">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row gap-6">
-              <img
-                src={selectedTalent.headshot_url || '/placeholder.svg'}
-                alt={selectedTalent.name}
-                className="w-32 h-32 sm:w-40 sm:h-40 rounded-full object-cover mx-auto sm:mx-0"
-              />
-              
-              <div className="flex-1 space-y-4">
-                <div>
-                  <h1 className="text-2xl font-bold">{selectedTalent.name}</h1>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
+          <CardContent className="p-4 sm:p-6">
+            {/* Mobile-optimized header with photo and back button */}
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-start gap-4">
+                <img
+                  src={selectedTalent.headshot_url || '/placeholder.svg'}
+                  alt={selectedTalent.name}
+                  className="w-[150px] h-[150px] rounded-lg object-cover flex-shrink-0"
+                />
+                <div className="flex-1">
+                  <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">{selectedTalent.name}</h1>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs ${
                     selectedTalent.active ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
                   }`}>
                     {selectedTalent.active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
-
-                <Separator className="bg-white/20" />
-
-                <div className="space-y-3">
-                  {selectedTalent.dob && (
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-4 h-4 text-orange-400" />
-                      <span className="text-sm text-white/80">Date of Birth:</span>
-                      <span>{formatDate(selectedTalent.dob)}</span>
-                    </div>
-                  )}
-
-                  {selectedTalent.email && (
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-4 h-4 text-orange-400" />
-                      <span className="text-sm text-white/80">Email:</span>
-                      <a href={`mailto:${selectedTalent.email}`} className="text-blue-400 hover:text-blue-300">
-                        {selectedTalent.email}
-                      </a>
-                    </div>
-                  )}
-
-                  {selectedTalent.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-4 h-4 text-orange-400" />
-                      <span className="text-sm text-white/80">Phone:</span>
-                      <a href={`tel:${selectedTalent.phone}`} className="text-blue-400 hover:text-blue-300">
-                        {selectedTalent.phone}
-                      </a>
-                    </div>
-                  )}
-
-                  {selectedTalent.passport_number && (
-                    <div className="flex items-center gap-3">
-                      <User className="w-4 h-4 text-orange-400" />
-                      <span className="text-sm text-white/80">Passport:</span>
-                      <span>{selectedTalent.passport_number}</span>
-                    </div>
-                  )}
-
-                  {selectedTalent.visa_number && (
-                    <div className="flex items-center gap-3">
-                      <User className="w-4 h-4 text-orange-400" />
-                      <span className="text-sm text-white/80">Visa:</span>
-                      <span>{selectedTalent.visa_number}</span>
-                    </div>
-                  )}
-
-                  {selectedTalent.local_airport && (
-                    <div className="flex items-center gap-3">
-                      <span className="text-orange-400">✈️</span>
-                      <span className="text-sm text-white/80">Local Airport:</span>
-                      <span>{selectedTalent.local_airport}</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-4">
-                    {selectedTalent.facebook && (
-                      <a href={selectedTalent.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
-                        <Facebook className="w-5 h-5" />
-                      </a>
-                    )}
-                    {selectedTalent.instagram && (
-                      <a href={selectedTalent.instagram} target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:text-pink-300">
-                        <Instagram className="w-5 h-5" />
-                      </a>
-                    )}
-                    {selectedTalent.tiktok && (
-                      <a href={selectedTalent.tiktok} target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300">
-                        <span className="text-lg">🎵</span>
-                      </a>
-                    )}
-                  </div>
-
-                  {selectedTalent.popular_roles && (
-                    <div>
-                      <span className="text-sm text-white/80">Popular Roles:</span>
-                      <p className="mt-1">{selectedTalent.popular_roles}</p>
-                    </div>
-                  )}
-
-                  {selectedTalent.special_notes && (
-                    <div>
-                      <span className="text-sm text-white/80">Special Notes:</span>
-                      <p className="mt-1">{selectedTalent.special_notes}</p>
-                    </div>
-                  )}
-                </div>
               </div>
+              
+              {/* Back button positioned in top right */}
+              <Button
+                onClick={() => setSelectedTalent(null)}
+                variant="outline"
+                size="sm"
+                className="border-white/20 text-white hover:bg-white/10 flex-shrink-0"
+              >
+                ← Back
+              </Button>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-white/20">
-              <div className="flex flex-col sm:flex-row gap-4">
+            <Separator className="bg-white/20 mb-6" />
+
+            <div className="space-y-4">
+              {selectedTalent.dob && (
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                  <span className="text-sm text-white/80 min-w-0">Date of Birth:</span>
+                  <span className="text-white font-medium">{formatDate(selectedTalent.dob)}</span>
+                </div>
+              )}
+
+              {selectedTalent.email && (
+                <div className="flex items-center gap-3">
+                  <Mail className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                  <span className="text-sm text-white/80 min-w-0">Email:</span>
+                  <a href={`mailto:${selectedTalent.email}`} className="text-blue-400 hover:text-blue-300 break-all">
+                    {selectedTalent.email}
+                  </a>
+                </div>
+              )}
+
+              {selectedTalent.phone && (
+                <div className="flex items-center gap-3">
+                  <Phone className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                  <span className="text-sm text-white/80 min-w-0">Phone:</span>
+                  <a href={`tel:${selectedTalent.phone}`} className="text-blue-400 hover:text-blue-300">
+                    {selectedTalent.phone}
+                  </a>
+                </div>
+              )}
+
+              {selectedTalent.passport_number && (
+                <div className="flex items-center gap-3">
+                  <User className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                  <span className="text-sm text-white/80 min-w-0">Passport:</span>
+                  <span className="text-white font-medium">{selectedTalent.passport_number}</span>
+                </div>
+              )}
+
+              {selectedTalent.visa_number && (
+                <div className="flex items-center gap-3">
+                  <User className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                  <span className="text-sm text-white/80 min-w-0">Visa:</span>
+                  <span className="text-white font-medium">{selectedTalent.visa_number}</span>
+                </div>
+              )}
+
+              {selectedTalent.local_airport && (
+                <div className="flex items-center gap-3">
+                  <span className="text-orange-400 flex-shrink-0">✈️</span>
+                  <span className="text-sm text-white/80 min-w-0">Local Airport:</span>
+                  <span className="text-white font-medium">{selectedTalent.local_airport}</span>
+                </div>
+              )}
+
+              {/* Social Media Links */}
+              {(selectedTalent.facebook || selectedTalent.instagram || selectedTalent.tiktok) && (
+                <div className="flex items-center gap-4 pt-2">
+                  <span className="text-sm text-white/80">Social:</span>
+                  {selectedTalent.facebook && (
+                    <a href={selectedTalent.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
+                      <Facebook className="w-5 h-5" />
+                    </a>
+                  )}
+                  {selectedTalent.instagram && (
+                    <a href={selectedTalent.instagram} target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:text-pink-300">
+                      <Instagram className="w-5 h-5" />
+                    </a>
+                  )}
+                  {selectedTalent.tiktok && (
+                    <a href={selectedTalent.tiktok} target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300">
+                      <span className="text-lg">🎵</span>
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {selectedTalent.popular_roles && (
+                <div className="pt-2">
+                  <span className="text-sm text-white/80 block mb-2">Popular Roles:</span>
+                  <p className="text-white bg-white/5 p-3 rounded-lg">{selectedTalent.popular_roles}</p>
+                </div>
+              )}
+
+              {selectedTalent.special_notes && (
+                <div className="pt-2">
+                  <span className="text-sm text-white/80 block mb-2">Special Notes:</span>
+                  <p className="text-white bg-white/5 p-3 rounded-lg">{selectedTalent.special_notes}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-white/20">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button 
                   onClick={() => navigate(`/dashboard/calendar?talent=${selectedTalent.id}`)}
-                  className="bg-orange-500 hover:bg-orange-600 flex-1"
+                  className="bg-orange-500 hover:bg-orange-600 text-white flex-1"
                 >
                   <Calendar className="w-4 h-4 mr-2" />
                   Check Calendar
@@ -603,9 +617,10 @@ export default function TalentQuickView() {
                     setShowForm(true);
                   }}
                   variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10"
                 >
                   <Edit className="w-4 h-4 mr-2" />
-                  Edit
+                  Edit Profile
                 </Button>
               </div>
             </div>
