@@ -214,7 +214,7 @@ const TalentDashboard = () => {
         <Navigation language={language} setLanguage={setLanguage} />
         
         <div className="pt-4 px-[5px]">
-          <div className="border-2 border-white rounded-2xl overflow-hidden">
+          <div className="border-2 border-white rounded-2xl overflow-hidden relative">
             <HeroShell imageUrl={backgroundUrl}>
             <HeroOverlay 
               role={profile?.role || 'talent'}
@@ -228,6 +228,8 @@ const TalentDashboard = () => {
               onToggleInvisible={() => {}}
             />
             </HeroShell>
+            {/* Orange bottom border like nav */}
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-funko-orange"></div>
           </div>
         </div>
 
@@ -242,11 +244,11 @@ const TalentDashboard = () => {
                   className="bg-card/90 backdrop-blur cursor-pointer hover:scale-105 transition-transform duration-200 aspect-square border-2 border-sky-400"
                   onClick={() => handleModuleClick(module.id)}
                 >
-                  <CardContent className="p-4 h-full flex flex-col items-center justify-center text-center">
-                    <div className={`w-12 h-12 rounded-full ${module.color} flex items-center justify-center mb-3`}>
-                      <IconComponent className="h-6 w-6 text-white" />
+                  <CardContent className="p-2 sm:p-3 md:p-4 h-full flex flex-col items-center justify-center text-center">
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full ${module.color} flex items-center justify-center mb-2 md:mb-3`}>
+                      <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-sm md:text-base">{module.label}</h3>
+                    <h3 className="font-semibold text-xs sm:text-sm md:text-base leading-tight px-1">{module.label}</h3>
                   </CardContent>
                 </Card>
               );
@@ -254,7 +256,9 @@ const TalentDashboard = () => {
           </div>
         </div>
 
-        <Footer language={language} />
+        <div className="hidden md:block">
+          <Footer language={language} />
+        </div>
       </div>
 
       <TalentProfileSettings

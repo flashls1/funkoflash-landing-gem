@@ -1,4 +1,5 @@
 import React from "react";
+import { Crown } from "lucide-react";
 import type { Locale } from "@/lib/locale";
 import { resolvePreferredLocale, formatGreeting, tOnline, tOffline, tInvisibleLabel } from "@/lib/locale";
 
@@ -47,8 +48,10 @@ export default function HeroOverlay({
   const effectiveLocale: Locale =
     role === "admin" ? "en" : resolvePreferredLocale(locale, profileLocale);
 
+  // Extract first name only for greeting
+  const firstName = name.split(' ')[0];
   const { greeting, dateText } =
-    role === "admin" ? getAdminStrings(name) : formatGreeting(name, effectiveLocale);
+    role === "admin" ? getAdminStrings(firstName) : formatGreeting(firstName, effectiveLocale);
 
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
 
@@ -103,7 +106,7 @@ export default function HeroOverlay({
           <img
             src={avatarUrl || "/images/avatar-fallback.png"}
             alt="Profile avatar"
-            className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full object-cover ring-2 ring-white/10"
+            className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full object-cover ring-3 ring-black border-2 border-black"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
@@ -113,8 +116,12 @@ export default function HeroOverlay({
             <div className="text-sm sm:text-base md:text-lg font-semibold leading-tight line-clamp-1 max-w-[70vw]">
               {name}
             </div>
-            <div className="text-[11px] sm:text-xs md:text-sm text-neutral-200/90 leading-tight">
-              {roleLabel}
+            <div className="flex items-center gap-1 text-[11px] sm:text-xs md:text-sm leading-tight">
+              {role === 'talent' && <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400" />}
+              <span className={role === 'talent' ? 'text-yellow-400 font-semibold' : 'text-neutral-200/90'} 
+                    style={role === 'talent' ? { textShadow: '1px 1px 2px rgba(0,0,0,0.8)' } : {}}>
+                {roleLabel}
+              </span>
             </div>
             {businessName && (
               <div className="text-[11px] sm:text-xs md:text-sm text-neutral-200/85 leading-tight line-clamp-1 max-w-[72vw]">
