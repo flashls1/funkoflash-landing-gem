@@ -236,17 +236,17 @@ const TalentDashboard = () => {
 
         <div className="container mx-auto px-4 py-8">
           {/* 3x3 Module Grid */}
-          <div className="grid grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-3 gap-4">
             {dashboardModules.map((module) => {
               const IconComponent = module.icon;
               return (
                 <button
                   key={module.id}
-                  className={`flex flex-col items-center justify-center rounded-full border-2 border-blue-500 bg-gradient-to-r ${module.gradient} p-6 text-white font-bold shadow-md hover:scale-105 transition-transform duration-200 aspect-square`}
+                  className={`flex flex-col items-center justify-center w-full h-28 rounded-full border-2 border-blue-500 bg-gradient-to-r ${module.gradient} shadow-md hover:scale-105 hover:brightness-110 transition-transform`}
                   onClick={() => handleModuleClick(module.id)}
                 >
-                  <IconComponent className="mb-2 h-6 w-6 text-white" />
-                  <span className="text-sm font-bold text-center leading-tight">{module.label}</span>
+                  <IconComponent className="h-8 w-8 mb-2 text-white" />
+                  <span className="text-sm font-bold text-white truncate">{module.label}</span>
                 </button>
               );
             })}
