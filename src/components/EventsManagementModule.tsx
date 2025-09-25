@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
@@ -20,11 +20,17 @@ import {
   MapPin,
   Info,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  ImageIcon,
+  Trash2,
+  Edit
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { EventScheduleTimeline } from './EventScheduleTimeline';
 import { formatDateUS, formatTimeUS } from '@/lib/utils';
+import BusinessEventFormDialog from '@/features/business-events/BusinessEventFormDrawer';
+import { businessEventsApi } from '@/features/business-events/data';
+import FileUpload from '@/components/FileUpload';
 
 interface EventsManagementModuleProps {
   language?: 'en' | 'es';
@@ -39,6 +45,11 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
   const [assignedTalents, setAssignedTalents] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('info');
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [selectedTalentForTravel, setSelectedTalentForTravel] = useState<any>(null);
+  const [travelDetails, setTravelDetails] = useState<any[]>([]);
+  const [hotelDetails, setHotelDetails] = useState<any[]>([]);
   const [eventInfo, setEventInfo] = useState({
     title: '',
     start_ts: '',
@@ -46,7 +57,8 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
     venue: '',
     website: '',
     city: '',
-    state: ''
+    state: '',
+    status: 'pending'
   });
   const [scheduleEntry, setScheduleEntry] = useState({
     date: '',
@@ -59,9 +71,12 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
     en: {
       events: 'Events',
       info: 'Info',
-      schedule: 'Schedule',
+      schedule: 'Show Schedule',
       travel: 'Travel',
       talent: 'Talent',
+      createEvent: 'Create Event',
+      deleteEvent: 'Delete Event',
+      editEvent: 'Edit Event',
       selectEvent: 'Select an event to view details',
       noEvents: 'No events found',
       title: 'Title',
@@ -104,9 +119,12 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
     es: {
       events: 'Eventos',
       info: 'Info',
-      schedule: 'Horario',
+      schedule: 'Horario del Show',
       travel: 'Viaje',
       talent: 'Talento',
+      createEvent: 'Crear Evento',
+      deleteEvent: 'Eliminar Evento',
+      editEvent: 'Editar Evento',
       selectEvent: 'Selecciona un evento para ver detalles',
       noEvents: 'No se encontraron eventos',
       title: 'Título',
@@ -162,20 +180,17 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
         venue: selectedEvent.venue || '',
         website: selectedEvent.website || '',
         city: selectedEvent.city || '',
-        state: selectedEvent.state || ''
+        state: selectedEvent.state || '',
+        status: selectedEvent.status || 'pending'
       });
       fetchAssignedTalents(selectedEvent.id);
+      fetchTravelDetails(selectedEvent.id);
     }
   }, [selectedEvent]);
 
   const fetchBusinessEvents = async () => {
     try {
-      const { data, error } = await supabase
-        .from('business_events')
-        .select('*')
-        .order('start_ts', { ascending: true });
-
-      if (error) throw error;
+      const data = await businessEventsApi.getEvents();
       setBusinessEvents(data || []);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -216,16 +231,24 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
     }
   };
 
+  const fetchTravelDetails = async (eventId: string) => {
+    try {
+      const [travelData, hotelData] = await Promise.all([
+        businessEventsApi.getTravelDetails(eventId),
+        businessEventsApi.getHotelDetails(eventId)
+      ]);
+      setTravelDetails(travelData || []);
+      setHotelDetails(hotelData || []);
+    } catch (error) {
+      console.error('Error fetching travel details:', error);
+    }
+  };
+
   const handleSaveEventInfo = async () => {
     if (!selectedEvent) return;
 
     try {
-      const { error } = await supabase
-        .from('business_events')
-        .update(eventInfo)
-        .eq('id', selectedEvent.id);
-
-      if (error) throw error;
+      const updatedEvent = await businessEventsApi.updateEvent(selectedEvent.id, eventInfo);
 
       toast({
         title: content[language].infoUpdated,
@@ -247,6 +270,51 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
         variant: 'destructive'
       });
     }
+  };
+
+  const handleCreateEvent = () => {
+    setEditingEvent(null);
+    setIsCreateEventOpen(true);
+  };
+
+  const handleEditEvent = (event: any) => {
+    setEditingEvent(event);
+    setIsCreateEventOpen(true);
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!window.confirm(content[language].deleteEvent + '?')) return;
+
+    try {
+      await businessEventsApi.deleteEvent(eventId);
+      setBusinessEvents(prev => prev.filter(event => event.id !== eventId));
+      if (selectedEvent?.id === eventId) {
+        setSelectedEvent(null);
+      }
+      toast({
+        title: 'Event deleted successfully',
+        description: 'The event has been removed'
+      });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast({
+        title: content[language].error,
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleEventSaved = (savedEvent: any) => {
+    setBusinessEvents(prev => {
+      const existing = prev.find(e => e.id === savedEvent.id);
+      if (existing) {
+        return prev.map(e => e.id === savedEvent.id ? savedEvent : e);
+      } else {
+        return [...prev, savedEvent];
+      }
+    });
+    fetchBusinessEvents(); // Refresh to get full data with relations
   };
 
   const handleAddScheduleEntry = async () => {
@@ -402,6 +470,15 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Header with Create Button */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">{content[language].events}</h2>
+        <Button onClick={handleCreateEvent} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          {content[language].createEvent}
+        </Button>
+      </div>
+
       {/* Mobile Event Selector */}
       <div className="lg:hidden">
         <Select onValueChange={(value) => {
@@ -436,7 +513,7 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
               <div className="h-[500px] overflow-y-auto p-4 space-y-2">
                 {businessEvents.length > 0 ? (
                   businessEvents.map((event) => (
-                    <Card 
+                      <Card 
                       key={event.id}
                       className={`cursor-pointer transition-all hover:shadow-md ${
                         selectedEvent?.id === event.id ? 'bg-primary/10 border-primary' : ''
@@ -446,10 +523,43 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
                       <CardContent className="p-4">
                         <div className="space-y-2">
                           <div className="flex items-start justify-between">
-                            <h4 className="font-medium text-sm leading-tight">{event.title}</h4>
-                            <Badge variant={getStatusColor(event.status)} className="text-xs">
-                              {event.status || content[language].pending}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              {event.hero_logo_path && (
+                                <img 
+                                  src={event.hero_logo_path} 
+                                  alt={event.title}
+                                  className="w-8 h-8 object-cover rounded"
+                                />
+                              )}
+                              <h4 className="font-medium text-sm leading-tight">{event.title}</h4>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Badge variant={getStatusColor(event.status)} className="text-xs">
+                                {event.status || content[language].pending}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditEvent(event);
+                                }}
+                                className="h-6 w-6 p-0"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteEvent(event.id);
+                                }}
+                                className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Clock className="h-3 w-3" />
@@ -561,17 +671,33 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
                           />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="website">{content[language].website}</Label>
-                        <Input
-                          id="website"
-                          value={eventInfo.website}
-                          onChange={(e) => setEventInfo(prev => ({ ...prev, website: e.target.value }))}
-                        />
-                      </div>
-                      <Button onClick={handleSaveEventInfo} className="w-full">
-                        {content[language].saveInfo}
-                      </Button>
+                        <div className="space-y-2">
+                          <Label htmlFor="website">{content[language].website}</Label>
+                          <Input
+                            id="website"
+                            value={eventInfo.website}
+                            onChange={(e) => setEventInfo(prev => ({ ...prev, website: e.target.value }))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="status">Status</Label>
+                          <Select
+                            value={eventInfo.status}
+                            onValueChange={(value) => setEventInfo(prev => ({ ...prev, status: value }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="booked">Booked</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button onClick={handleSaveEventInfo} className="w-full">
+                          {content[language].saveInfo}
+                        </Button>
                     </TabsContent>
 
                     {/* Schedule Tab */}
@@ -647,50 +773,100 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
 
                     {/* Travel Tab */}
                     <TabsContent value="travel" className="mt-0 space-y-6">
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="flex items-center gap-2 text-sm">
-                            <Plane className="h-4 w-4" />
-                            {content[language].flightInfo}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          <Input placeholder="Flight details..." />
-                          <Input placeholder="Confirmation number..." />
-                        </CardContent>
-                      </Card>
+                      {/* Talent Selector for Travel */}
+                      <div className="space-y-2">
+                        <Label>Select Talent for Travel Management</Label>
+                        <Select onValueChange={(value) => {
+                          const talent = assignedTalents.find(t => t.id === value);
+                          setSelectedTalentForTravel(talent);
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose talent..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {assignedTalents.map((talent) => (
+                              <SelectItem key={talent.id} value={talent.id}>
+                                {talent.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="flex items-center gap-2 text-sm">
-                            <Hotel className="h-4 w-4" />
-                            {content[language].hotelInfo}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          <Input placeholder="Hotel name..." />
-                          <Input placeholder="Hotel address..." />
-                          <Input placeholder="Confirmation number..." />
-                        </CardContent>
-                      </Card>
+                      {selectedTalentForTravel && (
+                        <div className="space-y-6">
+                          <Card>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="flex items-center gap-2 text-sm">
+                                <Plane className="h-4 w-4" />
+                                Flight Info for {selectedTalentForTravel.name}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                              <Input placeholder="Airline name..." />
+                              <Input placeholder="Arrival date/time..." type="datetime-local" />
+                              <Input placeholder="Departure date/time..." type="datetime-local" />
+                              <Input placeholder="Confirmation codes..." />
+                              <Textarea placeholder="Flight notes..." />
+                            </CardContent>
+                          </Card>
 
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="flex items-center gap-2 text-sm">
-                            <MapPin className="h-4 w-4" />
-                            {content[language].groundTransport}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          <Input placeholder="Transport type..." />
-                          <Input placeholder="Transport details..." />
-                          <Input placeholder="Confirmation number..." />
-                        </CardContent>
-                      </Card>
+                          <Card>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="flex items-center gap-2 text-sm">
+                                <Hotel className="h-4 w-4" />
+                                Hotel Info for {selectedTalentForTravel.name}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                              <Input placeholder="Hotel name..." />
+                              <Input placeholder="Hotel address..." />
+                              <Input placeholder="Check-in date..." type="date" />
+                              <Input placeholder="Check-out date..." type="date" />
+                              <Input placeholder="Confirmation number..." />
+                              <Textarea placeholder="Hotel notes..." />
+                            </CardContent>
+                          </Card>
 
-                      <Button className="w-full">
-                        {content[language].saveTravel}
-                      </Button>
+                          <Card>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="flex items-center gap-2 text-sm">
+                                <MapPin className="h-4 w-4" />
+                                Ground Transport for {selectedTalentForTravel.name}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                              <Select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Transport type..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="uber">Uber</SelectItem>
+                                  <SelectItem value="taxi">Taxi</SelectItem>
+                                  <SelectItem value="rental">Rental Car</SelectItem>
+                                  <SelectItem value="shuttle">Shuttle</SelectItem>
+                                  <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Input placeholder="Pickup location..." />
+                              <Input placeholder="Dropoff location..." />
+                              <Input placeholder="Pickup time..." type="datetime-local" />
+                              <Input placeholder="Confirmation code..." />
+                              <Textarea placeholder="Transport notes..." />
+                            </CardContent>
+                          </Card>
+
+                          <Button className="w-full">
+                            Save Travel Details for {selectedTalentForTravel.name}
+                          </Button>
+                        </div>
+                      )}
+
+                      {assignedTalents.length === 0 && (
+                        <div className="text-center text-muted-foreground py-8">
+                          No talents assigned to this event. Assign talents first to manage their travel.
+                        </div>
+                      )}
                     </TabsContent>
 
                     {/* Talent Tab */}
@@ -773,6 +949,15 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
           )}
         </div>
       </div>
+
+      {/* Event Form Dialog */}
+      <BusinessEventFormDialog
+        isOpen={isCreateEventOpen}
+        onClose={() => setIsCreateEventOpen(false)}
+        event={editingEvent}
+        onSave={handleEventSaved}
+        language={language}
+      />
     </div>
   );
 };

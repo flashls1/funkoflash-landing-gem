@@ -30,6 +30,7 @@ import TalentBookingManagement from "./pages/TalentBookingManagement";
 import TalentPortfolioManagement from "./pages/TalentPortfolioManagement";
 import BusinessBookingManagement from "./pages/BusinessBookingManagement";
 import BackgroundManager from "./features/appearance/BackgroundManager";
+import TalentEvents from "./pages/TalentEvents";
 import TalentQuickView from "./pages/TalentQuickView";
 
 const queryClient = new QueryClient();
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/business/booking-management" element={<BusinessBookingManagement />} />
           <Route path="/talent/booking-management" element={<TalentBookingManagement />} />
           <Route path="/talent/portfolio-management" element={<TalentPortfolioManagement />} />
+          <Route path="/talent/events" element={<TalentEvents />} />
           <Route path="/dashboard/talent-quick-view" element={<TalentQuickView />} />
           <Route path="/dashboard/talent-quick-view/:id" element={<TalentQuickView />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

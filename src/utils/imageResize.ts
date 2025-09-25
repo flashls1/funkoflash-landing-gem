@@ -109,3 +109,17 @@ export const resizeTalentHeadshot = (file: File): Promise<File> => {
     format: 'image/jpeg'
   });
 };
+
+/**
+ * Resize image for business events (150x150px square)
+ * @param file - The image file to resize
+ * @returns Promise<File> - The resized image optimized for event thumbnails
+ */
+export const resizeEventImage = (file: File): Promise<File> => {
+  return resizeImage(file, {
+    width: 150,
+    height: 150,
+    quality: 0.9,
+    format: 'image/jpeg'
+  });
+};
