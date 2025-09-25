@@ -36,8 +36,8 @@ const TalentDashboard = () => {
   const { language, setLanguage } = useLanguage();
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [activeModule, setActiveModule] = useState('overview');
   const { user, profile } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
@@ -124,18 +124,6 @@ const TalentDashboard = () => {
         setActiveModule(moduleId);
     }
   };
-        navigate('/talent/booking-management');
-        break;
-      case 'availability-calendar':
-        navigate('/calendar');
-        break;
-      case 'profile-settings':
-        setIsProfileSettingsOpen(true);
-        break;
-      default:
-        break;
-    }
-  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -143,14 +131,14 @@ const TalentDashboard = () => {
     
     const greetings = {
       en: {
-        morning: `Good morning ${firstName}`,
-        afternoon: `Good afternoon ${firstName}`,
-        evening: `Good evening ${firstName}`
+        morning: `Good morning, ${firstName}!`,
+        afternoon: `Good afternoon, ${firstName}!`,
+        evening: `Good evening, ${firstName}!`
       },
       es: {
-        morning: `Buenos días ${firstName}`,
-        afternoon: `Buenas tardes ${firstName}`,
-        evening: `Buenas noches ${firstName}`
+        morning: `¡Buenos días, ${firstName}!`,
+        afternoon: `¡Buenas tardes, ${firstName}!`,
+        evening: `¡Buenas noches, ${firstName}!`
       }
     };
 
@@ -158,436 +146,240 @@ const TalentDashboard = () => {
     if (hour < 18) return greetings[language].afternoon;
     return greetings[language].evening;
   };
-        afternoon: `Buenas tardes ${firstName}`,
-        evening: `Buenas noches ${firstName}`
-      }
-    };
-
-    const t = greetings[language];
-
-    if (hour >= 0 && hour < 12) return t.morning;
-    if (hour >= 12 && hour < 17) return t.afternoon;
-    return t.evening;
-  };
 
   const content = {
     en: {
-      dashboard: "Talent Dashboard",
-      overview: "Overview",
-      bookings: "Bookings",
-      messages: "Messages",
-      portfolio: "Portfolio",
-      earnings: "Earnings",
-      upcomingBookings: "Upcoming Bookings",
-      totalEarnings: "Total Earnings",
-      profileViews: "Profile Views",
-      averageRating: "Average Rating",
-      portfolioManagement: "Portfolio Management",
-      portfolioManagementDesc: "Manage your portfolio, photos, and showcase work",
-      updatePortfolio: "Update Portfolio",
-      bookingManagement: "Booking Management",
-      bookingManagementDesc: "View and manage your event bookings",
-      viewBookings: "View Bookings",
-      availabilityCalendar: "Availability Calendar",
-      availabilityCalendarDesc: "Set your availability for new bookings",
-      setAvailability: "Set Availability",
-      earningsReports: "Earnings Reports",
-      earningsReportsDesc: "Track your earnings and payment history",
-      viewEarnings: "View Earnings",
-      profileSettings: "Profile Settings",
-      profileSettingsDesc: "Update your profile information and preferences",
-      updateProfile: "Update Profile",
-      performanceAnalytics: "Performance Analytics",
-      performanceAnalyticsDesc: "View analytics on your bookings and performance",
-      viewAnalytics: "View Analytics"
+      welcome: 'Welcome to your dashboard',
+      events: 'Events',
+      calendar: 'Calendar',
+      messages: 'Messages',
+      portfolio: 'Portfolio',
+      earnings: 'Earnings',
+      performance: 'Performance',
+      settings: 'Settings',
+      opportunities: 'Opportunities',
+      contracts: 'Contracts',
+      upcomingEvents: 'Upcoming Events',
+      noEvents: 'No upcoming events',
+      viewAll: 'View All',
+      quickStats: 'Quick Stats',
+      totalBookings: 'Total Bookings',
+      thisMonth: 'This Month',
+      totalEarnings: 'Total Earnings',
+      profileViews: 'Profile Views',
+      avgRating: 'Avg Rating'
     },
     es: {
-      dashboard: "Panel de Talento",
-      overview: "Resumen",
-      bookings: "Reservas",
-      messages: "Mensajes",
-      portfolio: "Portafolio",
-      earnings: "Ganancias",
-      upcomingBookings: "Próximas Reservas",
-      totalEarnings: "Ganancias Totales",
-      profileViews: "Vistas del Perfil",
-      averageRating: "Calificación Promedio",
-      portfolioManagement: "Gestión de Portafolio",
-      portfolioManagementDesc: "Gestiona tu portafolio, fotos y muestra tu trabajo",
-      updatePortfolio: "Actualizar Portafolio",
-      bookingManagement: "Gestión de Reservas",
-      bookingManagementDesc: "Ver y gestionar tus reservas de eventos",
-      viewBookings: "Ver Reservas",
-      availabilityCalendar: "Calendario de Disponibilidad",
-      availabilityCalendarDesc: "Establece tu disponibilidad para nuevas reservas",
-      setAvailability: "Establecer Disponibilidad",
-      earningsReports: "Reportes de Ganancias",
-      earningsReportsDesc: "Rastrea tus ganancias e historial de pagos",
-      viewEarnings: "Ver Ganancias",
-      profileSettings: "Configuración del Perfil",
-      profileSettingsDesc: "Actualiza tu información de perfil y preferencias",
-      updateProfile: "Actualizar Perfil",
-      performanceAnalytics: "Analíticas de Rendimiento",
-      performanceAnalyticsDesc: "Ve analíticas de tus reservas y rendimiento",
-      viewAnalytics: "Ver Analíticas"
+      welcome: 'Bienvenido a tu panel',
+      events: 'Eventos',
+      calendar: 'Calendario',
+      messages: 'Mensajes',
+      portfolio: 'Portafolio',
+      earnings: 'Ganancias',
+      performance: 'Rendimiento',
+      settings: 'Configuración',
+      opportunities: 'Oportunidades',
+      contracts: 'Contratos',
+      upcomingEvents: 'Próximos Eventos',
+      noEvents: 'No hay eventos próximos',
+      viewAll: 'Ver Todos',
+      quickStats: 'Estadísticas Rápidas',
+      totalBookings: 'Reservas Totales',
+      thisMonth: 'Este Mes',
+      totalEarnings: 'Ganancias Totales',
+      profileViews: 'Vistas del Perfil',
+      avgRating: 'Calificación Promedio'
     }
   };
 
-  const t = content[language];
+  const dashboardModules = [
+    { id: 'events', icon: Calendar, label: content[language].events, color: 'bg-blue-500' },
+    { id: 'calendar', icon: Clock, label: content[language].calendar, color: 'bg-green-500' },
+    { id: 'messages', icon: MessageSquare, label: content[language].messages, color: 'bg-purple-500' },
+    { id: 'portfolio', icon: FileText, label: content[language].portfolio, color: 'bg-orange-500' },
+    { id: 'earnings', icon: DollarSign, label: content[language].earnings, color: 'bg-yellow-500' },
+    { id: 'performance', icon: TrendingUp, label: content[language].performance, color: 'bg-red-500' },
+    { id: 'settings', icon: Settings, label: content[language].settings, color: 'bg-gray-500' },
+    { id: 'opportunities', icon: Star, label: content[language].opportunities, color: 'bg-cyan-500' },
+    { id: 'contracts', icon: BarChart3, label: content[language].contracts, color: 'bg-indigo-500' }
+  ];
 
-  // Show loading while authentication and site design are being checked
   if (siteDesignLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (activeModule === 'messages') {
     return (
-      <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{
-          backgroundImage: 'var(--site-background)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
-        }}
-      >
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="mt-4 text-lg text-white">Loading dashboard...</p>
+      <div className="min-h-screen bg-background">
+        <Navigation language={language} setLanguage={setLanguage} />
+        <div className="container mx-auto px-4 py-6">
+          <Button 
+            onClick={() => setActiveModule('overview')} 
+            variant="ghost" 
+            className="mb-4"
+          >
+            ← Back to Dashboard
+          </Button>
+          <RealtimeMessageCenter language={language} />
         </div>
+        <Footer language={language} />
       </div>
     );
   }
 
-  if (!user || !profile || profile.role !== 'talent') {
-    return null;
-  }
-
-  // Module definitions with colors for talent
-  const moduleCards = [
-    { id: 'portfolio-management', icon: User, color: 'text-purple-500', title: t.portfolioManagement, desc: t.portfolioManagementDesc, action: t.updatePortfolio },
-    { id: 'booking-management', icon: Calendar, color: 'text-blue-500', title: t.bookingManagement, desc: t.bookingManagementDesc, action: t.viewBookings },
-    { id: 'availability-calendar', icon: Calendar, color: 'text-green-500', title: t.availabilityCalendar, desc: t.availabilityCalendarDesc, action: t.setAvailability },
-    { id: 'earnings-reports', icon: DollarSign, color: 'text-yellow-500', title: t.earningsReports, desc: t.earningsReportsDesc, action: t.viewEarnings },
-    { id: 'profile-settings', icon: Settings, color: 'text-gray-500', title: t.profileSettings, desc: t.profileSettingsDesc, action: t.updateProfile },
-    { id: 'performance-analytics', icon: TrendingUp, color: 'text-orange-500', title: t.performanceAnalytics, desc: t.performanceAnalyticsDesc, action: t.viewAnalytics }
-  ];
+  const backgroundUrl = (profile as any)?.background_image_url || '/lovable-uploads/d0f4637c-55b5-42eb-af08-29eabb28b253.png';
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div 
-        className="min-h-screen"
-        style={{
-          backgroundImage: 'var(--site-background)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
-        }}
-      >
+    <div className="min-h-screen" style={{
+      backgroundImage: `url(${backgroundUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed'
+    }}>
+      <div className="min-h-screen bg-black/50 pt-[5px]">
         <Navigation language={language} setLanguage={setLanguage} />
         
-        <div className="container mx-auto px-4 py-8">
-        {/* Hero Section with Overlay */}
-        <div className="mb-6">
-          <HeroShell imageUrl={(profile as any)?.background_image_url || '/lovable-uploads/bb29cf4b-64ec-424f-8221-3b283256e06d.png'}>
-            <HeroOverlay
-              role="talent"
-              user={{
-                name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Talent',
-                avatarUrl: (profile as any)?.avatar_url,
-                isOnline: true,
-                businessName: null,
-                profileLocale: (profile as any)?.locale || null,
-              }}
-              invisibleMode={invisibleMode}
-              onToggleInvisible={toggleInvisible}
-              locale={language}
+        <div className="pt-4">
+          <HeroShell imageUrl={backgroundUrl}>
+            <HeroOverlay 
+              role={profile?.role || 'talent'}
+              user={user || { name: profile?.first_name || 'User' } as any}
+              invisibleMode={false}
+              onToggleInvisible={() => {}}
             />
+            <div className="relative z-10 text-center text-white">
+              <Avatar className="w-20 h-20 mx-auto mb-4 border-4 border-white">
+                <AvatarImage src={(profile as any)?.avatar_url} alt={profile?.first_name} />
+                <AvatarFallback className="text-2xl font-bold bg-primary text-primary-foreground">
+                  {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                </AvatarFallback>
+              </Avatar>
+              <h1 className="text-3xl font-bold mb-2">{getGreeting()}</h1>
+              <p className="text-lg opacity-90">{content[language].welcome}</p>
+            </div>
           </HeroShell>
-          
-          {/* Control Bar - Module Layout and Dashboard Colors */}
-          <Card 
-            className="border-2 rounded-2xl shadow-lg"
-            style={{
-              backgroundColor: currentTheme.cardBackground,
-              borderColor: currentTheme.border,
-              color: currentTheme.cardForeground
-            }}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-8">
-                  {/* Module Layout Controls */}
-                  <div className="flex items-center gap-3">
-                    {isDragEnabled ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                    <span className="text-sm font-medium">
-                      {language === 'en' ? 'Module Layout' : 'Diseño de Módulos'}
-                    </span>
-                    <Switch
-                      checked={isDragEnabled}
-                      onCheckedChange={setIsDragEnabled}
-                      style={{ backgroundColor: isDragEnabled ? currentTheme.accent : undefined }}
-                    />
-                    <span className="text-xs opacity-70">
-                      {isDragEnabled 
-                        ? (language === 'en' ? 'Unlocked' : 'Desbloqueado')
-                        : (language === 'en' ? 'Locked' : 'Bloqueado')
-                      }
-                    </span>
-                  </div>
+        </div>
 
-                </div>
-                
-                {/* Dashboard Colors Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      style={{
-                        backgroundColor: currentTheme.cardBackground,
-                        borderColor: currentTheme.border,
-                        color: currentTheme.cardForeground
-                      }}
-                    >
-                      <Palette className="h-4 w-4 mr-2" />
-                      {language === 'en' ? 'Dashboard Colors' : 'Colores del Panel'}
-                      <ChevronDown className="h-4 w-4 ml-2" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent 
-                    align="end" 
-                    className="w-48"
-                    style={{
-                      backgroundColor: currentTheme.cardBackground,
-                      borderColor: currentTheme.border,
-                      color: currentTheme.cardForeground
-                    }}
-                  >
-                    {colorThemes.map((theme) => (
-                      <DropdownMenuItem
-                        key={theme.id}
-                        onClick={() => changeTheme(theme.id)}
-                        className="flex items-center gap-3 cursor-pointer"
-                        style={{
-                          backgroundColor: currentTheme.id === theme.id ? currentTheme.accent + '20' : 'transparent'
-                        }}
-                      >
-                        <div 
-                          className="w-4 h-4 rounded-full border"
-                          style={{ backgroundColor: theme.accent, borderColor: theme.border }}
-                        />
-                        {theme.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+        <div className="container mx-auto px-4 py-8">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <Card className="bg-card/90 backdrop-blur">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-primary">12</div>
+                <div className="text-sm text-muted-foreground">{content[language].totalBookings}</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card/90 backdrop-blur">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-green-600">$2,450</div>
+                <div className="text-sm text-muted-foreground">{content[language].thisMonth}</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card/90 backdrop-blur">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-blue-600">1,234</div>
+                <div className="text-sm text-muted-foreground">{content[language].profileViews}</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card/90 backdrop-blur">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-yellow-600">4.8</div>
+                <div className="text-sm text-muted-foreground">{content[language].avgRating}</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Upcoming Events */}
+          <Card className="bg-card/90 backdrop-blur mb-8">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  {content[language].upcomingEvents}
+                </CardTitle>
+                <Button variant="ghost" onClick={() => navigate('/calendar')}>
+                  {content[language].viewAll}
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
               </div>
+            </CardHeader>
+            <CardContent>
+              {upcomingEvents.length > 0 ? (
+                <div className="space-y-3">
+                  {upcomingEvents.map((event, index) => (
+                    <div 
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background/70 transition-colors"
+                      onClick={() => handleEventClick(event)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <div>
+                          <h4 className="font-medium">{event.title || event.event_title}</h4>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {formatDateUS(event.start_date || event.start_ts)}
+                            {event.city && (
+                              <>
+                                <MapPin className="h-3 w-3 ml-2" />
+                                {event.city}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <Badge variant="outline">
+                        {event.status || 'Scheduled'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  {content[language].noEvents}
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* 3x3 Module Grid */}
+          <div className="grid grid-cols-3 gap-4 md:gap-6">
+            {dashboardModules.map((module) => {
+              const IconComponent = module.icon;
+              return (
+                <Card 
+                  key={module.id}
+                  className="bg-card/90 backdrop-blur cursor-pointer hover:scale-105 transition-transform duration-200 aspect-square"
+                  onClick={() => handleModuleClick(module.id)}
+                >
+                  <CardContent className="p-4 h-full flex flex-col items-center justify-center text-center">
+                    <div className={`w-12 h-12 rounded-full ${module.color} flex items-center justify-center mb-3`}>
+                      <IconComponent className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-sm md:text-base">{module.label}</h3>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
-
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">{t.overview}</TabsTrigger>
-            <TabsTrigger value="bookings" onClick={() => navigate('/talent/booking-management')}>{t.bookings}</TabsTrigger>
-            <TabsTrigger value="messages">{t.messages}</TabsTrigger>
-            <TabsTrigger value="portfolio" onClick={() => navigate('/talent/portfolio-management')}>{t.portfolio}</TabsTrigger>
-            <TabsTrigger value="earnings">{t.earnings}</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            {/* Next Event and Calendar Widget */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <NextEventCard language={language} />
-              <div className="lg:col-span-1">
-                <CalendarWidget language={language} />
-              </div>
-            </div>
-            
-            {/* Mini Agenda */}
-            <div className="mb-6">
-              <MiniAgenda language={language} />
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card 
-                className="border-2 transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: currentTheme.cardBackground,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.cardForeground
-                }}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.upcomingBookings}</CardTitle>
-                  <Calendar className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">3</div>
-                  <p className="text-xs opacity-80">Next 30 days</p>
-                </CardContent>
-              </Card>
-
-              <Card 
-                className="border-2 transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: currentTheme.cardBackground,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.cardForeground
-                }}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.totalEarnings}</CardTitle>
-                  <BarChart3 className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">$2,450</div>
-                  <p className="text-xs opacity-80">This month</p>
-                </CardContent>
-              </Card>
-
-              <Card 
-                className="border-2 transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: currentTheme.cardBackground,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.cardForeground
-                }}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.profileViews}</CardTitle>
-                  <User className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">157</div>
-                  <p className="text-xs opacity-80">This week</p>
-                </CardContent>
-              </Card>
-
-              <Card 
-                className="border-2 transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: currentTheme.cardBackground,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.cardForeground
-                }}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t.averageRating}</CardTitle>
-                  <Star className="h-4 w-4 opacity-80" style={{ color: currentTheme.accent }} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">4.8</div>
-                  <p className="text-xs opacity-80">★★★★★</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {cardOrder.map((cardIndex, index) => {
-                const card = moduleCards[cardIndex];
-                const IconComponent = card.icon;
-                return (
-                  <DraggableCard
-                    key={card.id}
-                    id={card.id}
-                    index={index}
-                    moveCard={moveCard}
-                    isDragEnabled={isDragEnabled}
-                  >
-                    <Card 
-                      className="border-2 transition-transform hover:scale-105 cursor-pointer"
-                      onClick={() => {
-                        if (card.id === 'availability-calendar') {
-                          navigate('/calendar');
-                        }
-                      }}
-                      style={{
-                        backgroundColor: currentTheme.cardBackground,
-                        borderColor: currentTheme.border,
-                        color: currentTheme.cardForeground
-                      }}
-                    >
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <IconComponent className="h-5 w-5" style={{ color: currentTheme.accent }} />
-                          {card.title}
-                        </CardTitle>
-                        <CardDescription className="opacity-80">{card.desc}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Button 
-                          className="w-full"
-                          onClick={() => handleModuleClick(card.id)}
-                          style={{
-                            backgroundColor: currentTheme.accent,
-                            color: currentTheme.background,
-                            borderColor: currentTheme.accent
-                          }}
-                        >
-                          {card.action}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </DraggableCard>
-                );
-              })}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="bookings">
-            <Card className="border-2 border-black bg-white">
-              <CardHeader>
-                <CardTitle>{t.bookingManagement}</CardTitle>
-                <CardDescription>View and manage your event bookings</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Booking management functionality will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="messages">
-            <RealtimeMessageCenter language={language} />
-          </TabsContent>
-
-          <TabsContent value="portfolio">
-            <Card className="border-2 border-black bg-white">
-              <CardHeader>
-                <CardTitle>Portfolio Management</CardTitle>
-                <CardDescription>Manage your portfolio assets and showcase your work</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Portfolio management functionality has been moved to a dedicated page.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="earnings">
-            <Card className="border-2 border-black bg-white">
-              <CardHeader>
-                <CardTitle>{t.earningsReports}</CardTitle>
-                <CardDescription>Track your earnings and payment history</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Earnings tracking functionality will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-        </div>
-
-        {/* Profile Settings Modal */}
-        <TalentProfileSettings
-          language={language}
-          isOpen={isProfileSettingsOpen}
-          onClose={() => setIsProfileSettingsOpen(false)}
-        />
 
         <Footer language={language} />
       </div>
-    </DndProvider>
+
+      <TalentProfileSettings
+        language={language}
+        isOpen={isProfileSettingsOpen}
+        onClose={() => setIsProfileSettingsOpen(false)}
+      />
+
+      <EventDetailsModal
+        isOpen={isEventModalOpen}
+        onClose={() => setIsEventModalOpen(false)}
+        event={selectedEvent}
+        language={language}
+      />
+    </div>
   );
 };
 
