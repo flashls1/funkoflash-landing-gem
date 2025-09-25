@@ -17,6 +17,7 @@ import {
   Plus,
   X
 } from 'lucide-react';
+import { IconSelector } from '@/components/IconSelector';
 import { formatDateUS } from '@/lib/utils';
 
 interface ShowScheduleEntry {
@@ -51,14 +52,38 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
   const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [eventDetails, setEventDetails] = useState<{start_ts?: string, end_ts?: string} | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     if (eventId) {
       fetchScheduleEntries();
       fetchEventDetails();
+      fetchCategories();
     }
   }, [eventId]);
+
+  // Fix date selection logic to prioritize event dates
+  useEffect(() => {
+    if (availableDates.length > 0 && eventDetails && !currentDate) {
+      const eventStart = eventDetails.start_ts ? new Date(eventDetails.start_ts) : null;
+      const eventEnd = eventDetails.end_ts ? new Date(eventDetails.end_ts) : null;
+      
+      if (eventStart && eventEnd) {
+        // Find dates within event range
+        const eventDateStrings = availableDates.filter(dateStr => {
+          const date = new Date(dateStr);
+          return date >= eventStart && date <= eventEnd;
+        });
+        
+        // Use first event date, or fallback to first available date
+        const preferredDate = eventDateStrings.length > 0 ? eventDateStrings[0] : availableDates[0];
+        setCurrentDate(preferredDate);
+      } else {
+        setCurrentDate(availableDates[0]);
+      }
+    }
+  }, [availableDates, eventDetails, currentDate]);
 
   const fetchEventDetails = async () => {
     try {
@@ -72,6 +97,21 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
       setEventDetails(data);
     } catch (error) {
       console.error('Error fetching event details:', error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('schedule_categories')
+        .select('*')
+        .eq('active', true)
+        .order('display_order');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
     }
   };
 
@@ -102,9 +142,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
       const dates = [...new Set(data?.map(entry => entry.day_date) || [])].sort();
       setAvailableDates(dates);
       
-      if (dates.length > 0 && !currentDate) {
-        setCurrentDate(dates[0]);
-      }
+      // Don't set currentDate here - let the useEffect handle it with proper logic
     } catch (error) {
       console.error('Error fetching schedule entries:', error);
       toast({
@@ -119,6 +157,42 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
 
   const getCurrentDateEntries = () => {
     return scheduleEntries.filter(entry => entry.day_date === currentDate);
+  };
+
+  const getCurrentDateLabel = () => {
+    const entries = getCurrentDateEntries();
+    if (entries.length > 0 && entries[0].day_label) {
+      return entries[0].day_label;
+    }
+    return currentDate ? formatDateUS(currentDate) : '';
+  };
+
+  const handleCategoryChange = async (entryId: string, newCategory: any) => {
+    try {
+      const { error } = await supabase
+        .from('show_schedule_entries')
+        .update({ 
+          category_id: newCategory.id,
+          updated_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq('id', entryId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Category updated successfully",
+      });
+
+      fetchScheduleEntries();
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update category",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeleteEntry = async (entryId: string) => {
@@ -235,15 +309,18 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
     }
   };
 
-  // Debug logging
-  console.log('AdminShowScheduleManager Debug:', {
-    availableDates,
-    currentDate,
-    availableDatesLength: availableDates.length,
-    eventDetails,
-    showAddDateButton: availableDates.length < 4,
-    showRemoveButtons: availableDates.length > 1
-  });
+  // Debug logging - reduced frequency
+  if (Math.random() < 0.1) { // Only log 10% of the time to reduce spam
+    console.log('AdminShowScheduleManager Debug:', {
+      availableDates,
+      currentDate,
+      availableDatesLength: availableDates.length,
+      eventDetails,
+      showAddDateButton: availableDates.length < 4,
+      showRemoveButtons: availableDates.length > 1,
+      currentDateLabel: getCurrentDateLabel()
+    });
+  }
 
   if (loading) {
     return <div className="flex items-center justify-center p-8">Loading...</div>;
@@ -301,7 +378,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
                       variant={currentDate === date ? "default" : "outline"}
                       size="sm"
                       onClick={() => setCurrentDate(date)}
-                      className="pr-2"
+                      className="pr-2 cursor-pointer"
                     >
                       {formatDateUS(date)}
                     </Button>
@@ -325,7 +402,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                {content[language].scheduleFor} {currentDate ? formatDateUS(currentDate) : ''}
+                {getCurrentDateLabel()}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -357,22 +434,11 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <h4 className="font-semibold leading-tight">{entry.title}</h4>
                           <div className="flex items-center gap-2 flex-shrink-0">
-                            {entry.schedule_categories && (
-                              <>
-                                <span className="text-sm">{entry.schedule_categories.icon}</span>
-                                <Badge 
-                                  variant="secondary" 
-                                  className="text-xs"
-                                  style={{ 
-                                    backgroundColor: entry.schedule_categories.color + '20',
-                                    color: entry.schedule_categories.color,
-                                    borderColor: entry.schedule_categories.color + '40'
-                                  }}
-                                >
-                                  {entry.schedule_categories.name}
-                                </Badge>
-                              </>
-                            )}
+                            <IconSelector
+                              currentCategory={entry.schedule_categories}
+                              categories={categories}
+                              onCategoryChange={(newCategory) => handleCategoryChange(entry.id, newCategory)}
+                            />
                           </div>
                         </div>
                         
