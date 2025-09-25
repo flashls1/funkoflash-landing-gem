@@ -1,0 +1,25 @@
+{
+  "name": "FunkoFlash",
+  "short_name": "FunkoFlash",
+  "description": "Shop exclusive signed Funko Pops and book top voice talent",
+  "theme_color": "#f97316",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png",
+      "sizes": "512x512", 
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
