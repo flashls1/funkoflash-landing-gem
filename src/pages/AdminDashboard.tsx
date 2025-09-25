@@ -16,7 +16,8 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useInvisibleMode } from '@/hooks/useInvisibleMode';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
-import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Building, Lock, Unlock, ChevronDown, FolderOpen, User } from 'lucide-react';
+import { Users, MessageSquare, Settings, FileText, Calendar, BarChart3, Palette, ShoppingBag, Building, Lock, Unlock, ChevronDown, FolderOpen, User, UserCog } from 'lucide-react';
+import ProfileManager from '@/components/ProfileManager';
 import HeroOverlay from '@/components/HeroOverlay';
 import HeroShell from '@/components/HeroShell';
 import { hasFeature } from '@/lib/features';
@@ -240,6 +241,7 @@ const AdminDashboard = () => {
   const allModuleCards = [
     { id: 'user-management', icon: Users, color: 'text-blue-500', title: t.userManagement, desc: t.userManagementDesc, action: t.manageUsers, onClick: () => setActiveTab('users') },
     { id: 'access-requests', icon: FileText, color: 'text-purple-500', title: t.accessRequests, desc: t.accessRequestsDesc, action: t.reviewRequests, onClick: () => setActiveTab('access-requests') },
+    { id: 'profile-settings', icon: UserCog, color: 'text-violet-500', title: language === 'en' ? 'Profile Settings' : 'Configuración de Perfil', desc: language === 'en' ? 'Manage your personal profile, avatar, and hero image' : 'Gestiona tu perfil personal, avatar e imagen de héroe', action: language === 'en' ? 'Manage Profile' : 'Gestionar Perfil', onClick: () => setActiveTab('profile-settings') },
     { id: 'business-management', icon: Building, color: 'text-green-500', title: t.businessManagement, desc: t.businessManagementDesc, action: t.manageBusinessEvents, onClick: () => navigate('/admin/business-events') },
     { id: 'system-settings', icon: Settings, color: 'text-gray-500', title: t.systemSettings, desc: t.systemSettingsDesc, action: t.configureSystem, onClick: () => setActiveTab('system-settings') },
     { id: 'reports-analytics', icon: BarChart3, color: 'text-orange-500', title: t.reportsAnalytics, desc: t.reportsAnalyticsDesc, action: t.viewReports },
@@ -390,6 +392,18 @@ const AdminDashboard = () => {
                     >
                       <Building className="h-4 w-4" />
                       Business
+                    </button>
+                     <button 
+                      onClick={() => setActiveTab('profile-settings')}
+                      className={`py-2 px-3 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                        activeTab === 'profile-settings'
+                          ? `border-current`
+                          : 'border-transparent opacity-70 hover:opacity-100'
+                      }`}
+                      style={{ color: activeTab === 'profile-settings' ? currentTheme.accent : currentTheme.cardForeground }}
+                    >
+                      <UserCog className="h-4 w-4" />
+                      Profile
                     </button>
                      <button 
                       onClick={() => setActiveTab('settings')}
@@ -606,6 +620,15 @@ const AdminDashboard = () => {
             <div className="text-center py-8">
               <h3 className="text-lg font-semibold mb-2">Events Module</h3>
               <p className="text-muted-foreground">Event management functionality coming soon.</p>
+            </div>
+          )}
+
+          {activeTab === 'profile-settings' && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">
+                {language === 'en' ? 'Profile Settings' : 'Configuración de Perfil'}
+              </h2>
+              <ProfileManager language={language} />
             </div>
           )}
 
