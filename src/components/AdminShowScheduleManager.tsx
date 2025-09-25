@@ -6,12 +6,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ScheduleBulkUploadManager } from '@/components/ScheduleBulkUploadManager';
+import { ShowScheduleMobilePreview } from '@/components/ShowScheduleMobilePreview';
+import { DatePickerDialog } from '@/components/DatePickerDialog';
 import { 
   Calendar,
   Upload,
   Eye,
   Trash2,
-  Edit
+  Edit,
+  Plus,
+  X
 } from 'lucide-react';
 import { formatDateUS } from '@/lib/utils';
 
@@ -44,13 +48,32 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
   const [currentDate, setCurrentDate] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('manage');
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [eventDetails, setEventDetails] = useState<{start_ts?: string, end_ts?: string} | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     if (eventId) {
       fetchScheduleEntries();
+      fetchEventDetails();
     }
   }, [eventId]);
+
+  const fetchEventDetails = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('business_events')
+        .select('start_ts, end_ts')
+        .eq('id', eventId)
+        .single();
+      
+      if (error) throw error;
+      setEventDetails(data);
+    } catch (error) {
+      console.error('Error fetching event details:', error);
+    }
+  };
 
   const fetchScheduleEntries = async () => {
     try {
@@ -123,6 +146,42 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
     }
   };
 
+  const handleAddDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    if (!availableDates.includes(dateStr) && availableDates.length < 4) {
+      const newDates = [...availableDates, dateStr].sort();
+      setAvailableDates(newDates);
+      setCurrentDate(dateStr);
+      toast({
+        title: "Success",
+        description: "Date added to schedule",
+      });
+    }
+  };
+
+  const handleRemoveDate = (dateToRemove: string) => {
+    if (availableDates.length <= 1) {
+      toast({
+        title: "Error",
+        description: "Cannot remove the last date",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const newDates = availableDates.filter(date => date !== dateToRemove);
+    setAvailableDates(newDates);
+    
+    if (currentDate === dateToRemove) {
+      setCurrentDate(newDates[0] || '');
+    }
+    
+    toast({
+      title: "Success",
+      description: "Date removed from schedule",
+    });
+  };
+
   const formatTime = (time: string) => {
     // Convert 24-hour time to 12-hour format
     const timeOnly = time.slice(0, 5); // Convert "HH:MM:SS" to "HH:MM"
@@ -149,7 +208,9 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
       deleteEntry: 'Delete Entry',
       editEntry: 'Edit Entry',
       previewMode: 'Preview Mobile View',
-      scheduleFor: 'Schedule for'
+      scheduleFor: 'Schedule for',
+      addDate: 'Add Date',
+      removeDate: 'Remove Date'
     },
     es: {
       showScheduleManager: 'Gestor de Horario de Show',
@@ -159,7 +220,9 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
       deleteEntry: 'Eliminar Entrada',
       editEntry: 'Editar Entrada',
       previewMode: 'Vista Previa Móvil',
-      scheduleFor: 'Horario para'
+      scheduleFor: 'Horario para',
+      addDate: 'Agregar Fecha',
+      removeDate: 'Eliminar Fecha'
     }
   };
 
@@ -176,7 +239,12 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
           <Calendar className="h-5 w-5" />
           {content[language].showScheduleManager}
         </h3>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-2"
+          onClick={() => setShowMobilePreview(true)}
+        >
           <Eye className="h-4 w-4" />
           {content[language].previewMode}
         </Button>
@@ -190,20 +258,49 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
 
         <TabsContent value="manage" className="space-y-4">
           {/* Date Selection */}
-          {availableDates.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {availableDates.map(date => (
-                <Button
-                  key={date}
-                  variant={currentDate === date ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCurrentDate(date)}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium">Schedule Dates</h4>
+              {availableDates.length < 4 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowDatePicker(true)}
+                  className="gap-2"
                 >
-                  {formatDateUS(date)}
+                  <Plus className="h-4 w-4" />
+                  {content[language].addDate}
                 </Button>
-              ))}
+              )}
             </div>
-          )}
+            
+            {availableDates.length > 0 && (
+              <div className="flex gap-2 flex-wrap">
+                {availableDates.map(date => (
+                  <div key={date} className="flex items-center gap-1">
+                    <Button
+                      variant={currentDate === date ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentDate(date)}
+                      className="pr-2"
+                    >
+                      {formatDateUS(date)}
+                    </Button>
+                    {availableDates.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveDate(date)}
+                        className="p-1 h-7 w-7 text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Schedule Entries for Current Date */}
           <Card>
@@ -299,6 +396,25 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
           />
         </TabsContent>
       </Tabs>
+
+      {/* Mobile Preview Modal */}
+      <ShowScheduleMobilePreview
+        isOpen={showMobilePreview}
+        onClose={() => setShowMobilePreview(false)}
+        scheduleEntries={scheduleEntries}
+        availableDates={availableDates}
+        language={language}
+      />
+
+      {/* Date Picker Dialog */}
+      <DatePickerDialog
+        isOpen={showDatePicker}
+        onClose={() => setShowDatePicker(false)}
+        onDateSelect={handleAddDate}
+        eventStartDate={eventDetails?.start_ts ? new Date(eventDetails.start_ts) : undefined}
+        eventEndDate={eventDetails?.end_ts ? new Date(eventDetails.end_ts) : undefined}
+        language={language}
+      />
     </div>
   );
 };

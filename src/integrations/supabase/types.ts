@@ -274,6 +274,7 @@ export type Database = {
       }
       business_event_contact: {
         Row: {
+          contact_email: string | null
           contact_name: string | null
           created_at: string
           created_by: string | null
@@ -284,6 +285,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          contact_email?: string | null
           contact_name?: string | null
           created_at?: string
           created_by?: string | null
@@ -294,6 +296,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          contact_email?: string | null
           contact_name?: string | null
           created_at?: string
           created_by?: string | null
