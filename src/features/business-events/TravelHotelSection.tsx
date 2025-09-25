@@ -426,7 +426,7 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
   return (
     <div className="space-y-6">
       {/* Event Point of Contact - only show for non-talent users */}
-      {profile?.role !== 'talent' && (
+      {profile?.role !== 'talent' && false && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

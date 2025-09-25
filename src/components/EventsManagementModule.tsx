@@ -58,6 +58,11 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
     state: '',
     status: 'pending'
   });
+  const [eventContact, setEventContact] = useState({ 
+    contact_name: '', 
+    phone_number: '', 
+    contact_email: '' 
+  });
 
   const content = {
     en: {
@@ -79,6 +84,10 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
       website: 'Website',
       city: 'City',
       state: 'State',
+      contact: 'Event Point of Contact',
+      contactName: 'Contact Name',
+      contactEmail: 'Contact Email',
+      contactPhone: 'Phone Number',
       saveInfo: 'Save Info',
       addScheduleItem: 'Add Schedule Item',
       saveSchedule: 'Save Schedule',
@@ -128,6 +137,10 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
       website: 'Sitio Web',
       city: 'Ciudad',
       state: 'Estado',
+      contact: 'Punto de Contacto del Evento',
+      contactName: 'Nombre de Contacto',
+      contactEmail: 'Email de Contacto',
+      contactPhone: 'Número de Teléfono',
       saveInfo: 'Guardar Info',
       addScheduleItem: 'Agregar Elemento de Horario',
       saveSchedule: 'Guardar Horario',
@@ -178,8 +191,71 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
         status: selectedEvent.status || 'pending'
       });
       fetchAssignedTalents(selectedEvent.id);
+      fetchEventContact(selectedEvent.id);
     }
   }, [selectedEvent]);
+
+  const fetchEventContact = async (eventId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('business_event_contact')
+        .select('*')
+        .eq('event_id', eventId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      if (data) {
+        setEventContact({
+          contact_name: data.contact_name || '',
+          phone_number: data.phone_number || '',
+          contact_email: data.contact_email || ''
+        });
+      } else {
+        setEventContact({ contact_name: '', phone_number: '', contact_email: '' });
+      }
+    } catch (error) {
+      console.error('Error fetching event contact:', error);
+      setEventContact({ contact_name: '', phone_number: '', contact_email: '' });
+    }
+  };
+
+  const handleSaveEventContact = async () => {
+    if (!selectedEvent) return;
+
+    try {
+      if (!eventContact.contact_name.trim()) {
+        toast({
+          title: "Error",
+          description: "Contact name is required",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('business_event_contact')
+        .upsert({
+          event_id: selectedEvent.id,
+          ...eventContact,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Event contact information saved successfully"
+      });
+    } catch (error) {
+      console.error('Error saving event contact:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to save contact information",
+        variant: "destructive"
+      });
+    }
+  };
 
   const fetchBusinessEvents = async () => {
     try {
@@ -574,8 +650,56 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
                             onChange={(e) => setEventInfo(prev => ({ ...prev, state: e.target.value }))}
                           />
                         </div>
-                      </div>
-                        <div className="space-y-2">
+                        </div>
+                        
+                        {/* Event Point of Contact Section */}
+                        <Card className="mt-6">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <User className="h-5 w-5" />
+                              {content[language].contact}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="contact-name">{content[language].contactName}</Label>
+                                <Input
+                                  id="contact-name"
+                                  value={eventContact.contact_name}
+                                  onChange={(e) => setEventContact(prev => ({ ...prev, contact_name: e.target.value }))}
+                                  maxLength={25}
+                                  placeholder={content[language].contactName}
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">Max 25 characters</p>
+                              </div>
+                              <div>
+                                <Label htmlFor="contact-email">{content[language].contactEmail}</Label>
+                                <Input
+                                  id="contact-email"
+                                  type="email"
+                                  value={eventContact.contact_email}
+                                  onChange={(e) => setEventContact(prev => ({ ...prev, contact_email: e.target.value }))}
+                                  placeholder={content[language].contactEmail}
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="contact-phone">{content[language].contactPhone}</Label>
+                                <Input
+                                  id="contact-phone"
+                                  value={eventContact.phone_number}
+                                  onChange={(e) => setEventContact(prev => ({ ...prev, phone_number: e.target.value }))}
+                                  placeholder={content[language].contactPhone}
+                                />
+                              </div>
+                            </div>
+                            <Button onClick={handleSaveEventContact} className="w-fit">
+                              Save Contact Info
+                            </Button>
+                          </CardContent>
+                        </Card>
+
+                        <div className="space-y-2 mt-6">
                           <Label htmlFor="website">{content[language].website}</Label>
                           <Input
                             id="website"
