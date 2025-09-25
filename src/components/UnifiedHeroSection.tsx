@@ -47,7 +47,7 @@ export const UnifiedHeroSection = ({
   const getHeightClass = () => {
     return 'h-[240px]';
   };
-  const heightClass = className || `relative ${getHeightClass()} flex items-center justify-center overflow-hidden rounded-2xl`;
+  const heightClass = className || `relative ${getHeightClass()} w-full flex items-center justify-center overflow-hidden rounded-2xl bg-black isolate`;
   const pageTitles: Record<string, string> = {
     home: 'Home',
     shop: 'Shop',
@@ -139,7 +139,7 @@ export const UnifiedHeroSection = ({
   if (loading) {
     console.log('⏳ Showing loading placeholder');
     return <section className={heightClass}>
-        <div className="absolute inset-0 bg-muted animate-pulse" />
+        <div className="absolute inset-0 bg-muted animate-pulse rounded-2xl" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-muted-foreground">Loading hero section...</div>
         </div>
@@ -150,7 +150,7 @@ export const UnifiedHeroSection = ({
   if (error) {
     console.log('❌ Showing error state');
     return <section className={heightClass}>
-        <div className="absolute inset-0 bg-destructive/10" />
+        <div className="absolute inset-0 bg-destructive/10 rounded-2xl" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-destructive">Error loading hero section</div>
         </div>
@@ -161,7 +161,7 @@ export const UnifiedHeroSection = ({
   if (!heroMedia || heroMedia.trim() === '') {
     console.log('🎨 No hero media, showing gradient fallback');
     return <section className={heightClass}>
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl" />
       </section>;
   }
   console.log('🎬 Rendering hero section with media:', {
@@ -173,7 +173,7 @@ export const UnifiedHeroSection = ({
       {/* Dynamic Background Media */}
       {currentMediaUrl && mediaLoaded && !imageLoadError && <>
           {mediaType === 'video' ? <video 
-              className="absolute inset-0 w-full h-full object-cover" 
+              className="absolute inset-0 w-full h-full object-cover rounded-2xl" 
               autoPlay 
               muted 
               loop 
@@ -190,21 +190,21 @@ export const UnifiedHeroSection = ({
             </video> : <img 
               src={currentMediaUrl}
               alt="Hero background"
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className="absolute inset-0 h-full w-full object-cover object-center rounded-2xl"
               loading="lazy"
               decoding="async"
             />}
         </>}
       
       {/* Loading placeholder */}
-      {!mediaLoaded && heroMedia && !imageLoadError && <div className="absolute inset-0 bg-muted animate-pulse">
+      {!mediaLoaded && heroMedia && !imageLoadError && <div className="absolute inset-0 bg-muted animate-pulse rounded-2xl">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-muted-foreground text-sm">Loading media...</div>
           </div>
         </div>}
       
       {/* Error fallback */}
-      {imageLoadError && <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20">
+      {imageLoadError && <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-muted-foreground text-sm">Media failed to load</div>
           </div>
