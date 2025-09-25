@@ -43,7 +43,7 @@ export const UnifiedHeroSection = ({
   const getHeightClass = () => {
     return 'h-[240px]';
   };
-  const baseClasses = `relative ${getHeightClass()} w-full flex items-center justify-center overflow-hidden rounded-2xl isolate border-2`;
+  const baseClasses = `relative ${getHeightClass()} w-full flex items-center justify-center overflow-hidden rounded-2xl isolate border-2 md:mx-[5px]`;
   const containerClasses = `${baseClasses} ${className ? className : ''}`.trim();
   const pageTitles: Record<string, string> = {
     home: 'Home',
