@@ -242,7 +242,7 @@ const TalentDashboard = () => {
               return (
                 <button
                   key={module.id}
-                  className={`flex flex-col items-center justify-center w-full h-28 rounded-full border-2 border-blue-500 bg-gradient-to-r ${module.gradient} shadow-md hover:scale-105 hover:brightness-110 transition-transform`}
+                  className={`flex flex-col items-center justify-center w-full h-28 rounded-lg border-2 border-blue-900 bg-gradient-to-r ${module.gradient} shadow-md hover:scale-105 hover:brightness-110 transition-transform`}
                   onClick={() => handleModuleClick(module.id)}
                 >
                   <IconComponent className="h-8 w-8 mb-2 text-white" />
