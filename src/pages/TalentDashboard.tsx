@@ -228,8 +228,6 @@ const TalentDashboard = () => {
               onToggleInvisible={() => {}}
             />
             </HeroShell>
-            {/* Orange bottom border like nav */}
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-funko-orange"></div>
           </div>
         </div>
 
@@ -258,8 +256,13 @@ const TalentDashboard = () => {
 
         <div className="hidden md:block">
           <Footer language={language} />
+          </div>
+          
+          {/* Orange line at bottom of page - 20px below buttons */}
+          <div className="mt-5 mx-4">
+            <div className="h-0.5 bg-funko-orange w-full"></div>
+          </div>
         </div>
-      </div>
 
       <TalentProfileSettings
         language={language}
