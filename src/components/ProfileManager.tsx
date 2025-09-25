@@ -304,7 +304,7 @@ const ProfileManager = ({ language }: ProfileManagerProps) => {
 
   return (
     <Card 
-      className="border-2 border-black bg-cover bg-center bg-no-repeat"
+      className="border-2 border-black bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
       style={{
         backgroundImage: profileData.background_image_url ? `url(${profileData.background_image_url})` : 'none',
         backgroundColor: profileData.background_image_url ? 'transparent' : 'white'

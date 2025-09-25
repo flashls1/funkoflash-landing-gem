@@ -47,7 +47,7 @@ export const UnifiedHeroSection = ({
   const getHeightClass = () => {
     return 'h-[240px]';
   };
-  const heightClass = className || `relative ${getHeightClass()} flex items-center justify-center overflow-hidden`;
+  const heightClass = className || `relative ${getHeightClass()} flex items-center justify-center overflow-hidden rounded-2xl`;
   const pageTitles: Record<string, string> = {
     home: 'Home',
     shop: 'Shop',
@@ -211,7 +211,7 @@ export const UnifiedHeroSection = ({
         </div>}
       
       {/* Overlay - fixed 45% opacity */}
-      <div className="absolute inset-0 bg-black/45 transition-opacity duration-500 z-10 my-0 rounded-b-lg" />
+      <div className="absolute inset-0 bg-black/45 transition-opacity duration-500 z-10 my-0" />
       <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
         <span className="uppercase font-black tracking-wide text-white drop-shadow-md" style={{
         fontFamily: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif',
