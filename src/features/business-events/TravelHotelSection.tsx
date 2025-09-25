@@ -211,37 +211,31 @@ export default function TravelHotelSection({ eventId, assignedTalents, language 
 
   const saveTravelDetails = async (talentId: string) => {
     try {
-      console.log('=== Starting travel details save ===');
-      const detail = travelDetails.find(t => t.talent_id === talentId);
-      console.log('Travel detail to save:', detail);
-      
-      if (!detail) {
-        console.log('No travel detail found for talent:', talentId);
-        return;
-      }
+      console.log('[TravelHotelSection] Saving travel details', { talentId });
+      const existing = travelDetails.find(t => t.talent_id === talentId);
+      const payload = existing ?? {
+        event_id: eventId,
+        talent_id: talentId,
+        status: 'Not Booked'
+      };
 
-      console.log('Attempting to upsert travel detail...');
       const { error } = await supabase
         .from('business_event_travel')
-        .upsert({ ...detail, updated_at: new Date().toISOString() });
+        .upsert({ ...payload, updated_at: new Date().toISOString() });
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Travel details saved successfully');
       toast({
         title: t[language].saved,
         description: t[language].travel
       });
       
       await loadTravelHotelData();
-    } catch (error) {
-      console.error('Error saving travel details:', error);
+    } catch (error: any) {
+      console.error('[TravelHotelSection] Save travel failed', { message: error?.message });
       toast({
         title: "Error",
-        description: "Failed to save travel details: " + (error as any).message,
+        description: "Failed to save travel details: " + (error?.message || 'Unknown error'),
         variant: "destructive"
       });
     }
