@@ -174,15 +174,15 @@ const TalentDashboard = () => {
   };
 
   const dashboardModules = [
-    { id: 'events', icon: Calendar, label: content[language].events, color: 'bg-blue-500' },
-    { id: 'calendar', icon: Clock, label: content[language].calendar, color: 'bg-green-500' },
-    { id: 'messages', icon: MessageSquare, label: content[language].messages, color: 'bg-purple-500' },
-    { id: 'portfolio', icon: FileText, label: content[language].portfolio, color: 'bg-orange-500' },
-    { id: 'earnings', icon: DollarSign, label: content[language].earnings, color: 'bg-yellow-500' },
-    { id: 'performance', icon: TrendingUp, label: content[language].performance, color: 'bg-red-500' },
-    { id: 'settings', icon: Settings, label: content[language].settings, color: 'bg-gray-500' },
-    { id: 'opportunities', icon: Star, label: content[language].opportunities, color: 'bg-cyan-500' },
-    { id: 'contracts', icon: BarChart3, label: content[language].contracts, color: 'bg-indigo-500' }
+    { id: 'events', icon: Calendar, label: content[language].events, gradient: 'from-blue-500 to-purple-600' },
+    { id: 'calendar', icon: Clock, label: content[language].calendar, gradient: 'from-pink-500 to-orange-500' },
+    { id: 'messages', icon: MessageSquare, label: content[language].messages, gradient: 'from-teal-400 to-cyan-500' },
+    { id: 'portfolio', icon: FileText, label: content[language].portfolio, gradient: 'from-red-500 to-yellow-400' },
+    { id: 'earnings', icon: DollarSign, label: content[language].earnings, gradient: 'from-green-500 to-lime-400' },
+    { id: 'performance', icon: TrendingUp, label: content[language].performance, gradient: 'from-purple-500 to-indigo-600' },
+    { id: 'settings', icon: Settings, label: content[language].settings, gradient: 'from-orange-400 to-pink-500' },
+    { id: 'opportunities', icon: Star, label: content[language].opportunities, gradient: 'from-cyan-400 to-blue-500' },
+    { id: 'contracts', icon: BarChart3, label: content[language].contracts, gradient: 'from-yellow-400 to-red-500' }
   ];
 
   if (siteDesignLoading) {
@@ -240,18 +240,14 @@ const TalentDashboard = () => {
             {dashboardModules.map((module) => {
               const IconComponent = module.icon;
               return (
-                <Card 
+                <button
                   key={module.id}
-                  className="bg-card/90 backdrop-blur cursor-pointer hover:scale-105 transition-transform duration-200 aspect-square border-2 border-sky-400"
+                  className={`flex flex-col items-center justify-center rounded-full border-2 border-blue-500 bg-gradient-to-r ${module.gradient} p-6 text-white font-bold shadow-md hover:scale-105 transition-transform duration-200 aspect-square`}
                   onClick={() => handleModuleClick(module.id)}
                 >
-                  <CardContent className="p-2 sm:p-3 md:p-4 h-full flex flex-col items-center justify-center text-center">
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full ${module.color} flex items-center justify-center mb-2 md:mb-3`}>
-                      <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
-                    </div>
-                    <h3 className="font-semibold text-xs sm:text-sm md:text-base leading-tight px-1">{module.label}</h3>
-                  </CardContent>
-                </Card>
+                  <IconComponent className="mb-2 h-6 w-6 text-white" />
+                  <span className="text-sm font-bold text-center leading-tight">{module.label}</span>
+                </button>
               );
             })}
           </div>
