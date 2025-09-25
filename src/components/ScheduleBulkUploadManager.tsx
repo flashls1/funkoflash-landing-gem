@@ -44,12 +44,28 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
   onSaved
 }) => {
   const [rawText, setRawText] = useState('');
+  const [headerText, setHeaderText] = useState('');
   const [parsedSchedule, setParsedSchedule] = useState<ParsedSchedule | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  const formatTime12Hour = (time: string) => {
+    const [hours, minutes] = time.split(':');
+    const hour24 = parseInt(hours);
+    
+    if (hour24 === 0) {
+      return `12:${minutes} AM`;
+    } else if (hour24 < 12) {
+      return `${hour24}:${minutes} AM`;
+    } else if (hour24 === 12) {
+      return `12:${minutes} PM`;
+    } else {
+      return `${hour24 - 12}:${minutes} PM`;
+    }
+  };
 
   React.useEffect(() => {
     fetchCategories();
@@ -233,6 +249,7 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
 
       // Reset form
       setRawText('');
+      setHeaderText('');
       setParsedSchedule(null);
       setIsPreviewMode(false);
       setErrors([]);
@@ -253,6 +270,8 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
   const content = {
     en: {
       bulkUpload: 'Bulk Upload Schedule',
+      headerText: 'Header Text for Talent Display',
+      headerPlaceholder: 'Enter header text to display to talent (optional)',
       instructions: 'Paste schedule text in the format: "11:00 AM – 11:30 AM – Event Title; details [Category]"',
       parseText: 'Parse Text',
       previewSchedule: 'Preview Schedule',
@@ -264,6 +283,8 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
     },
     es: {
       bulkUpload: 'Carga Masiva de Horario',
+      headerText: 'Texto de Encabezado para Mostrar al Talento',
+      headerPlaceholder: 'Ingrese texto de encabezado para mostrar al talento (opcional)',
       instructions: 'Pegue el texto del horario en el formato: "11:00 AM – 11:30 AM – Título del Evento; detalles [Categoría]"',
       parseText: 'Analizar Texto',
       previewSchedule: 'Vista Previa del Horario',
@@ -287,19 +308,36 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
         <CardContent className="space-y-4">
           {!isPreviewMode ? (
             <>
-              <div className="text-sm text-muted-foreground">
-                {content[language].instructions}
-              </div>
-              
-              <Textarea
-                value={rawText}
-                onChange={(e) => setRawText(e.target.value)}
-                placeholder="11:00 AM – 11:30 AM – Doors open; autograph tables active [Autograph]
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    {content[language].headerText}
+                  </label>
+                  <input
+                    type="text"
+                    value={headerText}
+                    onChange={(e) => setHeaderText(e.target.value)}
+                    placeholder={content[language].headerPlaceholder}
+                    className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                
+                <div>
+                  <div className="text-sm text-muted-foreground mb-2">
+                    {content[language].instructions}
+                  </div>
+                  
+                  <Textarea
+                    value={rawText}
+                    onChange={(e) => setRawText(e.target.value)}
+                    placeholder="11:00 AM – 11:30 AM – Doors open; autograph tables active [Autograph]
 12:00 PM – 1:00 PM – Voice Actor Panel; Q&A session [Panel]
 2:00 PM – 2:30 PM – Photo Op Session; Meet and greet [Photo-Op]"
-                rows={10}
-                className="font-mono text-sm"
-              />
+                    rows={10}
+                    className="font-mono text-sm"
+                  />
+                </div>
+              </div>
               
               {errors.length > 0 && (
                 <Alert variant="destructive">
@@ -330,16 +368,23 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
               </Alert>
               
               <div className="space-y-3">
-                <h4 className="font-semibold">{content[language].previewSchedule}</h4>
+                <div>
+                  <h4 className="font-semibold">{content[language].previewSchedule}</h4>
+                  {headerText && (
+                    <div className="mt-2 p-3 bg-primary/5 border-l-4 border-primary rounded">
+                      <p className="text-sm font-medium text-primary">{headerText}</p>
+                    </div>
+                  )}
+                </div>
                 
                 {parsedSchedule?.schedule.map((entry, index) => (
                   <div key={index} className="flex items-start gap-4 p-3 border rounded-lg">
                     <div className="flex-shrink-0 text-center min-w-[80px]">
                       <div className="font-bold text-sm">
-                        {entry.timeStart}
+                        {formatTime12Hour(entry.timeStart)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {entry.timeEnd}
+                        {formatTime12Hour(entry.timeEnd)}
                       </div>
                     </div>
                     

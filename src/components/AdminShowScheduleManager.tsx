@@ -124,7 +124,20 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
   };
 
   const formatTime = (time: string) => {
-    return time.slice(0, 5); // Convert "HH:MM:SS" to "HH:MM"
+    // Convert 24-hour time to 12-hour format
+    const timeOnly = time.slice(0, 5); // Convert "HH:MM:SS" to "HH:MM"
+    const [hours, minutes] = timeOnly.split(':');
+    const hour24 = parseInt(hours);
+    
+    if (hour24 === 0) {
+      return `12:${minutes} AM`;
+    } else if (hour24 < 12) {
+      return `${hour24}:${minutes} AM`;
+    } else if (hour24 === 12) {
+      return `12:${minutes} PM`;
+    } else {
+      return `${hour24 - 12}:${minutes} PM`;
+    }
   };
 
   const content = {
