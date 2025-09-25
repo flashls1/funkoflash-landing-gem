@@ -201,8 +201,10 @@ const Auth = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
       
-      {/* Hero Section */}
-      <UnifiedHeroSection language={language} />
+      {/* Hero Section - Hidden on mobile */}
+      <div className="hidden md:block">
+        <UnifiedHeroSection language={language} />
+      </div>
       
       {/* Main Content with Background */}
       <div 
@@ -215,7 +217,7 @@ const Auth = () => {
           backgroundAttachment: 'fixed'
         }}
       >
-        <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="flex-1 flex items-center justify-center px-4 py-4 md:py-8 mt-4 md:mt-0">
           <Card className="w-full max-w-md relative overflow-hidden">
             <div 
               className="absolute inset-0 bg-no-repeat bg-center bg-contain opacity-10 pointer-events-none"
