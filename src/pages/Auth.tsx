@@ -202,7 +202,7 @@ const Auth = () => {
       <Navigation language={language} setLanguage={setLanguage} />
       {/* Background wraps hero + content */}
       <div 
-        className="flex-1"
+        className="flex-1 pt-[5px]"
         style={{
           backgroundImage: 'var(--site-background)',
           backgroundSize: 'cover',
@@ -215,7 +215,7 @@ const Auth = () => {
         <div className="hidden md:block">
           <UnifiedHeroSection 
             language={language} 
-            className="mt-[5px] rounded-2xl overflow-hidden border-2"
+            className="rounded-2xl overflow-hidden border-2"
             style={{ borderColor: 'hsl(0 0% 100%)' }}
           />
         </div>

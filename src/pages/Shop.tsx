@@ -172,6 +172,7 @@ const Shop = () => {
       
       {/* Background wraps hero + content */}
       <div 
+        className="pt-[5px]"
         style={{
           backgroundImage: 'var(--site-background)',
           backgroundSize: 'cover',
@@ -183,7 +184,7 @@ const Shop = () => {
         {/* Hero Section */}
         <UnifiedHeroSection 
           language={language} 
-          className="mt-[5px] rounded-2xl overflow-hidden border-2"
+          className="rounded-2xl overflow-hidden border-2"
           style={{ borderColor: 'hsl(0 0% 100%)' }}
         />
         <main className="container mx-auto px-4 py-8">

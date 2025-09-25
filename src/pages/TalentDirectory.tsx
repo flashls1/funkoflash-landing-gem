@@ -106,7 +106,7 @@ const TalentDirectory = () => {
     <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
       {/* Background wraps hero + content */}
-      <div style={{
+      <div className="pt-[5px]" style={{
         backgroundImage: 'var(--site-background)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -116,7 +116,7 @@ const TalentDirectory = () => {
         {/* Hero Section */}
         <UnifiedHeroSection 
           language={language} 
-          className="mt-[5px] rounded-2xl overflow-hidden border-2"
+          className="rounded-2xl overflow-hidden border-2"
           style={{ borderColor: 'hsl(0 0% 100%)' }}
         />
         <main className="container mx-auto px-4 py-8">

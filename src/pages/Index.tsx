@@ -18,7 +18,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
       <div 
-        className="min-h-screen"
+        className="min-h-screen pt-[5px]"
         style={{
           backgroundImage: 'var(--site-background)',
           backgroundSize: 'cover',
@@ -29,7 +29,7 @@ const Index = () => {
       >
         <UnifiedHeroSection 
           language={language} 
-          className="mt-[5px] rounded-2xl overflow-hidden border-2"
+          className="rounded-2xl overflow-hidden border-2"
           style={{ borderColor: 'hsl(0 0% 100%)' }}
         />
         <ContentTiles language={language} />

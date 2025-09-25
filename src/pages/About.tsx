@@ -46,6 +46,7 @@ const About = () => {
       <Navigation language={language} setLanguage={setLanguage} />
       {/* Background wraps hero + content */}
       <div 
+        className="pt-[5px]"
         style={{
           backgroundImage: 'var(--site-background)',
           backgroundSize: 'cover',
@@ -57,7 +58,7 @@ const About = () => {
         {/* Hero Section */}
         <UnifiedHeroSection 
           language={language} 
-          className="mt-[5px] rounded-2xl overflow-hidden border-2"
+          className="rounded-2xl overflow-hidden border-2"
           style={{ borderColor: 'hsl(0 0% 100%)' }}
         />
         {/* Main Content */}

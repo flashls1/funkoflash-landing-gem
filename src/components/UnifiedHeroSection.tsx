@@ -43,7 +43,7 @@ export const UnifiedHeroSection = ({
   const getHeightClass = () => {
     return 'h-[240px]';
   };
-  const baseClasses = `relative ${getHeightClass()} w-full flex items-center justify-center overflow-hidden rounded-2xl isolate`;
+  const baseClasses = `relative ${getHeightClass()} w-full flex items-center justify-center overflow-hidden rounded-2xl isolate border-2`;
   const containerClasses = `${baseClasses} ${className ? className : ''}`.trim();
   const pageTitles: Record<string, string> = {
     home: 'Home',
@@ -113,7 +113,7 @@ export const UnifiedHeroSection = ({
   // Show loading state while fetching settings
   if (loading) {
     console.log('⏳ Showing loading placeholder');
-    return <section className={containerClasses} style={style}>
+    return <section className={containerClasses} style={{...style, borderColor: 'hsl(0 0% 100%)'}}>
         <div className="absolute inset-0 bg-muted animate-pulse rounded-2xl" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-muted-foreground">Loading hero section...</div>
@@ -124,7 +124,7 @@ export const UnifiedHeroSection = ({
   // Show error state if there's an error loading settings
   if (error) {
     console.log('❌ Showing error state');
-    return <section className={containerClasses} style={style}>
+    return <section className={containerClasses} style={{...style, borderColor: 'hsl(0 0% 100%)'}}>
         <div className="absolute inset-0 bg-destructive/10 rounded-2xl" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-destructive">Error loading hero section</div>
@@ -135,7 +135,7 @@ export const UnifiedHeroSection = ({
   // If no media URL, show fallback gradient
   if (!heroMedia || heroMedia.trim() === '') {
     console.log('🎨 No hero media, showing gradient fallback');
-    return <section className={containerClasses} style={style}>
+    return <section className={containerClasses} style={{...style, borderColor: 'hsl(0 0% 100%)'}}>
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl" />
       </section>;
   }
@@ -144,7 +144,7 @@ export const UnifiedHeroSection = ({
     mediaLoaded,
     imageLoadError
   });
-  return <section className={containerClasses} style={style}>
+  return <section className={containerClasses} style={{...style, borderColor: 'hsl(0 0% 100%)'}}>
       {/* Dynamic Background Media */}
       {currentMediaUrl && mediaLoaded && !imageLoadError && <>
           {mediaType === 'video' ? <video 
@@ -186,7 +186,7 @@ export const UnifiedHeroSection = ({
         </div>}
       
       {/* Overlay - fixed 45% opacity */}
-      <div className="absolute inset-0 bg-black/45 transition-opacity duration-500 z-10 my-0 rounded-2xl" />
+      <div className="absolute inset-0 bg-black/45 transition-opacity duration-500 z-10 my-0 rounded-2xl" style={{borderColor: 'hsl(0 0% 100%)'}} />
       <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
         <span className="uppercase font-black tracking-wide text-white drop-shadow-md" style={{
         fontFamily: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif',
