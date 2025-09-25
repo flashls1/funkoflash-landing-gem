@@ -26,7 +26,8 @@ import {
   Edit
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { EventScheduleTimeline } from './EventScheduleTimeline';
+import { AdminShowScheduleManager } from './AdminShowScheduleManager';
+import { AdminPersonalScheduleManager } from './AdminPersonalScheduleManager';
 import TravelHotelSection from '@/features/business-events/TravelHotelSection';
 import { formatDateUS, formatTimeUS } from '@/lib/utils';
 import BusinessEventFormDialog from '@/features/business-events/BusinessEventFormDrawer';
@@ -45,7 +46,6 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
   const [allTalents, setAllTalents] = useState<any[]>([]);
   const [assignedTalents, setAssignedTalents] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('info');
-  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [eventInfo, setEventInfo] = useState({
@@ -58,18 +58,13 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
     state: '',
     status: 'pending'
   });
-  const [scheduleEntry, setScheduleEntry] = useState({
-    date: '',
-    time: '',
-    title: '',
-    notes: ''
-  });
 
   const content = {
     en: {
       events: 'Events',
       info: 'Info',
-      schedule: 'Show Schedule',
+      showSchedule: 'Show Schedule',
+      personalSchedule: 'Personal Schedule',
       travel: 'Travel',
       talent: 'Talent',
       createEvent: 'Create Event',
@@ -117,7 +112,8 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
     es: {
       events: 'Eventos',
       info: 'Info',
-      schedule: 'Horario del Show',
+      showSchedule: 'Horario del Show',
+      personalSchedule: 'Horario Personal',
       travel: 'Viaje',
       talent: 'Talento',
       createEvent: 'Crear Evento',
@@ -430,15 +426,6 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
     }
   };
 
-  const getEventSchedule = (event: any) => {
-    if (!event?.daily_schedule || !Array.isArray(event.daily_schedule)) {
-      return [];
-    }
-    // Return first day's schedule for preview
-    const firstDay = event.daily_schedule[0];
-    return firstDay?.schedule || [];
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'default';
@@ -581,14 +568,18 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
               </CardHeader>
               <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-4 px-4">
+                  <TabsList className="grid w-full grid-cols-5 px-4">
                     <TabsTrigger value="info" className="flex items-center gap-2 text-xs">
                       <Info className="h-3 w-3" />
                       {content[language].info}
                     </TabsTrigger>
-                    <TabsTrigger value="schedule" className="flex items-center gap-2 text-xs">
+                    <TabsTrigger value="show-schedule" className="flex items-center gap-2 text-xs">
+                      <Calendar className="h-3 w-3" />
+                      {content[language].showSchedule}
+                    </TabsTrigger>
+                    <TabsTrigger value="personal-schedule" className="flex items-center gap-2 text-xs">
                       <Clock className="h-3 w-3" />
-                      {content[language].schedule}
+                      {content[language].personalSchedule}
                     </TabsTrigger>
                     <TabsTrigger value="travel" className="flex items-center gap-2 text-xs">
                       <Plane className="h-3 w-3" />
@@ -684,73 +675,19 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
                         </Button>
                     </TabsContent>
 
-                    {/* Schedule Tab */}
-                    <TabsContent value="schedule" className="mt-0 space-y-4">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-semibold">Daily Schedule</h3>
-                        <Dialog open={isScheduleModalOpen} onOpenChange={setIsScheduleModalOpen}>
-                          <DialogTrigger asChild>
-                            <Button size="sm">
-                              <Plus className="h-4 w-4 mr-2" />
-                              {content[language].addScheduleItem}
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>{content[language].addScheduleItem}</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div>
-                                <Label>{content[language].date}</Label>
-                                <Input
-                                  type="date"
-                                  value={scheduleEntry.date}
-                                  onChange={(e) => setScheduleEntry(prev => ({ ...prev, date: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <Label>{content[language].time}</Label>
-                                <Select onValueChange={(value) => setScheduleEntry(prev => ({ ...prev, time: value }))}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select time..." />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {Array.from({ length: 13 }, (_, i) => i + 8).map(hour => (
-                                      <SelectItem key={hour} value={`${hour.toString().padStart(2, '0')}:00`}>
-                                        {formatTimeUS(`${hour.toString().padStart(2, '0')}:00`)}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <Label>{content[language].title}</Label>
-                                <Input
-                                  value={scheduleEntry.title}
-                                  onChange={(e) => setScheduleEntry(prev => ({ ...prev, title: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <Label>{content[language].notes}</Label>
-                                <Textarea
-                                  value={scheduleEntry.notes}
-                                  onChange={(e) => setScheduleEntry(prev => ({ ...prev, notes: e.target.value }))}
-                                />
-                              </div>
-                              <div className="flex justify-end gap-2">
-                                <Button variant="outline" onClick={() => setIsScheduleModalOpen(false)}>
-                                  {content[language].cancel}
-                                </Button>
-                                <Button onClick={handleAddScheduleEntry}>
-                                  {content[language].save}
-                                </Button>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                      <EventScheduleTimeline 
-                        schedule={getEventSchedule(selectedEvent)}
+                    {/* Show Schedule Tab */}
+                    <TabsContent value="show-schedule" className="mt-0">
+                      <AdminShowScheduleManager 
+                        eventId={selectedEvent.id}
+                        language={language}
+                      />
+                    </TabsContent>
+
+                    {/* Personal Schedule Tab */}
+                    <TabsContent value="personal-schedule" className="mt-0">
+                      <AdminPersonalScheduleManager 
+                        eventId={selectedEvent.id}
+                        assignedTalents={assignedTalents}
                         language={language}
                       />
                     </TabsContent>
