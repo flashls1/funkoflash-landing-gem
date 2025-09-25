@@ -222,7 +222,7 @@ export const businessEventsApi = {
   async getTravelDetails(eventId: string, talentId?: string) {
     let query = supabase
       .from('business_event_travel')
-      .select('*, talent_profiles(id, name)')
+      .select('*')
       .eq('event_id', eventId);
 
     if (talentId) {
@@ -249,7 +249,7 @@ export const businessEventsApi = {
   async getHotelDetails(eventId: string, talentId?: string) {
     let query = supabase
       .from('business_event_hotel')
-      .select('*, talent_profiles(id, name)')
+      .select('*')
       .eq('event_id', eventId);
 
     if (talentId) {

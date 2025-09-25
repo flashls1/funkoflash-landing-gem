@@ -351,7 +351,43 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_business_event_hotel_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "business_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_hotel_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_business_calendar_events"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_hotel_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_business_events"
+            referencedColumns: ["business_event_id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_hotel_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_business_travel_finance"
+            referencedColumns: ["business_event_id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_hotel_talent"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       business_event_talent: {
         Row: {
@@ -474,7 +510,43 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_business_event_transport_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "business_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_transport_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_business_calendar_events"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_transport_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_business_events"
+            referencedColumns: ["business_event_id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_transport_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_business_travel_finance"
+            referencedColumns: ["business_event_id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_transport_talent"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       business_event_travel: {
         Row: {
@@ -525,7 +597,43 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_business_event_travel_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "business_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_travel_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_business_calendar_events"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_travel_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_business_events"
+            referencedColumns: ["business_event_id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_travel_event"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "v_business_travel_finance"
+            referencedColumns: ["business_event_id"]
+          },
+          {
+            foreignKeyName: "fk_business_event_travel_talent"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       business_events: {
         Row: {

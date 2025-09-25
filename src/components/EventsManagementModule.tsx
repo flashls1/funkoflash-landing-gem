@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { EventScheduleTimeline } from './EventScheduleTimeline';
+import TravelHotelSection from '@/features/business-events/TravelHotelSection';
 import { formatDateUS, formatTimeUS } from '@/lib/utils';
 import BusinessEventFormDialog from '@/features/business-events/BusinessEventFormDrawer';
 import { businessEventsApi } from '@/features/business-events/data';
@@ -47,9 +48,6 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
-  const [selectedTalentForTravel, setSelectedTalentForTravel] = useState<any>(null);
-  const [travelDetails, setTravelDetails] = useState<any[]>([]);
-  const [hotelDetails, setHotelDetails] = useState<any[]>([]);
   const [eventInfo, setEventInfo] = useState({
     title: '',
     start_ts: '',
@@ -184,7 +182,6 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
         status: selectedEvent.status || 'pending'
       });
       fetchAssignedTalents(selectedEvent.id);
-      fetchTravelDetails(selectedEvent.id);
     }
   }, [selectedEvent]);
 
@@ -228,19 +225,6 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
       setAssignedTalents(data?.map(item => item.talent_profiles) || []);
     } catch (error) {
       console.error('Error fetching assigned talents:', error);
-    }
-  };
-
-  const fetchTravelDetails = async (eventId: string) => {
-    try {
-      const [travelData, hotelData] = await Promise.all([
-        businessEventsApi.getTravelDetails(eventId),
-        businessEventsApi.getHotelDetails(eventId)
-      ]);
-      setTravelDetails(travelData || []);
-      setHotelDetails(hotelData || []);
-    } catch (error) {
-      console.error('Error fetching travel details:', error);
     }
   };
 
@@ -772,97 +756,14 @@ export const EventsManagementModule: React.FC<EventsManagementModuleProps> = ({
                     </TabsContent>
 
                     {/* Travel Tab */}
-                    <TabsContent value="travel" className="mt-0 space-y-6">
-                      {/* Talent Selector for Travel */}
-                      <div className="space-y-2">
-                        <Label>Select Talent for Travel Management</Label>
-                        <Select onValueChange={(value) => {
-                          const talent = assignedTalents.find(t => t.id === value);
-                          setSelectedTalentForTravel(talent);
-                        }}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose talent..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {assignedTalents.map((talent) => (
-                              <SelectItem key={talent.id} value={talent.id}>
-                                {talent.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {selectedTalentForTravel && (
-                        <div className="space-y-6">
-                          <Card>
-                            <CardHeader className="pb-2">
-                              <CardTitle className="flex items-center gap-2 text-sm">
-                                <Plane className="h-4 w-4" />
-                                Flight Info for {selectedTalentForTravel.name}
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                              <Input placeholder="Airline name..." />
-                              <Input placeholder="Arrival date/time..." type="datetime-local" />
-                              <Input placeholder="Departure date/time..." type="datetime-local" />
-                              <Input placeholder="Confirmation codes..." />
-                              <Textarea placeholder="Flight notes..." />
-                            </CardContent>
-                          </Card>
-
-                          <Card>
-                            <CardHeader className="pb-2">
-                              <CardTitle className="flex items-center gap-2 text-sm">
-                                <Hotel className="h-4 w-4" />
-                                Hotel Info for {selectedTalentForTravel.name}
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                              <Input placeholder="Hotel name..." />
-                              <Input placeholder="Hotel address..." />
-                              <Input placeholder="Check-in date..." type="date" />
-                              <Input placeholder="Check-out date..." type="date" />
-                              <Input placeholder="Confirmation number..." />
-                              <Textarea placeholder="Hotel notes..." />
-                            </CardContent>
-                          </Card>
-
-                          <Card>
-                            <CardHeader className="pb-2">
-                              <CardTitle className="flex items-center gap-2 text-sm">
-                                <MapPin className="h-4 w-4" />
-                                Ground Transport for {selectedTalentForTravel.name}
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Transport type..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="uber">Uber</SelectItem>
-                                  <SelectItem value="taxi">Taxi</SelectItem>
-                                  <SelectItem value="rental">Rental Car</SelectItem>
-                                  <SelectItem value="shuttle">Shuttle</SelectItem>
-                                  <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <Input placeholder="Pickup location..." />
-                              <Input placeholder="Dropoff location..." />
-                              <Input placeholder="Pickup time..." type="datetime-local" />
-                              <Input placeholder="Confirmation code..." />
-                              <Textarea placeholder="Transport notes..." />
-                            </CardContent>
-                          </Card>
-
-                          <Button className="w-full">
-                            Save Travel Details for {selectedTalentForTravel.name}
-                          </Button>
-                        </div>
-                      )}
-
-                      {assignedTalents.length === 0 && (
+                    <TabsContent value="travel" className="mt-0">
+                      {assignedTalents.length > 0 ? (
+                        <TravelHotelSection 
+                          eventId={selectedEvent.id}
+                          assignedTalents={assignedTalents}
+                          language={language}
+                        />
+                      ) : (
                         <div className="text-center text-muted-foreground py-8">
                           No talents assigned to this event. Assign talents first to manage their travel.
                         </div>
