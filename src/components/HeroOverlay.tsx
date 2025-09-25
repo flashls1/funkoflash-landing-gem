@@ -57,8 +57,8 @@ export default function HeroOverlay({
         {/* TOP-RIGHT: Online status */}
         <div className="absolute right-1 top-1">
           <span
-            className="inline-flex items-center rounded-full px-2 py-1
-                       text-[11px] sm:text-xs font-medium
+            className="inline-flex items-center rounded-full px-2 py-0.5
+                       text-[11px] sm:text-xs font-bold
                        bg-black text-green-400 ring-1 ring-black/50 border border-black/50"
             aria-label={isOnline ? tOnline(effectiveLocale) : tOffline(effectiveLocale)}
             role="status"
