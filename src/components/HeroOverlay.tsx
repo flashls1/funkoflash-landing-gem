@@ -58,30 +58,31 @@ export default function HeroOverlay({
   return (
     <div className={`absolute inset-0 p-3 sm:p-4 md:p-5 text-white rounded-2xl ${role === 'admin' ? 'border-2 border-white' : ''}`}>
       <div className="relative h-full w-full">
-        {/* TOP-RIGHT: Online + Invisible (equal right margin as greeting/date) */}
-        <div className="absolute right-3 top-3 sm:right-4 sm:top-4 md:right-5 md:top-5 flex flex-col items-end gap-2 sm:gap-2.5">
+        {/* TOP-LEFT: Online status */}
+        <div className="absolute left-3 top-3 sm:left-4 sm:top-4 md:left-5 md:top-5">
           <span
             className="inline-flex items-center rounded-full px-2 py-1
                        text-[11px] sm:text-xs font-medium
-                       bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/30"
+                       bg-white/10 text-green-400 ring-1 ring-black border border-black"
             aria-label={isOnline ? tOnline(effectiveLocale) : tOffline(effectiveLocale)}
             role="status"
           >
             <span className="mr-1 text-[10px]">●</span>
             {isOnline ? tOnline(effectiveLocale) : tOffline(effectiveLocale)}
           </span>
+        </div>
+
+        {/* TOP-RIGHT: Invisible button */}
+        <div className="absolute right-3 top-3 sm:right-4 sm:top-4 md:right-5 md:top-5">
           <button
             type="button"
             aria-pressed={invisibleMode}
             aria-label="Toggle Invisible Mode"
             onClick={onToggleInvisible}
-            className={`inline-flex items-center rounded-full px-2 py-1
+            className="inline-flex items-center rounded-full px-2 py-1
                        text-[11px] sm:text-xs font-medium
-                       ring-1 backdrop-blur transition-colors
-                       ${invisibleMode 
-                         ? 'bg-blue-500/20 text-blue-200 ring-blue-400/30 hover:bg-blue-500/25' 
-                         : 'bg-white/10 text-white hover:bg-white/15 ring-white/25'
-                       } active:scale-95`}
+                       bg-white/10 text-blue-800 ring-1 ring-black border border-black
+                       hover:bg-white/15 active:scale-95 transition-colors backdrop-blur"
           >
             {tInvisibleLabel(invisibleMode, effectiveLocale)}
           </button>
