@@ -13,18 +13,15 @@ import { useColorTheme } from '@/hooks/useColorTheme';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { useBackgroundManager } from '@/hooks/useBackgroundManager';
 import { 
+  CalendarCheck, 
   Calendar, 
   MessageSquare, 
-  User, 
-  Star, 
-  FileText, 
+  FolderOpen, 
+  DollarSign, 
   BarChart3, 
   Settings, 
-  DollarSign, 
-  TrendingUp,
-  Clock,
-  MapPin,
-  ChevronRight
+  Briefcase, 
+  FileText
 } from 'lucide-react';
 import HeroOverlay from '@/components/HeroOverlay';
 import HeroShell from '@/components/HeroShell';
@@ -174,15 +171,15 @@ const TalentDashboard = () => {
   };
 
   const dashboardModules = [
-    { id: 'events', icon: Calendar, label: content[language].events, gradient: 'from-blue-500 to-purple-600' },
-    { id: 'calendar', icon: Clock, label: content[language].calendar, gradient: 'from-pink-500 to-orange-500' },
+    { id: 'events', icon: CalendarCheck, label: content[language].events, gradient: 'from-blue-500 to-purple-600' },
+    { id: 'calendar', icon: Calendar, label: content[language].calendar, gradient: 'from-pink-500 to-orange-500' },
     { id: 'messages', icon: MessageSquare, label: content[language].messages, gradient: 'from-teal-400 to-cyan-500' },
-    { id: 'portfolio', icon: FileText, label: content[language].portfolio, gradient: 'from-red-500 to-yellow-400' },
+    { id: 'portfolio', icon: FolderOpen, label: content[language].portfolio, gradient: 'from-red-500 to-yellow-400' },
     { id: 'earnings', icon: DollarSign, label: content[language].earnings, gradient: 'from-green-500 to-lime-400' },
-    { id: 'performance', icon: TrendingUp, label: content[language].performance, gradient: 'from-purple-500 to-indigo-600' },
+    { id: 'performance', icon: BarChart3, label: content[language].performance, gradient: 'from-purple-500 to-indigo-600' },
     { id: 'settings', icon: Settings, label: content[language].settings, gradient: 'from-orange-400 to-pink-500' },
-    { id: 'opportunities', icon: Star, label: content[language].opportunities, gradient: 'from-cyan-400 to-blue-500' },
-    { id: 'contracts', icon: BarChart3, label: content[language].contracts, gradient: 'from-yellow-400 to-red-500' }
+    { id: 'opportunities', icon: Briefcase, label: content[language].opportunities, gradient: 'from-cyan-400 to-blue-500' },
+    { id: 'contracts', icon: FileText, label: content[language].contracts, gradient: 'from-yellow-400 to-red-500' }
   ];
 
   if (siteDesignLoading) {
@@ -242,7 +239,7 @@ const TalentDashboard = () => {
               return (
                 <button
                   key={module.id}
-                  className={`flex flex-col items-center justify-center w-full h-28 rounded-lg border-2 border-blue-900 bg-gradient-to-r ${module.gradient} shadow-md hover:scale-105 hover:brightness-110 transition-transform`}
+                  className={`flex flex-col items-center justify-center w-full h-28 rounded-xl border-2 border-blue-500 bg-gradient-to-r ${module.gradient} shadow-md hover:scale-105 hover:brightness-110 transition-transform`}
                   onClick={() => handleModuleClick(module.id)}
                 >
                   <IconComponent className="h-8 w-8 mb-2 text-white" />
