@@ -11,6 +11,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
+import { useBackgroundManager } from '@/hooks/useBackgroundManager';
 import { 
   Calendar, 
   MessageSquare, 
@@ -42,6 +43,7 @@ const TalentDashboard = () => {
   const { user, profile } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const { loading: siteDesignLoading } = useSiteDesign();
+  const { getBackgroundStyle } = useBackgroundManager();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -230,17 +232,13 @@ const TalentDashboard = () => {
   const backgroundUrl = (profile as any)?.background_image_url || '/lovable-uploads/d0f4637c-55b5-42eb-af08-29eabb28b253.png';
 
   return (
-    <div className="min-h-screen" style={{
-      backgroundImage: `url(${backgroundUrl})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed'
-    }}>
+    <div className="min-h-screen" style={getBackgroundStyle()}>
       <div className="min-h-screen bg-black/50 pt-[5px]">
         <Navigation language={language} setLanguage={setLanguage} />
         
-        <div className="pt-4">
-          <HeroShell imageUrl={backgroundUrl}>
+        <div className="pt-4 px-[5px]">
+          <div className="border-2 border-white rounded-2xl overflow-hidden">
+            <HeroShell imageUrl={backgroundUrl}>
             <HeroOverlay 
               role={profile?.role || 'talent'}
               user={user || { name: profile?.first_name || 'User' } as any}
@@ -257,91 +255,11 @@ const TalentDashboard = () => {
               <h1 className="text-3xl font-bold mb-2">{getGreeting()}</h1>
               <p className="text-lg opacity-90">{content[language].welcome}</p>
             </div>
-          </HeroShell>
+            </HeroShell>
+          </div>
         </div>
 
         <div className="container mx-auto px-4 py-8">
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card className="bg-card/90 backdrop-blur">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-primary">12</div>
-                <div className="text-sm text-muted-foreground">{content[language].totalBookings}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/90 backdrop-blur">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">$2,450</div>
-                <div className="text-sm text-muted-foreground">{content[language].thisMonth}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/90 backdrop-blur">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">1,234</div>
-                <div className="text-sm text-muted-foreground">{content[language].profileViews}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/90 backdrop-blur">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-yellow-600">4.8</div>
-                <div className="text-sm text-muted-foreground">{content[language].avgRating}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Upcoming Events */}
-          <Card className="bg-card/90 backdrop-blur mb-8">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  {content[language].upcomingEvents}
-                </CardTitle>
-                <Button variant="ghost" onClick={() => navigate('/calendar')}>
-                  {content[language].viewAll}
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {upcomingEvents.length > 0 ? (
-                <div className="space-y-3">
-                  {upcomingEvents.map((event, index) => (
-                    <div 
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background/70 transition-colors"
-                      onClick={() => handleEventClick(event)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 bg-primary rounded-full"></div>
-                        <div>
-                          <h4 className="font-medium">{event.title || event.event_title}</h4>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {formatDateUS(event.start_date || event.start_ts)}
-                            {event.city && (
-                              <>
-                                <MapPin className="h-3 w-3 ml-2" />
-                                {event.city}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <Badge variant="outline">
-                        {event.status || 'Scheduled'}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 text-muted-foreground">
-                  {content[language].noEvents}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* 3x3 Module Grid */}
           <div className="grid grid-cols-3 gap-4 md:gap-6">
             {dashboardModules.map((module) => {
@@ -349,7 +267,7 @@ const TalentDashboard = () => {
               return (
                 <Card 
                   key={module.id}
-                  className="bg-card/90 backdrop-blur cursor-pointer hover:scale-105 transition-transform duration-200 aspect-square"
+                  className="bg-card/90 backdrop-blur cursor-pointer hover:scale-105 transition-transform duration-200 aspect-square border-2 border-sky-400"
                   onClick={() => handleModuleClick(module.id)}
                 >
                   <CardContent className="p-4 h-full flex flex-col items-center justify-center text-center">
