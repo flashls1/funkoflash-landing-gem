@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { EventsManagementModule } from './EventsManagementModule';
 import { AdminTalentAssetsWrapper } from '@/features/talent-assets/AdminTalentAssetsWrapper';
+import { TalentProfilesManagement } from './TalentProfilesManagement';
 
 interface TalentManagementModuleProps {
   language?: 'en' | 'es';
@@ -70,16 +71,7 @@ export const TalentManagementModule: React.FC<TalentManagementModuleProps> = ({
         </TabsContent>
 
         <TabsContent value="profiles" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{content[language].profiles}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Talent Profiles management coming soon...
-              </div>
-            </CardContent>
-          </Card>
+          <TalentProfilesManagement language={language} />
         </TabsContent>
 
         <TabsContent value="assets" className="mt-6">
