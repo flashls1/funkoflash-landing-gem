@@ -622,7 +622,7 @@ export default function TalentQuickView() {
                         });
                       }
                     }}
-                    className="border-blue-400 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
+                    className="border-sky-400 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
                   >
                     View Image
                   </Button>
@@ -655,7 +655,7 @@ export default function TalentQuickView() {
                         });
                       }
                     }}
-                    className="border-blue-400 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
+                    className="border-sky-400 bg-white text-black hover:bg-gray-100 text-xs px-2 py-1 h-6"
                   >
                     View Image
                   </Button>
@@ -711,7 +711,7 @@ export default function TalentQuickView() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button 
                   onClick={() => navigate(`/dashboard/calendar?talent=${selectedTalent.id}`)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white flex-1"
+                  className="bg-sky-400 hover:bg-sky-500 text-white flex-1"
                 >
                   <Calendar className="w-4 h-4 mr-2" />
                   Check Calendar
@@ -722,7 +722,7 @@ export default function TalentQuickView() {
                     setShowForm(true);
                   }}
                   variant="outline"
-                  className="border-white/20 bg-white text-black hover:bg-gray-100"
+                  className="border-sky-400 bg-white text-black hover:bg-gray-100"
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Profile
