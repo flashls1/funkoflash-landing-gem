@@ -97,38 +97,36 @@ export default function HeroOverlay({
           </div>
         </div>
 
-        {/* LEFT-CENTER: Avatar + stacked Name/Role/(Business) with equal left margin */}
-        <div
-          className="absolute left-3 top-1/2 -translate-y-1/2
-                     flex flex-col items-start text-left min-w-0"
-          style={{ maxWidth: "80vw" }}
-        >
+        {/* LEFT-CENTER: Avatar centered vertically */}
+        <div className="absolute left-3 sm:left-4 md:left-5 top-1/2 -translate-y-1/2">
           <img
             src={avatarUrl || "/images/avatar-fallback.png"}
             alt="Profile avatar"
-            className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full object-cover ring-3 ring-black border-2 border-black"
+            className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full object-cover ring-3 ring-yellow-400 border-2 border-yellow-400"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`;
             }}
           />
-          <div className="mt-2 space-y-0.5">
-            <div className="text-sm sm:text-base md:text-lg font-semibold leading-tight line-clamp-1 max-w-[70vw]">
-              {name}
-            </div>
-            <div className="flex items-center gap-1 text-[11px] sm:text-xs md:text-sm leading-tight">
-              {role === 'talent' && <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400" />}
-              <span className={role === 'talent' ? 'text-yellow-400 font-semibold' : 'text-neutral-200/90'} 
-                    style={role === 'talent' ? { textShadow: '1px 1px 2px rgba(0,0,0,0.8)' } : {}}>
-                {roleLabel}
-              </span>
-            </div>
-            {businessName && (
-              <div className="text-[11px] sm:text-xs md:text-sm text-neutral-200/85 leading-tight line-clamp-1 max-w-[72vw]">
-                {businessName}
-              </div>
-            )}
+        </div>
+
+        {/* BOTTOM-LEFT: Name + Role aligned with greeting level */}
+        <div className="absolute left-3 sm:left-4 md:left-5 bottom-3 sm:bottom-4 md:bottom-5 text-left space-y-0.5 min-w-0" style={{ maxWidth: "70vw" }}>
+          <div className="text-sm sm:text-base md:text-lg font-semibold leading-tight line-clamp-1 bg-gradient-to-r from-white to-blue-300 bg-clip-text text-transparent">
+            {name}
           </div>
+          <div className="flex items-center gap-1 text-[11px] sm:text-xs md:text-sm leading-tight">
+            {role === 'talent' && <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400" />}
+            <span className={role === 'talent' ? 'text-yellow-400 font-semibold' : 'text-neutral-200/90'} 
+                  style={role === 'talent' ? { textShadow: '1px 1px 2px rgba(0,0,0,0.8)' } : {}}>
+              {roleLabel}
+            </span>
+          </div>
+          {businessName && (
+            <div className="text-[11px] sm:text-xs md:text-sm text-neutral-200/85 leading-tight line-clamp-1">
+              {businessName}
+            </div>
+          )}
         </div>
       </div>
     </div>
