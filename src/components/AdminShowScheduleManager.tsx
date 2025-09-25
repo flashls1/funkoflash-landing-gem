@@ -196,6 +196,10 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
   };
 
   const handleDeleteEntry = async (entryId: string) => {
+    if (!window.confirm('Are you sure you want to delete this schedule entry?')) {
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('show_schedule_entries')
@@ -238,7 +242,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
     }
   };
 
-  const handleRemoveDate = (dateToRemove: string) => {
+  const handleRemoveDate = async (dateToRemove: string) => {
     console.log('handleRemoveDate called with:', { dateToRemove, availableDates });
     
     if (availableDates.length <= 1) {
@@ -250,19 +254,46 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
       });
       return;
     }
-    
-    const newDates = availableDates.filter(date => date !== dateToRemove);
-    setAvailableDates(newDates);
-    
-    if (currentDate === dateToRemove) {
-      setCurrentDate(newDates[0] || '');
+
+    // Confirm deletion
+    if (!window.confirm(`Are you sure you want to delete all schedule entries for ${formatDateUS(dateToRemove)}? This action cannot be undone.`)) {
+      return;
     }
-    
-    console.log('Date removed successfully:', { newDates });
-    toast({
-      title: "Success",
-      description: "Date removed from schedule",
-    });
+
+    try {
+      // Delete all schedule entries for this date
+      const { error } = await supabase
+        .from('show_schedule_entries')
+        .update({ active: false })
+        .eq('event_id', eventId)
+        .eq('day_date', dateToRemove);
+
+      if (error) throw error;
+
+      // Update local state
+      const newDates = availableDates.filter(date => date !== dateToRemove);
+      setAvailableDates(newDates);
+      
+      if (currentDate === dateToRemove) {
+        setCurrentDate(newDates[0] || '');
+      }
+
+      console.log('Date and entries removed successfully:', { newDates });
+      toast({
+        title: "Success",
+        description: `Deleted all schedule entries for ${formatDateUS(dateToRemove)}`,
+      });
+
+      // Refresh the schedule entries
+      fetchScheduleEntries();
+    } catch (error) {
+      console.error('Error removing date:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove date and schedule entries",
+        variant: "destructive"
+      });
+    }
   };
 
   const formatTime = (time: string) => {
@@ -388,6 +419,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
                         size="sm"
                         onClick={() => handleRemoveDate(date)}
                         className="p-1 h-7 w-7 text-muted-foreground hover:text-destructive"
+                        title={`Delete all schedule entries for ${formatDateUS(date)}`}
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -459,6 +491,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
                             size="sm" 
                             onClick={() => handleDeleteEntry(entry.id)}
                             className="gap-1 text-destructive hover:text-destructive"
+                            title="Delete this schedule entry"
                           >
                             <Trash2 className="h-3 w-3" />
                             {content[language].deleteEntry}
