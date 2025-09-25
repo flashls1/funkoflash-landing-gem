@@ -4,14 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { 
   Upload, 
   Eye, 
   Save, 
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  CalendarIcon
 } from 'lucide-react';
 
 interface ScheduleEntry {
@@ -45,6 +50,9 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
 }) => {
   const [rawText, setRawText] = useState('');
   const [headerText, setHeaderText] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [eventStartDate, setEventStartDate] = useState<Date | null>(null);
+  const [eventEndDate, setEventEndDate] = useState<Date | null>(null);
   const [parsedSchedule, setParsedSchedule] = useState<ParsedSchedule | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -69,7 +77,8 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
 
   React.useEffect(() => {
     fetchCategories();
-  }, []);
+    fetchEventDetails();
+  }, [eventId]);
 
   const fetchCategories = async () => {
     try {
@@ -83,6 +92,30 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
       setCategories(data || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchEventDetails = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('business_events')
+        .select('start_ts, end_ts')
+        .eq('id', eventId)
+        .single();
+
+      if (error) throw error;
+      
+      if (data?.start_ts) {
+        const startDate = new Date(data.start_ts);
+        setEventStartDate(startDate);
+        setSelectedDate(startDate); // Default to event start date
+      }
+      
+      if (data?.end_ts) {
+        setEventEndDate(new Date(data.end_ts));
+      }
+    } catch (error) {
+      console.error('Error fetching event details:', error);
     }
   };
 
@@ -156,13 +189,18 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
       return null;
     }
 
-    // Generate a sample parsed schedule
-    const today = new Date();
+    // Use selected date instead of today
+    if (!selectedDate) {
+      parseErrors.push('Please select an event date first');
+      setErrors(parseErrors);
+      return null;
+    }
+
     return {
       eventId,
-      day: today.toLocaleDateString('en-US', { weekday: 'long' }),
-      date: today.toISOString().split('T')[0],
-      label: 'Event Day',
+      day: selectedDate.toLocaleDateString('en-US', { weekday: 'long' }),
+      date: selectedDate.toISOString().split('T')[0],
+      label: headerText || 'Event Day',
       schedule: entries.sort((a, b) => a.timeStart.localeCompare(b.timeStart))
     };
   };
@@ -253,6 +291,7 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
       setParsedSchedule(null);
       setIsPreviewMode(false);
       setErrors([]);
+      // Keep selected date for potential next entry
       
       onSaved?.();
     } catch (error) {
@@ -270,6 +309,8 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
   const content = {
     en: {
       bulkUpload: 'Bulk Upload Schedule',
+      eventDate: 'Event Date',
+      selectEventDate: 'Select event date',
       headerText: 'Header Text for Talent Display',
       headerPlaceholder: 'Enter header text to display to talent (optional)',
       instructions: 'Paste schedule text in the format: "11:00 AM – 11:30 AM – Event Title; details [Category]"',
@@ -283,6 +324,8 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
     },
     es: {
       bulkUpload: 'Carga Masiva de Horario',
+      eventDate: 'Fecha del Evento',
+      selectEventDate: 'Seleccionar fecha del evento',
       headerText: 'Texto de Encabezado para Mostrar al Talento',
       headerPlaceholder: 'Ingrese texto de encabezado para mostrar al talento (opcional)',
       instructions: 'Pegue el texto del horario en el formato: "11:00 AM – 11:30 AM – Título del Evento; detalles [Categoría]"',
@@ -309,6 +352,41 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
           {!isPreviewMode ? (
             <>
               <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    {content[language].eventDate}
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !selectedDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedDate ? format(selectedDate, "PPP") : content[language].selectEventDate}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        disabled={(date) => {
+                          // Only allow dates within event range
+                          if (eventStartDate && date < eventStartDate) return true;
+                          if (eventEndDate && date > eventEndDate) return true;
+                          return false;
+                        }}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
                 <div>
                   <label className="text-sm font-medium mb-2 block">
                     {content[language].headerText}
