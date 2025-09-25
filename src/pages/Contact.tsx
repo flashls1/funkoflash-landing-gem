@@ -82,11 +82,7 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
-      
-      {/* Hero Section */}
-      <UnifiedHeroSection language={language} />
-
-      {/* Main Content with Background */}
+      {/* Background wraps hero + content */}
       <div 
         style={{
           backgroundImage: 'var(--site-background)',
@@ -96,6 +92,12 @@ const Contact = () => {
           backgroundAttachment: 'fixed'
         }}
       >
+        {/* Hero Section */}
+        <UnifiedHeroSection 
+          language={language} 
+          className="mt-[5px] rounded-2xl overflow-hidden border-2"
+          style={{ borderColor: 'hsl(0 0% 100%)' }}
+        />
         {/* Main Content */}
         <main className="max-w-6xl mx-auto px-4 py-16">
           {/* Intro Section */}

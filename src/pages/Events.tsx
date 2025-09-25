@@ -158,11 +158,7 @@ export default function Events() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
-      
-      {/* Hero Section */}
-      <UnifiedHeroSection language={language} />
-
-      {/* Main Content with Background */}
+      {/* Background wraps hero + content */}
       <div 
         style={{
           backgroundImage: 'var(--site-background)',
@@ -172,6 +168,12 @@ export default function Events() {
           backgroundAttachment: 'fixed'
         }}
       >
+        {/* Hero Section */}
+        <UnifiedHeroSection 
+          language={language} 
+          className="mt-[5px] rounded-2xl overflow-hidden border-2"
+          style={{ borderColor: 'hsl(0 0% 100%)' }}
+        />
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
             {/* Filters */}

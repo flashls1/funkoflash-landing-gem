@@ -1,12 +1,15 @@
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { useState, useEffect } from 'react';
+import type { CSSProperties } from 'react';
 interface UnifiedHeroSectionProps {
   language: 'en' | 'es';
   className?: string;
+  style?: CSSProperties;
 }
 export const UnifiedHeroSection = ({
   language,
-  className
+  className,
+  style
 }: UnifiedHeroSectionProps) => {
   const {
     getCurrentPageSettings,
@@ -40,7 +43,8 @@ export const UnifiedHeroSection = ({
   const getHeightClass = () => {
     return 'h-[240px]';
   };
-  const heightClass = className || `relative ${getHeightClass()} w-full flex items-center justify-center overflow-hidden rounded-2xl bg-black isolate`;
+  const baseClasses = `relative ${getHeightClass()} w-full flex items-center justify-center overflow-hidden rounded-2xl isolate`;
+  const containerClasses = `${baseClasses} ${className ? className : ''}`.trim();
   const pageTitles: Record<string, string> = {
     home: 'Home',
     shop: 'Shop',
@@ -109,7 +113,7 @@ export const UnifiedHeroSection = ({
   // Show loading state while fetching settings
   if (loading) {
     console.log('⏳ Showing loading placeholder');
-    return <section className={heightClass}>
+    return <section className={containerClasses} style={style}>
         <div className="absolute inset-0 bg-muted animate-pulse rounded-2xl" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-muted-foreground">Loading hero section...</div>
@@ -120,7 +124,7 @@ export const UnifiedHeroSection = ({
   // Show error state if there's an error loading settings
   if (error) {
     console.log('❌ Showing error state');
-    return <section className={heightClass}>
+    return <section className={containerClasses} style={style}>
         <div className="absolute inset-0 bg-destructive/10 rounded-2xl" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-destructive">Error loading hero section</div>
@@ -131,7 +135,7 @@ export const UnifiedHeroSection = ({
   // If no media URL, show fallback gradient
   if (!heroMedia || heroMedia.trim() === '') {
     console.log('🎨 No hero media, showing gradient fallback');
-    return <section className={heightClass}>
+    return <section className={containerClasses} style={style}>
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl" />
       </section>;
   }
@@ -140,7 +144,7 @@ export const UnifiedHeroSection = ({
     mediaLoaded,
     imageLoadError
   });
-  return <section className={heightClass}>
+  return <section className={containerClasses} style={style}>
       {/* Dynamic Background Media */}
       {currentMediaUrl && mediaLoaded && !imageLoadError && <>
           {mediaType === 'video' ? <video 

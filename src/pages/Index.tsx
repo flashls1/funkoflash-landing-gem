@@ -17,7 +17,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
-      <UnifiedHeroSection language={language} />
       <div 
         className="min-h-screen"
         style={{
@@ -28,6 +27,11 @@ const Index = () => {
           backgroundAttachment: 'fixed'
         }}
       >
+        <UnifiedHeroSection 
+          language={language} 
+          className="mt-[5px] rounded-2xl overflow-hidden border-2"
+          style={{ borderColor: 'hsl(0 0% 100%)' }}
+        />
         <ContentTiles language={language} />
         <Footer language={language} />
       </div>
