@@ -55,7 +55,7 @@ export default function HeroOverlay({
     <div className={`absolute inset-0 p-1 text-white rounded-2xl ${role === 'admin' ? 'border border-white/50' : ''}`}>
       <div className="relative h-full w-full">
         {/* TOP-RIGHT: Online status */}
-        <div className="absolute right-1 top-1">
+        <div className="absolute right-1 -top-0.5">
           <span
             className="inline-flex items-center rounded-full px-2 py-0.5
                        text-[11px] sm:text-xs font-bold
