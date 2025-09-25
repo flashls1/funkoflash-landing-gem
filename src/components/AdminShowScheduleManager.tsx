@@ -148,19 +148,27 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
 
   const handleAddDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
+    console.log('handleAddDate called with:', { date, dateStr, availableDates });
+    
     if (!availableDates.includes(dateStr) && availableDates.length < 4) {
       const newDates = [...availableDates, dateStr].sort();
       setAvailableDates(newDates);
       setCurrentDate(dateStr);
+      console.log('Date added successfully:', { newDates });
       toast({
         title: "Success",
         description: "Date added to schedule",
       });
+    } else {
+      console.log('Date not added - already exists or limit reached');
     }
   };
 
   const handleRemoveDate = (dateToRemove: string) => {
+    console.log('handleRemoveDate called with:', { dateToRemove, availableDates });
+    
     if (availableDates.length <= 1) {
+      console.log('Cannot remove - only one date left');
       toast({
         title: "Error",
         description: "Cannot remove the last date",
@@ -176,6 +184,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
       setCurrentDate(newDates[0] || '');
     }
     
+    console.log('Date removed successfully:', { newDates });
     toast({
       title: "Success",
       description: "Date removed from schedule",
@@ -225,6 +234,16 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
       removeDate: 'Eliminar Fecha'
     }
   };
+
+  // Debug logging
+  console.log('AdminShowScheduleManager Debug:', {
+    availableDates,
+    currentDate,
+    availableDatesLength: availableDates.length,
+    eventDetails,
+    showAddDateButton: availableDates.length < 4,
+    showRemoveButtons: availableDates.length > 1
+  });
 
   if (loading) {
     return <div className="flex items-center justify-center p-8">Loading...</div>;
