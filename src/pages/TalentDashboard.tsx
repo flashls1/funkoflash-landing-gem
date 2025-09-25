@@ -1,73 +1,47 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
-import { TalentAssetsManager } from '@/features/talent-assets/TalentAssetsManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
-import { useInvisibleMode } from '@/hooks/useInvisibleMode';
 import { useNavigate } from 'react-router-dom';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
-import { Calendar, MessageSquare, User, Star, FileText, BarChart3, Settings, DollarSign, TrendingUp, Lock, Unlock, Palette, ChevronDown } from 'lucide-react';
+import { 
+  Calendar, 
+  MessageSquare, 
+  User, 
+  Star, 
+  FileText, 
+  BarChart3, 
+  Settings, 
+  DollarSign, 
+  TrendingUp,
+  Clock,
+  MapPin,
+  ChevronRight
+} from 'lucide-react';
 import HeroOverlay from '@/components/HeroOverlay';
 import HeroShell from '@/components/HeroShell';
-import { InvisibleModeToggle } from '@/components/InvisibleModeToggle';
 import TalentProfileSettings from '@/components/TalentProfileSettings';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useDrag, useDrop } from 'react-dnd';
-import { NextEventCard } from '@/components/NextEventCard';
-import { CalendarWidget } from '@/components/CalendarWidget';
-import { MiniAgenda } from '@/components/MiniAgenda';
-
-// Draggable card component for talent
-const DraggableCard = ({ children, id, index, moveCard, isDragEnabled }: any) => {
-  const [{ isDragging }, drag] = useDrag({
-    type: 'card',
-    item: { id, index },
-    canDrag: isDragEnabled,
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
-
-  const [, drop] = useDrop({
-    accept: 'card',
-    hover: (item: any) => {
-      if (!isDragEnabled || item.index === index) return;
-      moveCard(item.index, index);
-      item.index = index;
-    },
-  });
-
-  return (
-    <div
-      ref={(node) => drag(drop(node))}
-      style={{ opacity: isDragging ? 0.5 : 1 }}
-      className={isDragEnabled ? 'cursor-move' : 'cursor-default'}
-    >
-      {children}
-    </div>
-  );
-};
+import { EventDetailsModal } from '@/components/EventDetailsModal';
+import { formatDateUS, formatTimeUS } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const TalentDashboard = () => {
   const { language, setLanguage } = useLanguage();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [isDragEnabled, setIsDragEnabled] = useState(false);
-  const [cardOrder, setCardOrder] = useState([0, 1, 2, 3, 4, 5]);
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [activeModule, setActiveModule] = useState('overview');
   const { user, profile } = useAuth();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const { loading: siteDesignLoading } = useSiteDesign();
-  const { invisibleMode, toggleInvisible } = useInvisibleMode();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,29 +49,81 @@ const TalentDashboard = () => {
       navigate('/auth');
       return;
     }
-
-    // Update time every minute
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-
-    return () => clearInterval(timer);
+    fetchUpcomingEvents();
   }, [user, profile, navigate]);
 
-  const moveCard = (dragIndex: number, hoverIndex: number) => {
-    const newOrder = [...cardOrder];
-    const draggedCard = newOrder[dragIndex];
-    newOrder.splice(dragIndex, 1);
-    newOrder.splice(hoverIndex, 0, draggedCard);
-    setCardOrder(newOrder);
+  const fetchUpcomingEvents = async () => {
+    if (!profile) return;
+
+    try {
+      // Get events from calendar_event table for this talent
+      const { data: calendarEvents, error: calendarError } = await supabase
+        .from('calendar_event')
+        .select('*')
+        .eq('talent_id', profile.id)
+        .gte('start_date', new Date().toISOString().split('T')[0])
+        .order('start_date', { ascending: true })
+        .limit(5);
+
+      // Get business events where talent is assigned
+      const { data: businessEvents, error: businessError } = await supabase
+        .from('business_events')
+        .select(`
+          *,
+          business_event_talent!inner(talent_id)
+        `)
+        .eq('business_event_talent.talent_id', profile.id)
+        .gte('start_ts', new Date().toISOString())
+        .order('start_ts', { ascending: true })
+        .limit(5);
+
+      const allEvents = [
+        ...(calendarEvents || []).map((event: any) => ({ ...event, type: 'calendar' })),
+        ...(businessEvents || []).map((event: any) => ({ ...event, type: 'business' }))
+      ].sort((a: any, b: any) => {
+        const dateA = new Date(a.start_date || a.start_ts);
+        const dateB = new Date(b.start_date || b.start_ts);
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      setUpcomingEvents(allEvents.slice(0, 3)); // Show top 3
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
+
+  const handleEventClick = (event: any) => {
+    setSelectedEvent(event);
+    setIsEventModalOpen(true);
   };
 
   const handleModuleClick = (moduleId: string) => {
     switch (moduleId) {
-      case 'portfolio-management':
+      case 'events':
+        navigate('/talent/events');
+        break;
+      case 'calendar':
+        navigate('/calendar');
+        break;
+      case 'messages':
+        setActiveModule('messages');
+        break;
+      case 'portfolio':
         navigate('/talent/portfolio-management');
         break;
-      case 'booking-management':
+      case 'earnings':
+        navigate('/talent/earnings');
+        break;
+      case 'performance':
+        navigate('/talent/performance');
+        break;
+      case 'settings':
+        setIsProfileSettingsOpen(true);
+        break;
+      default:
+        setActiveModule(moduleId);
+    }
+  };
         navigate('/talent/booking-management');
         break;
       case 'availability-calendar':
@@ -112,10 +138,9 @@ const TalentDashboard = () => {
   };
 
   const getGreeting = () => {
-    const cstTime = new Date(currentTime.toLocaleString("en-US", {timeZone: "America/Chicago"}));
-    const hour = cstTime.getHours();
+    const hour = new Date().getHours();
     const firstName = profile?.first_name || 'Talent';
-
+    
     const greetings = {
       en: {
         morning: `Good morning ${firstName}`,
@@ -124,6 +149,15 @@ const TalentDashboard = () => {
       },
       es: {
         morning: `Buenos días ${firstName}`,
+        afternoon: `Buenas tardes ${firstName}`,
+        evening: `Buenas noches ${firstName}`
+      }
+    };
+
+    if (hour < 12) return greetings[language].morning;
+    if (hour < 18) return greetings[language].afternoon;
+    return greetings[language].evening;
+  };
         afternoon: `Buenas tardes ${firstName}`,
         evening: `Buenas noches ${firstName}`
       }
