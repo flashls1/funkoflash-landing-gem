@@ -127,31 +127,9 @@ const TalentDashboard = () => {
     }
   };
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    const firstName = profile?.first_name || 'Talent';
-    
-    const greetings = {
-      en: {
-        morning: `Good morning, ${firstName}!`,
-        afternoon: `Good afternoon, ${firstName}!`,
-        evening: `Good evening, ${firstName}!`
-      },
-      es: {
-        morning: `¡Buenos días, ${firstName}!`,
-        afternoon: `¡Buenas tardes, ${firstName}!`,
-        evening: `¡Buenas noches, ${firstName}!`
-      }
-    };
-
-    if (hour < 12) return greetings[language].morning;
-    if (hour < 18) return greetings[language].afternoon;
-    return greetings[language].evening;
-  };
 
   const content = {
     en: {
-      welcome: 'Welcome to your dashboard',
       events: 'Events',
       calendar: 'Calendar',
       messages: 'Messages',
@@ -172,7 +150,6 @@ const TalentDashboard = () => {
       avgRating: 'Avg Rating'
     },
     es: {
-      welcome: 'Bienvenido a tu panel',
       events: 'Eventos',
       calendar: 'Calendario',
       messages: 'Mensajes',
@@ -241,20 +218,15 @@ const TalentDashboard = () => {
             <HeroShell imageUrl={backgroundUrl}>
             <HeroOverlay 
               role={profile?.role || 'talent'}
-              user={user || { name: profile?.first_name || 'User' } as any}
+              user={{
+                name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Talent',
+                avatarUrl: (profile as any)?.avatar_url,
+                isOnline: true,
+                businessName: null
+              }}
               invisibleMode={false}
               onToggleInvisible={() => {}}
             />
-            <div className="relative z-10 text-center text-white">
-              <Avatar className="w-20 h-20 mx-auto mb-4 border-4 border-white">
-                <AvatarImage src={(profile as any)?.avatar_url} alt={profile?.first_name} />
-                <AvatarFallback className="text-2xl font-bold bg-primary text-primary-foreground">
-                  {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <h1 className="text-3xl font-bold mb-2">{getGreeting()}</h1>
-              <p className="text-lg opacity-90">{content[language].welcome}</p>
-            </div>
             </HeroShell>
           </div>
         </div>
