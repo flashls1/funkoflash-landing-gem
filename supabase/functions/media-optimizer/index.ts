@@ -51,7 +51,7 @@ serve(async (req) => {
     console.error('❌ Media optimization failed:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Failed to optimize media'
+        error: (error as Error).message || 'Failed to optimize media'
       }),
       { 
         status: 500,

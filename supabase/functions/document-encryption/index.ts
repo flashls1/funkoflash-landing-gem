@@ -22,12 +22,13 @@ async function encryptData(data: ArrayBuffer, key: CryptoKey): Promise<{ encrypt
     key,
     data
   );
-  return { encrypted, iv };
+  return { encrypted, iv: iv.buffer };
 }
 
 async function decryptData(encryptedData: ArrayBuffer, key: CryptoKey, iv: ArrayBuffer): Promise<ArrayBuffer> {
+  // Convert ArrayBuffer to Uint8Array for the Web Crypto API
   return await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: iv },
+    { name: "AES-GCM", iv: new Uint8Array(iv) },
     key,
     encryptedData
   );
@@ -293,7 +294,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Encryption/Decryption error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message || 'Unknown error' }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
