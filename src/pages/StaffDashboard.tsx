@@ -219,8 +219,6 @@ const StaffDashboard = () => {
                 businessName: null,
                 profileLocale: (profile as any)?.locale || null,
               }}
-              invisibleMode={invisibleMode}
-              onToggleInvisible={toggleInvisible}
               locale={language}
             />
           </HeroShell>

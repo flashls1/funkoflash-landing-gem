@@ -223,8 +223,6 @@ const TalentDashboard = () => {
                 isOnline: true,
                 businessName: null
               }}
-              invisibleMode={false}
-              onToggleInvisible={() => {}}
               locale={language}
             />
             </HeroShell>

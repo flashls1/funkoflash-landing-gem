@@ -1,7 +1,7 @@
 import React from "react";
 import { Crown } from "lucide-react";
 import type { Locale } from "@/lib/locale";
-import { resolvePreferredLocale, formatGreeting, tOnline, tOffline, tInvisibleLabel } from "@/lib/locale";
+import { resolvePreferredLocale, formatGreeting, tOnline, tOffline } from "@/lib/locale";
 
 type Role = "admin" | "staff" | "business" | "talent";
 
@@ -16,8 +16,6 @@ type User = {
 type Props = {
   role: Role;
   user: User;
-  invisibleMode: boolean;
-  onToggleInvisible: () => void;
   // Optional explicit override; if omitted we use profile + browser
   locale?: Locale;
 };
@@ -38,8 +36,6 @@ function getAdminStrings(name: string) {
 export default function HeroOverlay({
   role,
   user,
-  invisibleMode,
-  onToggleInvisible,
   locale,
 }: Props) {
   const { name, avatarUrl, isOnline, businessName, profileLocale } = user;
@@ -56,36 +52,20 @@ export default function HeroOverlay({
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
 
   return (
-    <div className={`absolute inset-0 p-3 sm:p-4 md:p-5 text-white rounded-2xl ${role === 'admin' ? 'border-2 border-white' : ''}`}>
+    <div className={`absolute inset-0 p-1 text-white rounded-2xl bg-white ${role === 'admin' ? 'border border-white/50' : ''}`}>
       <div className="relative h-full w-full">
         {/* TOP-LEFT: Online status */}
-        <div className="absolute left-3 top-3 sm:left-4 sm:top-4 md:left-5 md:top-5">
+        <div className="absolute left-1 top-1">
           <span
             className="inline-flex items-center rounded-full px-2 py-1
                        text-[11px] sm:text-xs font-medium
-                       bg-white/10 text-green-400 ring-1 ring-black border border-black"
+                       bg-white text-green-400 ring-1 ring-black/50 border border-black/50"
             aria-label={isOnline ? tOnline(effectiveLocale) : tOffline(effectiveLocale)}
             role="status"
           >
             <span className="mr-1 text-[10px]">●</span>
             {isOnline ? tOnline(effectiveLocale) : tOffline(effectiveLocale)}
           </span>
-        </div>
-
-        {/* TOP-RIGHT: Invisible button */}
-        <div className="absolute right-3 top-3 sm:right-4 sm:top-4 md:right-5 md:top-5">
-          <button
-            type="button"
-            aria-pressed={invisibleMode}
-            aria-label="Toggle Invisible Mode"
-            onClick={onToggleInvisible}
-            className="inline-flex items-center rounded-full px-2 py-1
-                       text-[11px] sm:text-xs font-medium
-                       bg-white/10 text-blue-800 ring-1 ring-black border border-black
-                       hover:bg-white/15 active:scale-95 transition-colors backdrop-blur"
-          >
-            {tInvisibleLabel(invisibleMode, effectiveLocale)}
-          </button>
         </div>
 
         {/* BOTTOM-RIGHT: Greeting + Date (shares the same right margin) */}

@@ -283,8 +283,6 @@ const AdminDashboard = () => {
                 isOnline: true,
                 businessName: null
               }}
-              invisibleMode={invisibleMode}
-              onToggleInvisible={toggleInvisible}
             />
           </HeroShell>
           
