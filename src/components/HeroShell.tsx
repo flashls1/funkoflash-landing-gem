@@ -20,7 +20,7 @@ export default function HeroShell({ imageUrl, children }: HeroShellProps) {
         loading="eager"
       />
       {/* Gradient to guarantee readability regardless of image brightness */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/45 to-transparent" aria-hidden="true" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/45 to-transparent rounded-2xl" aria-hidden="true" />
       <div className="relative h-full w-full">{children}</div>
     </section>
   );

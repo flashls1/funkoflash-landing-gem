@@ -803,7 +803,7 @@ export const SiteDesignModule = () => {
                 <Label className="text-sm font-medium">Current Hero Image</Label>
                 
                 {/* Image Preview */}
-                <div className="relative border rounded-lg overflow-hidden bg-muted">
+                <div className="relative border rounded-2xl overflow-hidden bg-muted">
                   <div 
                     className="w-full h-32 bg-cover bg-center relative"
                     style={{
@@ -812,7 +812,7 @@ export const SiteDesignModule = () => {
                       transform: `scale(${imageScale / 100})`
                     }}
                   >
-                    <div className="absolute inset-0 bg-black/20" />
+                    <div className="absolute inset-0 bg-black/20 rounded-2xl" />
                     <div className="absolute bottom-2 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded">
                       {currentSettings.hero.backgroundMedia.split('/').pop()}
                     </div>

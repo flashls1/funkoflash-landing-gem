@@ -329,7 +329,7 @@ export const SiteDesignModuleOptimized = () => {
                   <CardTitle>Preview</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="relative h-[240px] overflow-hidden rounded-lg bg-muted">
+                  <div className="relative h-[240px] overflow-hidden rounded-2xl bg-muted">
                     {previewType === 'video' ? (
                       <video 
                         className="absolute inset-0 w-full h-full object-cover"
@@ -349,7 +349,7 @@ export const SiteDesignModuleOptimized = () => {
                       />
                     )}
                     {/* Overlay to match actual display */}
-                    <div className="absolute inset-0 bg-black/45" />
+                    <div className="absolute inset-0 bg-black/45 rounded-2xl" />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-white font-black text-2xl uppercase tracking-wide">
                         {pages.find(p => p.id === selectedPage)?.name}
