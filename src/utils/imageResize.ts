@@ -58,9 +58,8 @@ export const resizeImage = async (
         sourceY = (img.height - sourceHeight) / 2;
       }
 
-      // Fill with white background
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, width, height);
+      // Use transparent background for rounded corner compatibility
+      ctx.clearRect(0, 0, width, height);
 
       // Draw cropped image to fit exactly
       ctx.drawImage(

@@ -211,7 +211,7 @@ export const UnifiedHeroSection = ({
         </div>}
       
       {/* Overlay - fixed 45% opacity */}
-      <div className="absolute inset-0 bg-black/45 transition-opacity duration-500 z-10 my-0" />
+      <div className="absolute inset-0 bg-black/45 transition-opacity duration-500 z-10 my-0 rounded-2xl" />
       <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
         <span className="uppercase font-black tracking-wide text-white drop-shadow-md" style={{
         fontFamily: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif',
