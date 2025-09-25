@@ -228,6 +228,7 @@ const TalentDashboard = () => {
               }}
               invisibleMode={false}
               onToggleInvisible={() => {}}
+              locale={language}
             />
             </HeroShell>
           </div>
