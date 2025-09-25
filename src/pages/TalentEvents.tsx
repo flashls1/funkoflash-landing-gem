@@ -101,12 +101,13 @@ const TalentEvents = () => {
         ) : (
           <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
             {upcomingEvents.map((event) => (
-          <Card 
-            key={event.id}
-            className={`overflow-hidden transition-all hover:shadow-lg ${
-              isMobile ? 'mx-[5px] h-[200px]' : ''
-            }`}
-          >
+            <Card 
+              key={event.id}
+              className={`overflow-hidden transition-all hover:shadow-lg cursor-pointer ${
+                isMobile ? 'mx-[5px] h-[200px]' : ''
+              }`}
+              onClick={() => navigate(`/talent/events/${event.id}/schedule`)}
+            >
             <CardContent className="p-0">
               <div className={`flex ${isMobile ? 'flex-row h-full' : 'flex-col'}`}>
                 {/* Event Image */}

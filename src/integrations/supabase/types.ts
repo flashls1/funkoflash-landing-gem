@@ -1284,6 +1284,75 @@ export type Database = {
           },
         ]
       }
+      schedule_bulk_uploads: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          event_id: string
+          id: string
+          parsed_json: Json
+          raw_text: string
+          status: string
+          upload_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          event_id: string
+          id?: string
+          parsed_json: Json
+          raw_text: string
+          status?: string
+          upload_type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          event_id?: string
+          id?: string
+          parsed_json?: Json
+          raw_text?: string
+          status?: string
+          upload_type?: string
+        }
+        Relationships: []
+      }
+      schedule_categories: {
+        Row: {
+          active: boolean
+          color: string
+          created_at: string
+          display_order: number
+          icon: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          color: string
+          created_at?: string
+          display_order?: number
+          icon: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          display_order?: number
+          icon?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_audit_log: {
         Row: {
           action: string
@@ -1361,6 +1430,68 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      show_schedule_entries: {
+        Row: {
+          active: boolean
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          day_date: string
+          day_label: string | null
+          details: string | null
+          display_order: number
+          event_id: string
+          id: string
+          time_end: string
+          time_start: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active?: boolean
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          day_date: string
+          day_label?: string | null
+          details?: string | null
+          display_order?: number
+          event_id: string
+          id?: string
+          time_end: string
+          time_start: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active?: boolean
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          day_date?: string
+          day_label?: string | null
+          details?: string | null
+          display_order?: number
+          event_id?: string
+          id?: string
+          time_end?: string
+          time_start?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "show_schedule_entries_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_design_settings: {
         Row: {
@@ -1456,6 +1587,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      talent_personal_schedules: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_id: string | null
+          id: string
+          private: boolean
+          schedule_date: string
+          schedule_type: string
+          talent_id: string
+          time_end: string
+          time_start: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_id?: string | null
+          id?: string
+          private?: boolean
+          schedule_date: string
+          schedule_type?: string
+          talent_id: string
+          time_end: string
+          time_start: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_id?: string | null
+          id?: string
+          private?: boolean
+          schedule_date?: string
+          schedule_type?: string
+          talent_id?: string
+          time_end?: string
+          time_start?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       talent_profiles: {
         Row: {
