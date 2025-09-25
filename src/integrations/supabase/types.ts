@@ -965,6 +965,45 @@ export type Database = {
           },
         ]
       }
+      event_dates: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          date_label: string | null
+          date_value: string
+          display_order: number
+          event_id: string
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          date_label?: string | null
+          date_value: string
+          display_order?: number
+          event_id: string
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          date_label?: string | null
+          date_value?: string
+          display_order?: number
+          event_id?: string
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       gcal_connections: {
         Row: {
           access_token: string
@@ -1444,6 +1483,7 @@ export type Database = {
           day_label: string | null
           details: string | null
           display_order: number
+          event_date_id: string | null
           event_id: string
           id: string
           time_end: string
@@ -1461,6 +1501,7 @@ export type Database = {
           day_label?: string | null
           details?: string | null
           display_order?: number
+          event_date_id?: string | null
           event_id: string
           id?: string
           time_end: string
@@ -1478,6 +1519,7 @@ export type Database = {
           day_label?: string | null
           details?: string | null
           display_order?: number
+          event_date_id?: string | null
           event_id?: string
           id?: string
           time_end?: string
@@ -1492,6 +1534,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "schedule_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "show_schedule_entries_event_date_id_fkey"
+            columns: ["event_date_id"]
+            isOneToOne: false
+            referencedRelation: "event_dates"
             referencedColumns: ["id"]
           },
         ]
@@ -2310,6 +2359,15 @@ export type Database = {
           p_table_name?: string
         }
         Returns: undefined
+      }
+      manage_event_date: {
+        Args: {
+          p_action?: string
+          p_date_label?: string
+          p_date_value: string
+          p_event_id: string
+        }
+        Returns: string
       }
       test_business_account_isolation: {
         Args: Record<PropertyKey, never>

@@ -242,6 +242,19 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
 
+      // First, ensure the date exists in event_dates table
+      const { error: dateError } = await supabase.rpc('manage_event_date', {
+        p_event_id: eventId,
+        p_date_value: parsedSchedule.date,
+        p_date_label: parsedSchedule.label,
+        p_action: 'upsert'
+      });
+
+      if (dateError) {
+        console.error('Error managing event date:', dateError);
+        throw dateError;
+      }
+
       // Save each schedule entry to the database
       const promises = parsedSchedule.schedule.map(entry => {
         const category = categories.find(cat => cat.name === entry.category);
@@ -251,7 +264,6 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
           .insert({
             event_id: eventId,
             day_date: parsedSchedule.date,
-            day_label: parsedSchedule.label,
             time_start: entry.timeStart,
             time_end: entry.timeEnd,
             title: entry.title,

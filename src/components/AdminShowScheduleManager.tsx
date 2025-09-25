@@ -19,20 +19,39 @@ import {
 } from 'lucide-react';
 import { IconSelector } from '@/components/IconSelector';
 import { formatDateUS } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface ShowScheduleEntry {
   id: string;
+  event_id: string;
   day_date: string;
-  day_label?: string;
   time_start: string;
   time_end: string;
   title: string;
   details?: string;
+  display_order: number;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+  category_id?: string;
+  category_name?: string;
+  category_icon?: string;
+  category_color?: string;
+  event_date_id?: string;
   schedule_categories?: {
     name: string;
     color: string;
     icon: string;
   };
+}
+
+interface EventDate {
+  id: string;
+  event_id: string;
+  date_value: string;
+  date_label?: string;
+  display_order: number;
+  active: boolean;
 }
 
 interface AdminShowScheduleManagerProps {
@@ -45,45 +64,79 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
   language = 'en'
 }) => {
   const [scheduleEntries, setScheduleEntries] = useState<ShowScheduleEntry[]>([]);
-  const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [eventDates, setEventDates] = useState<EventDate[]>([]);
   const [currentDate, setCurrentDate] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('manage');
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'manage' | 'bulk'>('manage');
   const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [eventDetails, setEventDetails] = useState<{start_ts?: string, end_ts?: string} | null>(null);
+  const [eventDetails, setEventDetails] = useState<{ start_ts?: string; end_ts?: string } | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (eventId) {
-      fetchScheduleEntries();
-      fetchEventDetails();
-      fetchCategories();
-    }
-  }, [eventId]);
+  const fetchEventDates = async () => {
+    if (!eventId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('event_dates')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('active', true)
+        .order('display_order', { ascending: true });
 
-  // Fix date selection logic to prioritize event dates
-  useEffect(() => {
-    if (availableDates.length > 0 && eventDetails && !currentDate) {
-      const eventStart = eventDetails.start_ts ? new Date(eventDetails.start_ts) : null;
-      const eventEnd = eventDetails.end_ts ? new Date(eventDetails.end_ts) : null;
-      
-      if (eventStart && eventEnd) {
-        // Find dates within event range
-        const eventDateStrings = availableDates.filter(dateStr => {
-          const date = new Date(dateStr);
-          return date >= eventStart && date <= eventEnd;
-        });
-        
-        // Use first event date, or fallback to first available date
-        const preferredDate = eventDateStrings.length > 0 ? eventDateStrings[0] : availableDates[0];
-        setCurrentDate(preferredDate);
-      } else {
-        setCurrentDate(availableDates[0]);
+      if (error) {
+        console.error('Error fetching event dates:', error);
+        return;
       }
+
+      setEventDates(data || []);
+      
+      if (data && data.length > 0 && !currentDate) {
+        setCurrentDate(data[0].date_value);
+      }
+    } catch (error) {
+      console.error('Error in fetchEventDates:', error);
     }
-  }, [availableDates, eventDetails, currentDate]);
+  };
+
+  const fetchScheduleEntries = async () => {
+    if (!eventId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('show_schedule_entries')
+        .select(`
+          *,
+          schedule_categories!left (
+            id,
+            name,
+            icon,
+            color
+          )
+        `)
+        .eq('event_id', eventId)
+        .eq('active', true)
+        .order('day_date', { ascending: true })
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching schedule entries:', error);
+        return;
+      }
+
+      const entries = data?.map(entry => ({
+        ...entry,
+        category_name: entry.schedule_categories?.name,
+        category_icon: entry.schedule_categories?.icon,
+        category_color: entry.schedule_categories?.color
+      })) || [];
+
+      setScheduleEntries(entries);
+    } catch (error) {
+      console.error('Error in fetchScheduleEntries:', error);
+    }
+  };
 
   const fetchEventDetails = async () => {
     try {
@@ -115,56 +168,33 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
     }
   };
 
-  const fetchScheduleEntries = async () => {
-    try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('show_schedule_entries')
-        .select(`
-          *,
-          schedule_categories (
-            name,
-            color,
-            icon
-          )
-        `)
-        .eq('event_id', eventId)
-        .eq('active', true)
-        .order('day_date', { ascending: true })
-        .order('time_start', { ascending: true });
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      await fetchEventDates();
+      await fetchScheduleEntries();
+      await fetchEventDetails();
+      await fetchCategories();
+      setIsLoading(false);
+    };
 
-      if (error) throw error;
-
-      setScheduleEntries(data || []);
-      
-      // Get unique dates
-      const dates = [...new Set(data?.map(entry => entry.day_date) || [])].sort();
-      setAvailableDates(dates);
-      
-      // Don't set currentDate here - let the useEffect handle it with proper logic
-    } catch (error) {
-      console.error('Error fetching schedule entries:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load schedule entries",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+    if (eventId) {
+      fetchData();
     }
-  };
+  }, [eventId]);
 
   const getCurrentDateEntries = () => {
     return scheduleEntries.filter(entry => entry.day_date === currentDate);
   };
 
   const getCurrentDateLabel = () => {
-    const entries = getCurrentDateEntries();
-    if (entries.length > 0 && entries[0].day_label) {
-      return entries[0].day_label;
+    const currentEventDate = eventDates.find(date => date.date_value === currentDate);
+    if (currentEventDate && currentEventDate.date_label) {
+      return currentEventDate.date_label;
     }
-    return currentDate ? formatDateUS(currentDate) : '';
+    
+    // Default formatted date if no custom label exists
+    return formatDateUS(currentDate);
   };
 
   const handleCategoryChange = async (entryId: string, newCategory: any) => {
@@ -184,7 +214,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
         description: "Category updated successfully",
       });
 
-      fetchScheduleEntries();
+      await fetchScheduleEntries();
     } catch (error) {
       console.error('Error updating category:', error);
       toast({
@@ -203,53 +233,86 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
     try {
       const { error } = await supabase
         .from('show_schedule_entries')
-        .update({ active: false })
+        .update({ active: false, updated_by: (await supabase.auth.getUser()).data.user?.id })
         .eq('id', entryId);
 
       if (error) throw error;
 
+      // Refresh the schedule entries
+      await fetchScheduleEntries();
+      
       toast({
         title: "Success",
-        description: "Schedule entry deleted",
+        description: "Schedule entry deleted successfully",
       });
-
-      fetchScheduleEntries();
     } catch (error) {
       console.error('Error deleting entry:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete entry",
+        title: "Error", 
+        description: "Failed to delete schedule entry",
         variant: "destructive"
       });
     }
   };
 
-  const handleAddDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    console.log('handleAddDate called with:', { date, dateStr, availableDates });
+  const handleAddDate = async (newDate: Date) => {
+    const dateString = format(newDate, 'yyyy-MM-dd');
     
-    if (!availableDates.includes(dateStr) && availableDates.length < 4) {
-      const newDates = [...availableDates, dateStr].sort();
-      setAvailableDates(newDates);
-      setCurrentDate(dateStr);
-      console.log('Date added successfully:', { newDates });
+    // Check if we already have 4 dates
+    if (eventDates.length >= 4) {
+      toast({
+        title: "Maximum dates reached",
+        description: "You can only have up to 4 dates in your schedule",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check if date already exists
+    if (eventDates.some(date => date.date_value === dateString)) {
+      toast({
+        title: "Date already exists",
+        description: "This date is already in your schedule",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('manage_event_date', {
+        p_event_id: eventId,
+        p_date_value: dateString,
+        p_action: 'upsert'
+      });
+
+      if (error) throw error;
+
+      // Refresh dates and switch to new date
+      await fetchEventDates();
+      setCurrentDate(dateString);
+      setShowDatePicker(false);
+      
       toast({
         title: "Success",
         description: "Date added to schedule",
       });
-    } else {
-      console.log('Date not added - already exists or limit reached');
+    } catch (error) {
+      console.error('Error adding date:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add date to schedule",
+        variant: "destructive"
+      });
     }
   };
 
   const handleRemoveDate = async (dateToRemove: string) => {
-    console.log('handleRemoveDate called with:', { dateToRemove, availableDates });
+    console.log('handleRemoveDate called with:', { dateToRemove, eventDates });
     
-    if (availableDates.length <= 1) {
-      console.log('Cannot remove - only one date left');
+    if (eventDates.length <= 1) {
       toast({
-        title: "Error",
-        description: "Cannot remove the last date",
+        title: "Cannot remove date",
+        description: "You must have at least one date in your schedule",
         variant: "destructive"
       });
       return;
@@ -261,31 +324,29 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
     }
 
     try {
-      // Delete all schedule entries for this date
-      const { error } = await supabase
-        .from('show_schedule_entries')
-        .update({ active: false })
-        .eq('event_id', eventId)
-        .eq('day_date', dateToRemove);
+      // Use the database function to delete the date and associated entries
+      const { error } = await supabase.rpc('manage_event_date', {
+        p_event_id: eventId,
+        p_date_value: dateToRemove,
+        p_action: 'delete'
+      });
 
       if (error) throw error;
 
-      // Update local state
-      const newDates = availableDates.filter(date => date !== dateToRemove);
-      setAvailableDates(newDates);
+      // Refresh data and update current date if needed
+      await fetchEventDates();
+      await fetchScheduleEntries();
       
       if (currentDate === dateToRemove) {
-        setCurrentDate(newDates[0] || '');
+        const remainingDates = eventDates.filter(date => date.date_value !== dateToRemove);
+        setCurrentDate(remainingDates[0]?.date_value || '');
       }
 
-      console.log('Date and entries removed successfully:', { newDates });
+      console.log('Date and entries removed successfully');
       toast({
         title: "Success",
         description: `Deleted all schedule entries for ${formatDateUS(dateToRemove)}`,
       });
-
-      // Refresh the schedule entries
-      fetchScheduleEntries();
     } catch (error) {
       console.error('Error removing date:', error);
       toast({
@@ -340,20 +401,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
     }
   };
 
-  // Debug logging - reduced frequency
-  if (Math.random() < 0.1) { // Only log 10% of the time to reduce spam
-    console.log('AdminShowScheduleManager Debug:', {
-      availableDates,
-      currentDate,
-      availableDatesLength: availableDates.length,
-      eventDetails,
-      showAddDateButton: availableDates.length < 4,
-      showRemoveButtons: availableDates.length > 1,
-      currentDateLabel: getCurrentDateLabel()
-    });
-  }
-
-  if (loading) {
+  if (isLoading) {
     return <div className="flex items-center justify-center p-8">Loading...</div>;
   }
 
@@ -377,10 +425,10 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'manage' | 'bulk')}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="manage">{content[language].manageSchedule}</TabsTrigger>
-          <TabsTrigger value="upload">{content[language].bulkUpload}</TabsTrigger>
+          <TabsTrigger value="bulk">{content[language].bulkUpload}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="manage" className="space-y-4">
@@ -388,7 +436,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium">Schedule Dates</h4>
-              {availableDates.length < 4 && (
+              {eventDates.length < 4 && (
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -401,25 +449,25 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
               )}
             </div>
             
-            {availableDates.length > 0 && (
-              <div className="flex gap-2 flex-wrap">
-                {availableDates.map(date => (
-                  <div key={date} className="flex items-center gap-1">
+            {eventDates.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {eventDates.map((eventDate) => (
+                  <div key={eventDate.id} className="flex items-center gap-1">
                     <Button
-                      variant={currentDate === date ? "default" : "outline"}
+                      variant={currentDate === eventDate.date_value ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setCurrentDate(date)}
-                      className="pr-2 cursor-pointer"
+                      onClick={() => setCurrentDate(eventDate.date_value)}
+                      className="h-8"
                     >
-                      {formatDateUS(date)}
+                      {eventDate.date_label || formatDateUS(eventDate.date_value)}
                     </Button>
-                    {availableDates.length > 1 && (
+                    {eventDates.length > 1 && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveDate(date)}
+                        onClick={() => handleRemoveDate(eventDate.date_value)}
                         className="p-1 h-7 w-7 text-muted-foreground hover:text-destructive"
-                        title={`Delete all schedule entries for ${formatDateUS(date)}`}
+                        title={`Delete all schedule entries for ${eventDate.date_label || formatDateUS(eventDate.date_value)}`}
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -506,11 +554,15 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
           </Card>
         </TabsContent>
 
-        <TabsContent value="upload">
+        <TabsContent value="bulk">
           <ScheduleBulkUploadManager 
             eventId={eventId}
             language={language}
-            onSaved={fetchScheduleEntries}
+            onSaved={() => {
+              fetchEventDates();
+              fetchScheduleEntries();
+              setActiveTab('manage');
+            }}
           />
         </TabsContent>
       </Tabs>
@@ -520,7 +572,7 @@ export const AdminShowScheduleManager: React.FC<AdminShowScheduleManagerProps> =
         isOpen={showMobilePreview}
         onClose={() => setShowMobilePreview(false)}
         scheduleEntries={scheduleEntries}
-        availableDates={availableDates}
+        availableDates={eventDates.map(ed => ed.date_value)}
         language={language}
       />
 
