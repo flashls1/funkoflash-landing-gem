@@ -130,6 +130,7 @@ const TalentDashboard = () => {
 
   const content = {
     en: {
+      backToDashboard: '← Back to Dashboard',
       events: 'Events',
       calendar: 'Calendar',
       messages: 'Messages',
@@ -150,6 +151,7 @@ const TalentDashboard = () => {
       avgRating: 'Avg Rating'
     },
     es: {
+      backToDashboard: '← Volver al Panel',
       events: 'Eventos',
       calendar: 'Calendario',
       messages: 'Mensajes',
@@ -197,7 +199,7 @@ const TalentDashboard = () => {
             variant="ghost" 
             className="mb-4"
           >
-            ← Back to Dashboard
+            {content[language].backToDashboard}
           </Button>
           <RealtimeMessageCenter language={language} />
         </div>
