@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTalentProfile } from '@/hooks/useTalentProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   ArrowLeft, 
@@ -35,6 +36,7 @@ const TalentEventShowSchedule = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { talentProfile, loading: talentLoading, error: talentError } = useTalentProfile();
   const { language, setLanguage } = useLanguage();
   const isMobile = useIsMobile();
   const [event, setEvent] = useState<any>(null);
@@ -48,13 +50,13 @@ const TalentEventShowSchedule = () => {
       navigate('/auth');
       return;
     }
-    if (eventId) {
+    if (eventId && talentProfile) {
       fetchEventAndSchedules();
     }
-  }, [user, profile, eventId, navigate]);
+  }, [user, profile, eventId, talentProfile, navigate]);
 
   const fetchEventAndSchedules = async () => {
-    if (!eventId || !profile) return;
+    if (!eventId || !talentProfile) return;
 
     try {
       setLoading(true);
@@ -67,7 +69,7 @@ const TalentEventShowSchedule = () => {
           business_event_talent!inner(talent_id)
         `)
         .eq('id', eventId)
-        .eq('business_event_talent.talent_id', profile.id)
+        .eq('business_event_talent.talent_id', talentProfile.id)
         .single();
 
       if (eventError) throw eventError;
@@ -191,8 +193,12 @@ const TalentEventShowSchedule = () => {
     }
   };
 
-  if (loading) {
+  if (loading || talentLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
+
+  if (talentError || !talentProfile) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Error: Unable to load talent profile. Please contact support.</div>;
   }
 
   const currentDateSchedule = getCurrentDateSchedule();

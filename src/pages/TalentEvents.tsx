@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useNavigate } from 'react-router-dom';
+import { useTalentProfile } from '@/hooks/useTalentProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDateUS } from '@/lib/utils';
 import { MapPin, Calendar, Clock } from 'lucide-react';
@@ -14,6 +15,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const TalentEvents = () => {
   const { language, setLanguage } = useLanguage();
   const { user, profile } = useAuth();
+  const { talentProfile, loading: talentLoading, error: talentError } = useTalentProfile();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
@@ -24,11 +26,13 @@ const TalentEvents = () => {
       navigate('/auth');
       return;
     }
-    fetchUpcomingEvents();
-  }, [user, profile, navigate]);
+    if (talentProfile) {
+      fetchUpcomingEvents();
+    }
+  }, [user, profile, talentProfile, navigate]);
 
   const fetchUpcomingEvents = async () => {
-    if (!profile) return;
+    if (!talentProfile) return;
 
     try {
       setLoading(true);
@@ -40,7 +44,7 @@ const TalentEvents = () => {
           *,
           business_event_talent!inner(talent_id)
         `)
-        .eq('business_event_talent.talent_id', profile.id)
+        .eq('business_event_talent.talent_id', talentProfile.id)
         .gte('start_ts', new Date().toISOString())
         .order('start_ts', { ascending: true });
 
@@ -73,8 +77,12 @@ const TalentEvents = () => {
     }
   };
 
-  if (loading) {
+  if (loading || talentLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (talentError || !talentProfile) {
+    return <div>Error: Unable to load talent profile. Please contact support.</div>;
   }
 
   return (

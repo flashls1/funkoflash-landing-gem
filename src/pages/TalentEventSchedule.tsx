@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTalentProfile } from '@/hooks/useTalentProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   ArrowLeft, 
@@ -20,6 +21,7 @@ const TalentEventSchedule = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { talentProfile, loading: talentLoading, error: talentError } = useTalentProfile();
   const { language, setLanguage } = useLanguage();
   const isMobile = useIsMobile();
   const [event, setEvent] = useState<any>(null);
@@ -30,13 +32,13 @@ const TalentEventSchedule = () => {
       navigate('/auth');
       return;
     }
-    if (eventId) {
+    if (eventId && talentProfile) {
       fetchEvent();
     }
-  }, [user, profile, eventId, navigate]);
+  }, [user, profile, eventId, talentProfile, navigate]);
 
   const fetchEvent = async () => {
-    if (!eventId || !profile) return;
+    if (!eventId || !talentProfile) return;
 
     try {
       setLoading(true);
@@ -48,7 +50,7 @@ const TalentEventSchedule = () => {
           business_event_talent!inner(talent_id)
         `)
         .eq('id', eventId)
-        .eq('business_event_talent.talent_id', profile.id)
+        .eq('business_event_talent.talent_id', talentProfile.id)
         .single();
 
       if (error) throw error;
@@ -111,8 +113,12 @@ const TalentEventSchedule = () => {
     }
   ];
 
-  if (loading) {
+  if (loading || talentLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
+  }
+
+  if (talentError || !talentProfile) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">Error: Unable to load talent profile. Please contact support.</div>;
   }
 
   if (!event) {

@@ -9,6 +9,7 @@ import RealtimeMessageCenter from '@/components/RealtimeMessageCenter';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useNavigate } from 'react-router-dom';
+import { useTalentProfile } from '@/hooks/useTalentProfile';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { useBackgroundManager } from '@/hooks/useBackgroundManager';
@@ -38,6 +39,7 @@ const TalentDashboard = () => {
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [activeModule, setActiveModule] = useState('overview');
   const { user, profile } = useAuth();
+  const { talentProfile, loading: talentLoading, error: talentError } = useTalentProfile();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const { loading: siteDesignLoading } = useSiteDesign();
   const { getBackgroundStyle } = useBackgroundManager();
@@ -48,18 +50,20 @@ const TalentDashboard = () => {
       navigate('/auth');
       return;
     }
-    fetchUpcomingEvents();
-  }, [user, profile, navigate]);
+    if (talentProfile) {
+      fetchUpcomingEvents();
+    }
+  }, [user, profile, talentProfile, navigate]);
 
   const fetchUpcomingEvents = async () => {
-    if (!profile) return;
+    if (!talentProfile) return;
 
     try {
       // Get events from calendar_event table for this talent
       const { data: calendarEvents, error: calendarError } = await supabase
         .from('calendar_event')
         .select('*')
-        .eq('talent_id', profile.id)
+        .eq('talent_id', talentProfile.id)
         .gte('start_date', new Date().toISOString().split('T')[0])
         .order('start_date', { ascending: true })
         .limit(5);
@@ -71,7 +75,7 @@ const TalentDashboard = () => {
           *,
           business_event_talent!inner(talent_id)
         `)
-        .eq('business_event_talent.talent_id', profile.id)
+        .eq('business_event_talent.talent_id', talentProfile.id)
         .gte('start_ts', new Date().toISOString())
         .order('start_ts', { ascending: true })
         .limit(5);
@@ -182,8 +186,12 @@ const TalentDashboard = () => {
     { id: 'contracts', icon: FileText, label: content[language].contracts, gradient: 'from-yellow-400 to-red-500' }
   ];
 
-  if (siteDesignLoading) {
+  if (siteDesignLoading || talentLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (talentError || !talentProfile) {
+    return <div>Error: Unable to load talent profile. Please contact support.</div>;
   }
 
   if (activeModule === 'messages') {
