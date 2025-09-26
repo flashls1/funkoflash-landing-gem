@@ -164,36 +164,36 @@ const TalentEvents = () => {
             <CardContent className="p-0">
               <div className={`flex ${isMobile ? 'flex-row h-full' : 'flex-col'}`}>
                 {/* Event Image */}
-                <div className={`${isMobile ? 'w-[150px] h-full' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark`}>
-                  {event.hero_logo_path ? (
-                    <img 
-                      src={event.hero_logo_path} 
-                      alt={event.title}
-                      className={`w-full h-full object-cover ${
-                        isMobile ? 'rounded-l-lg' : 'rounded-t-lg'
-                      }`}
-                      style={isMobile ? { 
-                        width: '150px', 
-                        height: '150px',
-                        objectFit: 'cover'
-                      } : {}}
-                    />
-                  ) : (
-                    <div className={`w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center ${
-                      isMobile ? 'rounded-l-lg' : 'rounded-t-lg'
-                    }`}>
-                      <Calendar className="h-8 w-8 text-primary/50" />
-                    </div>
-                  )}
-                </div>
+                 <div className={`${isMobile ? 'w-[150px] h-full flex items-center justify-center' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark`}>
+                   {event.hero_logo_path ? (
+                     <img 
+                       src={event.hero_logo_path} 
+                       alt={event.title}
+                       className={`w-full h-full object-cover ${
+                         isMobile ? 'rounded-l-lg' : 'rounded-t-lg'
+                       }`}
+                       style={isMobile ? { 
+                         width: '150px', 
+                         height: '150px',
+                         objectFit: 'cover'
+                       } : {}}
+                     />
+                   ) : (
+                     <div className={`w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center ${
+                       isMobile ? 'rounded-l-lg' : 'rounded-t-lg'
+                     }`}>
+                       <Calendar className="h-8 w-8 text-primary/50" />
+                     </div>
+                   )}
+                 </div>
 
                     {/* Event Details */}
-                    <div className={`${isMobile ? 'flex-1 p-4 relative' : 'p-4'} flex flex-col justify-between`}>
+                    <div className={`${isMobile ? 'flex-1 pt-2 pb-4 px-4 relative' : 'p-4'} flex flex-col justify-between`}>
                       <div>
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className={`font-semibold ${isMobile ? 'text-sm' : 'text-lg'} line-clamp-2`}>
-                            {event.title}
-                          </h3>
+                        <div className="flex items-start justify-between mb-1">
+                           <h3 className={`font-semibold ${isMobile ? 'text-sm' : 'text-lg'} line-clamp-2`}>
+                             {event.title}
+                           </h3>
                           {!isMobile && (
                           <Badge variant="secondary" className="ml-2 text-xs">
                               {event.status === 'published' ? 'Booked' : (event.status || 'pending')}
@@ -202,7 +202,7 @@ const TalentEvents = () => {
                         </div>
 
                         {/* Full Address */}
-                        <div className="flex items-start gap-1 mb-2 text-muted-foreground">
+                         <div className="flex items-start gap-1 mb-1 text-muted-foreground">
                           <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
                           <div className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
                             {event.venue && <div className="font-medium">{event.venue}</div>}
@@ -215,8 +215,8 @@ const TalentEvents = () => {
                         </div>
 
                         {/* Event Dates */}
-                        <div className="flex items-start gap-1 mb-2 text-muted-foreground">
-                          <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                         <div className="flex items-start gap-1 mb-1 text-muted-foreground">
+                           <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" />
                           <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
                             {formatEventDateRange(event.start_ts, event.end_ts)}
                           </span>
@@ -225,7 +225,7 @@ const TalentEvents = () => {
 
                       {/* Booked Badge - Bottom Right */}
                       {isMobile && (
-                        <div className="absolute bottom-3 right-3">
+                        <div className="absolute bottom-[10px] right-3">
                           <Badge variant="secondary" className="text-xs">
                             {event.status === 'published' ? 'Booked' : (event.status || 'pending')}
                           </Badge>
