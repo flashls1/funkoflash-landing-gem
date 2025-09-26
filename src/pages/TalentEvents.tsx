@@ -10,6 +10,39 @@ import { useTalentProfile } from '@/hooks/useTalentProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDateUS } from '@/lib/utils';
 import { MapPin, Calendar, Clock } from 'lucide-react';
+
+// Helper function to format dates with day names
+const formatDateWithDayName = (dateString: string) => {
+  const date = new Date(dateString);
+  const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+  const month = date.toLocaleDateString('en-US', { month: 'long' });
+  const day = date.getDate();
+  const year = date.getFullYear();
+  
+  // Add ordinal suffix (st, nd, rd, th)
+  const getOrdinalSuffix = (n: number) => {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+  
+  return `${dayName} ${month} ${getOrdinalSuffix(day)}, ${year}`;
+};
+
+const formatEventDateRange = (startDate: string, endDate: string | null) => {
+  if (!endDate) {
+    return formatDateWithDayName(startDate);
+  }
+  
+  const start = formatDateWithDayName(startDate);
+  const end = formatDateWithDayName(endDate);
+  
+  if (start === end) {
+    return start;
+  }
+  
+  return `${start} and ${end}`;
+};
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const TalentEvents = () => {
@@ -131,7 +164,7 @@ const TalentEvents = () => {
             <CardContent className="p-0">
               <div className={`flex ${isMobile ? 'flex-row h-full' : 'flex-col'}`}>
                 {/* Event Image */}
-                <div className={`${isMobile ? 'w-[150px] h-full' : 'w-full h-40'} flex-shrink-0`}>
+                <div className={`${isMobile ? 'w-[150px] h-full' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark`}>
                   {event.hero_logo_path ? (
                     <img 
                       src={event.hero_logo_path} 
@@ -155,7 +188,7 @@ const TalentEvents = () => {
                 </div>
 
                     {/* Event Details */}
-                    <div className={`${isMobile ? 'flex-1 p-4' : 'p-4'} flex flex-col justify-between`}>
+                    <div className={`${isMobile ? 'flex-1 p-4 relative' : 'p-4'} flex flex-col justify-between`}>
                       <div>
                         <div className="flex items-start justify-between mb-2">
                           <h3 className={`font-semibold ${isMobile ? 'text-sm' : 'text-lg'} line-clamp-2`}>
@@ -168,33 +201,36 @@ const TalentEvents = () => {
                           )}
                         </div>
 
-                        {/* Location */}
-                        <div className="flex items-center gap-1 mb-2 text-muted-foreground">
-                          <MapPin className="h-3 w-3" />
-                          <span className={`${isMobile ? 'text-xs' : 'text-sm'} line-clamp-1`}>
-                            {event.city}, {event.state}
+                        {/* Full Address */}
+                        <div className="flex items-start gap-1 mb-2 text-muted-foreground">
+                          <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                          <div className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
+                            {event.venue && <div className="font-medium">{event.venue}</div>}
+                            <div>
+                              {[event.address_line, event.city, event.state, event.zipcode]
+                                .filter(Boolean)
+                                .join(', ')}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Event Dates */}
+                        <div className="flex items-start gap-1 mb-2 text-muted-foreground">
+                          <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                          <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
+                            {formatEventDateRange(event.start_ts, event.end_ts)}
                           </span>
                         </div>
                       </div>
 
-                      {/* Dates - positioned on the right in mobile */}
-                      <div className={`${isMobile ? 'absolute right-4 top-4' : ''}`}>
-                        <div className={`flex items-center gap-1 text-muted-foreground ${
-                          isMobile ? 'flex-col items-end' : ''
-                        }`}>
-                          <Clock className={`h-3 w-3 ${isMobile ? 'mb-1' : ''}`} />
-                          <span className={`${isMobile ? 'text-xs text-right' : 'text-sm'}`}>
-                            {formatDateUS(event.start_ts)}
-                            {event.end_ts && ` - ${formatDateUS(event.end_ts)}`}
-                          </span>
-                        </div>
-                        
-                        {isMobile && (
-                          <Badge variant="secondary" className="text-xs mt-1">
+                      {/* Booked Badge - Bottom Right */}
+                      {isMobile && (
+                        <div className="absolute bottom-3 right-3">
+                          <Badge variant="secondary" className="text-xs">
                             {event.status === 'published' ? 'Booked' : (event.status || 'pending')}
                           </Badge>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
