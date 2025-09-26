@@ -170,7 +170,7 @@ const TalentEvents = () => {
                        src={event.hero_logo_path} 
                        alt={event.title}
                         className={`w-auto h-auto object-contain ${
-                          isMobile ? '' : 'rounded-t-lg'
+                          isMobile ? 'rounded-r-lg' : 'rounded-t-lg'
                         }`}
                        style={isMobile ? { 
                          maxWidth: '130px', 
