@@ -93,7 +93,7 @@ export default function HeroOverlay({
 
         {/* BOTTOM-LEFT: Name + Role aligned with greeting level */}
         <div className="absolute left-3 sm:left-4 md:left-5 bottom-3 sm:bottom-4 md:bottom-5 text-left space-y-0.5 min-w-0" style={{ maxWidth: "70vw" }}>
-          <div className="text-sm sm:text-base md:text-lg font-semibold leading-tight line-clamp-1 text-funko-blue-dark border-2 border-yellow-400 rounded-lg px-2 py-1 bg-white/90 shadow-lg">
+          <div className="text-sm sm:text-base md:text-lg font-semibold leading-tight line-clamp-1 text-funko-blue-dark" style={{ textShadow: '1px 1px 0 #facc15, -1px -1px 0 #facc15, 1px -1px 0 #facc15, -1px 1px 0 #facc15' }}>
             {name}
           </div>
           <div className="flex items-center gap-1 text-[11px] sm:text-xs md:text-sm leading-tight">
