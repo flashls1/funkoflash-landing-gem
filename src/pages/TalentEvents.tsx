@@ -98,7 +98,7 @@ const TalentEvents = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black">
       <Navigation language={language} setLanguage={setLanguage} />
       
       <div className="container mx-auto px-4 py-6">
@@ -110,11 +110,11 @@ const TalentEvents = () => {
             {content[language].backToDashboard}
           </button>
           
-          <h1 className="text-2xl font-bold mb-2">{content[language].upcomingEvents}</h1>
+          <h1 className="text-2xl font-bold mb-2 text-white">{content[language].upcomingEvents}</h1>
         </div>
 
         {upcomingEvents.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className="text-center py-12 text-white">
             <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>{content[language].noEvents}</p>
           </div>
@@ -123,7 +123,7 @@ const TalentEvents = () => {
             {upcomingEvents.map((event) => (
             <Card 
               key={event.id}
-              className={`overflow-hidden transition-all hover:shadow-lg cursor-pointer ${
+              className={`overflow-hidden transition-all hover:shadow-lg cursor-pointer border-2 border-sky-300 bg-card ${
                 isMobile ? 'mx-[5px] h-[200px]' : ''
               }`}
               onClick={() => navigate(`/talent/events/${event.id}/schedule`)}
@@ -162,8 +162,8 @@ const TalentEvents = () => {
                             {event.title}
                           </h3>
                           {!isMobile && (
-                            <Badge variant="secondary" className="ml-2 text-xs">
-                              {event.status || 'pending'}
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                              {event.status === 'published' ? 'Booked' : (event.status || 'pending')}
                             </Badge>
                           )}
                         </div>
@@ -191,7 +191,7 @@ const TalentEvents = () => {
                         
                         {isMobile && (
                           <Badge variant="secondary" className="text-xs mt-1">
-                            {event.status || 'pending'}
+                            {event.status === 'published' ? 'Booked' : (event.status || 'pending')}
                           </Badge>
                         )}
                       </div>

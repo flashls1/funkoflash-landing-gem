@@ -126,7 +126,7 @@ const TalentEventSchedule = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black">
       <Navigation language={language} setLanguage={setLanguage} />
       
       <div className="container mx-auto px-4 py-6">
@@ -142,7 +142,7 @@ const TalentEventSchedule = () => {
           </Button>
           
           {/* Event Info */}
-          <Card className="mb-6">
+          <Card className="mb-6 border-2 border-sky-300">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 {event.hero_logo_path && (
@@ -163,7 +163,7 @@ const TalentEventSchedule = () => {
             </CardContent>
           </Card>
 
-          <h2 className="text-lg font-semibold mb-4">{content[language].scheduleOptions}</h2>
+          <h2 className="text-lg font-semibold mb-4 text-white">{content[language].scheduleOptions}</h2>
         </div>
 
         {/* Schedule Options */}
