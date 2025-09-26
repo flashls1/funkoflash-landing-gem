@@ -37,14 +37,26 @@ const TalentEvents = () => {
     try {
       setLoading(true);
       
-      // Get business events where talent is assigned
+      // First get event IDs from business_event_talent where talent is assigned
+      const { data: talentAssignments, error: assignmentError } = await supabase
+        .from('business_event_talent')
+        .select('event_id')
+        .eq('talent_id', talentProfile.id);
+
+      if (assignmentError) throw assignmentError;
+
+      if (!talentAssignments || talentAssignments.length === 0) {
+        setUpcomingEvents([]);
+        return;
+      }
+
+      const eventIds = talentAssignments.map(assignment => assignment.event_id);
+
+      // Get business events using the event IDs
       const { data: businessEvents, error: businessError } = await supabase
         .from('business_events')
-        .select(`
-          *,
-          business_event_talent!inner(talent_id)
-        `)
-        .eq('business_event_talent.talent_id', talentProfile.id)
+        .select('*')
+        .in('id', eventIds)
         .gte('start_ts', new Date().toISOString())
         .order('start_ts', { ascending: true });
 
