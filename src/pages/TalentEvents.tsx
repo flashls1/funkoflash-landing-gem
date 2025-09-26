@@ -164,13 +164,13 @@ const TalentEvents = () => {
             <CardContent className="p-0 h-full">
               <div className={`flex ${isMobile ? 'flex-row h-full items-stretch' : 'flex-col'}`}>
                 {/* Event Image */}
-                 <div className={`${isMobile ? 'w-[150px] h-full flex items-center justify-center p-2 rounded-l-lg' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark bg-card`}>
+                 <div className={`${isMobile ? 'w-[150px] h-full flex items-center justify-center p-2 rounded-l-lg rounded-r-lg' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark bg-card`}>
                    {event.hero_logo_path ? (
                      <img 
                        src={event.hero_logo_path} 
                        alt={event.title}
                         className={`w-auto h-auto object-contain ${
-                          isMobile ? 'rounded-r-lg' : 'rounded-t-lg'
+                          isMobile ? '' : 'rounded-t-lg'
                         }`}
                        style={isMobile ? { 
                          maxWidth: '130px', 
