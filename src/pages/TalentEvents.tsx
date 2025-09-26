@@ -164,7 +164,7 @@ const TalentEvents = () => {
             <CardContent className="p-0">
               <div className={`flex ${isMobile ? 'flex-row h-full' : 'flex-col'}`}>
                 {/* Event Image */}
-                 <div className={`${isMobile ? 'w-[150px] h-full flex items-center justify-center pt-4' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark`}>
+                 <div className={`${isMobile ? 'w-[150px] h-full flex items-center justify-center pt-5' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark`}>
                    {event.hero_logo_path ? (
                      <img 
                        src={event.hero_logo_path} 
@@ -190,7 +190,7 @@ const TalentEvents = () => {
                     {/* Event Details */}
                     <div className={`${isMobile ? 'flex-1 pt-2 pb-4 px-4 relative' : 'p-4'} flex flex-col justify-between`}>
                       <div>
-                        <div className="flex items-start justify-between mb-1">
+                        <div className="flex items-start justify-between mb-1 -mt-0.5">
                            <h3 className={`font-semibold ${isMobile ? 'text-sm' : 'text-lg'} line-clamp-2`}>
                              {event.title}
                            </h3>
@@ -225,7 +225,7 @@ const TalentEvents = () => {
 
                       {/* Booked Badge - Bottom Right */}
                       {isMobile && (
-                        <div className="absolute bottom-[6px] right-3">
+                        <div className="absolute bottom-[2px] right-3">
                           <Badge variant="secondary" className="text-xs">
                             {event.status === 'published' ? 'Booked' : (event.status || 'pending')}
                           </Badge>
