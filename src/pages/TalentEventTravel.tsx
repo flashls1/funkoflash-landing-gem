@@ -101,7 +101,7 @@ const TalentEventTravel = () => {
         return providerMap[item.provider_type] || 'Transport';
       };
 
-      // Combine and sort travel items
+      // Combine and sort travel items by type priority
       const allTravelItems = [
         // Flight items from business_event_travel
         ...(flightTravel || []).map((item: any) => ({
@@ -114,17 +114,8 @@ const TalentEventTravel = () => {
           status: item.status,
           departure_datetime: item.departure_datetime,
           arrival_datetime: item.arrival_datetime,
-          notes: item.notes
-        })),
-        // Ground transport items
-        ...(transport || []).map((item: any) => ({
-          ...item,
-          type: 'transport',
-          icon: Car,
-          datetime: item.pickup_datetime,
-          title: `${getProviderLabel(item)}${item.pickup_location ? ` - ${item.pickup_location}` : ''}`,
-          subtitle: item.dropoff_location ? `To: ${item.dropoff_location}` : null,
-          details: item.confirmation_code ? `Confirmation: ${item.confirmation_code}` : null
+          notes: item.notes,
+          sortPriority: 1
         })),
         // Hotel items
         ...(hotel || []).map((item: any) => ({
@@ -134,9 +125,26 @@ const TalentEventTravel = () => {
           datetime: item.checkin_date,
           title: item.hotel_name || 'Hotel Check-in',
           subtitle: item.hotel_address,
-          details: item.confirmation_number ? `Confirmation: ${item.confirmation_number}` : null
+          details: item.confirmation_number ? `Confirmation: ${item.confirmation_number}` : null,
+          sortPriority: 2
+        })),
+        // Ground transport items
+        ...(transport || []).map((item: any) => ({
+          ...item,
+          type: 'transport',
+          icon: Car,
+          datetime: item.pickup_datetime,
+          title: `${getProviderLabel(item)}${item.pickup_location ? ` - ${item.pickup_location}` : ''}`,
+          subtitle: item.dropoff_location ? `To: ${item.dropoff_location}` : null,
+          details: item.confirmation_code ? `Confirmation: ${item.confirmation_code}` : null,
+          sortPriority: 3
         }))
       ].sort((a: any, b: any) => {
+        // First sort by type priority (flight, hotel, transport)
+        if (a.sortPriority !== b.sortPriority) {
+          return a.sortPriority - b.sortPriority;
+        }
+        // Then sort by datetime within the same type
         const dateA = new Date(a.datetime);
         const dateB = new Date(b.datetime);
         return dateA.getTime() - dateB.getTime();
