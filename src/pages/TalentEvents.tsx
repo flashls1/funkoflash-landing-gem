@@ -161,21 +161,20 @@ const TalentEvents = () => {
               }`}
               onClick={() => navigate(`/talent/events/${event.id}/schedule`)}
             >
-            <CardContent className="p-0">
-              <div className={`flex ${isMobile ? 'flex-row h-full' : 'flex-col'}`}>
+            <CardContent className="p-0 h-full">
+              <div className={`flex ${isMobile ? 'flex-row h-full items-stretch' : 'flex-col'}`}>
                 {/* Event Image */}
-                 <div className={`${isMobile ? 'w-[150px] h-full flex items-center justify-center' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark`}>
+                 <div className={`${isMobile ? 'w-[150px] h-full flex items-center justify-center p-2 rounded-l-lg' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark bg-card`}>
                    {event.hero_logo_path ? (
                      <img 
                        src={event.hero_logo_path} 
                        alt={event.title}
-                        className={`w-full h-full object-cover ${
-                          isMobile ? 'rounded-l-lg translate-y-1' : 'rounded-t-lg'
+                        className={`w-auto h-auto object-contain ${
+                          isMobile ? '' : 'rounded-t-lg'
                         }`}
                        style={isMobile ? { 
-                         width: '150px', 
-                         height: '150px',
-                         objectFit: 'cover'
+                         maxWidth: '130px', 
+                         maxHeight: '130px'
                        } : {}}
                      />
                    ) : (
@@ -188,9 +187,9 @@ const TalentEvents = () => {
                  </div>
 
                     {/* Event Details */}
-                    <div className={`${isMobile ? 'flex-1 pt-2 pb-4 px-4 relative' : 'p-4'} flex flex-col justify-between`}>
+                    <div className={`${isMobile ? 'flex-1 h-full pt-2 pb-2 px-4 relative' : 'p-4'} flex flex-col justify-between`}>
                       <div>
-                        <div className="flex items-start justify-between mb-1 -mt-0.5">
+                        <div className="flex items-start justify-between mb-1 -mt-[2px]">
                            <h3 className={`font-semibold ${isMobile ? 'text-sm' : 'text-lg'} line-clamp-2`}>
                              {event.title}
                            </h3>
@@ -225,7 +224,7 @@ const TalentEvents = () => {
 
                       {/* Booked Badge - Bottom Right */}
                       {isMobile && (
-                        <div className="absolute bottom-0 right-3">
+                        <div className="absolute bottom-2 right-3">
                           <Badge variant="secondary" className="text-xs">
                             {event.status === 'published' ? 'Booked' : (event.status || 'pending')}
                           </Badge>
