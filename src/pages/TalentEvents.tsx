@@ -164,14 +164,14 @@ const TalentEvents = () => {
             <CardContent className="p-0">
               <div className={`flex ${isMobile ? 'flex-row h-full' : 'flex-col'}`}>
                 {/* Event Image */}
-                 <div className={`${isMobile ? 'w-[150px] h-full flex items-center justify-center pt-5' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark`}>
+                 <div className={`${isMobile ? 'w-[150px] h-full flex items-center justify-center' : 'w-full h-40'} flex-shrink-0 border-2 border-funko-blue-dark`}>
                    {event.hero_logo_path ? (
                      <img 
                        src={event.hero_logo_path} 
                        alt={event.title}
-                       className={`w-full h-full object-cover ${
-                         isMobile ? 'rounded-l-lg' : 'rounded-t-lg'
-                       }`}
+                        className={`w-full h-full object-cover ${
+                          isMobile ? 'rounded-l-lg translate-y-1' : 'rounded-t-lg'
+                        }`}
                        style={isMobile ? { 
                          width: '150px', 
                          height: '150px',
@@ -203,7 +203,7 @@ const TalentEvents = () => {
 
                         {/* Full Address */}
                          <div className="flex items-start gap-1 mb-1 text-muted-foreground">
-                          <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" color="#3b82f6" />
+                          <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
                           <div className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
                             {event.venue && <div className="font-medium">{event.venue}</div>}
                             <div>
@@ -216,7 +216,7 @@ const TalentEvents = () => {
 
                         {/* Event Dates */}
                          <div className="flex items-start gap-1 mb-1 text-muted-foreground">
-                           <Clock className="h-3 w-3 mt-0.5 flex-shrink-0" color="#10b981" />
+                           <Clock className="h-3 w-3 mt-0.5 flex-shrink-0 text-accent" />
                           <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
                             {formatEventDateRange(event.start_ts, event.end_ts)}
                           </span>
@@ -225,7 +225,7 @@ const TalentEvents = () => {
 
                       {/* Booked Badge - Bottom Right */}
                       {isMobile && (
-                        <div className="absolute bottom-[2px] right-3">
+                        <div className="absolute bottom-0 right-3">
                           <Badge variant="secondary" className="text-xs">
                             {event.status === 'published' ? 'Booked' : (event.status || 'pending')}
                           </Badge>
