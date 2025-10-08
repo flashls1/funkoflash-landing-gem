@@ -46,10 +46,6 @@ const TalentDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (talentError || (!talentLoading && !talentProfile)) {
-      navigate('/logout');
-      return;
-    }
     if (!user || !profile || profile.role !== 'talent') {
       navigate('/auth');
       return;
@@ -57,7 +53,7 @@ const TalentDashboard = () => {
     if (talentProfile) {
       fetchUpcomingEvents();
     }
-  }, [user, profile, talentProfile, talentError, talentLoading, navigate]);
+  }, [user, profile, talentProfile, navigate]);
 
   const fetchUpcomingEvents = async () => {
     if (!talentProfile) return;
@@ -191,11 +187,26 @@ const TalentDashboard = () => {
   ];
 
   if (siteDesignLoading || talentLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   if (talentError || !talentProfile) {
-    return <div>Redirecting...</div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-lg text-destructive">{talentError || 'Unable to load talent profile'}</p>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   if (activeModule === 'messages') {

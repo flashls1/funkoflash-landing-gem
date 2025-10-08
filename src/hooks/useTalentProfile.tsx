@@ -23,7 +23,13 @@ export const useTalentProfile = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || !profile || profile.role !== 'talent') {
+    if (!user || !profile) {
+      setTalentProfile(null);
+      setLoading(false);
+      return;
+    }
+
+    if (profile.role !== 'talent') {
       setTalentProfile(null);
       setLoading(false);
       return;
@@ -52,7 +58,8 @@ export const useTalentProfile = () => {
       }
 
       if (!data) {
-        setError('No talent profile found');
+        console.warn('No talent profile found for user:', user?.id);
+        setError('No talent profile found. Please contact support if this persists.');
         setTalentProfile(null);
         return;
       }
