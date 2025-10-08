@@ -312,7 +312,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       if (authData.user) {
         console.log('User created with auto-confirmation trigger...');
         
-        // Wait a moment for the trigger to create and confirm the user
+        // Wait a moment for the trigger to create profile, user_roles, and talent_profile (if talent)
         await new Promise(resolve => setTimeout(resolve, 3000));
         
         console.log('Updating profile with additional details...');
@@ -330,7 +330,44 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
 
         if (profileError) {
           console.error('Profile update error:', profileError);
-          // This shouldn't happen since the trigger should create the profile
+        }
+
+        // If creating a talent user, verify talent_profile was created
+        if (newUser.role === 'talent') {
+          const { data: talentProfile, error: talentError } = await supabase
+            .from('talent_profiles')
+            .select('id')
+            .eq('user_id', authData.user.id)
+            .maybeSingle();
+
+          if (talentError || !talentProfile) {
+            console.error('Talent profile not created:', talentError);
+            toast({
+              title: "Warning",
+              description: "User created but talent profile may be missing. Please verify.",
+              variant: "destructive",
+            });
+          } else {
+            console.log('Talent profile verified:', talentProfile.id);
+          }
+        }
+
+        // Verify user_roles entry exists
+        const { data: userRole, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', authData.user.id)
+          .maybeSingle();
+
+        if (roleError || !userRole) {
+          console.error('User role not found:', roleError);
+          toast({
+            title: "Warning",
+            description: "User created but role assignment may be missing. Please verify.",
+            variant: "destructive",
+          });
+        } else {
+          console.log('User role verified:', userRole.role);
         }
 
         // Enhanced security logging
