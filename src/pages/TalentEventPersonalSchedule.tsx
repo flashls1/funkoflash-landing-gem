@@ -22,7 +22,7 @@ import { formatDateUS } from '@/lib/utils';
 const TalentEventPersonalSchedule = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { talentProfile, loading: talentLoading, error: talentError } = useTalentProfile();
   const { language, setLanguage } = useLanguage();
   const isMobile = useIsMobile();
@@ -33,6 +33,11 @@ const TalentEventPersonalSchedule = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (talentError) {
+      signOut();
+      navigate('/auth');
+      return;
+    }
     if (!user || !profile || profile.role !== 'talent') {
       navigate('/auth');
       return;
@@ -40,7 +45,7 @@ const TalentEventPersonalSchedule = () => {
     if (eventId && talentProfile) {
       fetchEventAndSchedules();
     }
-  }, [user, profile, eventId, talentProfile, navigate]);
+  }, [user, profile, eventId, talentProfile, navigate, talentError, signOut]);
 
   const fetchEventAndSchedules = async () => {
     if (!eventId || !talentProfile) return;

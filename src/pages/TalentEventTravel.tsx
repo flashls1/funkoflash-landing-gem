@@ -22,7 +22,7 @@ import { formatDateUS, formatTimeUS } from '@/lib/utils';
 const TalentEventTravel = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { talentProfile, loading: talentLoading, error: talentError } = useTalentProfile();
   const { language, setLanguage } = useLanguage();
   const isMobile = useIsMobile();
@@ -31,6 +31,11 @@ const TalentEventTravel = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (talentError) {
+      signOut();
+      navigate('/auth');
+      return;
+    }
     if (!user || !profile || profile.role !== 'talent') {
       navigate('/auth');
       return;
@@ -38,7 +43,7 @@ const TalentEventTravel = () => {
     if (eventId && talentProfile) {
       fetchEventAndTravel();
     }
-  }, [user, profile, eventId, talentProfile, navigate]);
+  }, [user, profile, eventId, talentProfile, navigate, talentError, signOut]);
 
   const fetchEventAndTravel = async () => {
     if (!eventId || !talentProfile) return;

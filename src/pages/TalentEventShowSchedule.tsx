@@ -35,7 +35,7 @@ interface ScheduleEntry {
 const TalentEventShowSchedule = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { talentProfile, loading: talentLoading, error: talentError } = useTalentProfile();
   const { language, setLanguage } = useLanguage();
   const isMobile = useIsMobile();
@@ -46,6 +46,11 @@ const TalentEventShowSchedule = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (talentError) {
+      signOut();
+      navigate('/auth');
+      return;
+    }
     if (!user || !profile || profile.role !== 'talent') {
       navigate('/auth');
       return;

@@ -47,7 +47,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 const TalentEvents = () => {
   const { language, setLanguage } = useLanguage();
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { talentProfile, loading: talentLoading, error: talentError } = useTalentProfile();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -55,6 +55,11 @@ const TalentEvents = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (talentError) {
+      signOut();
+      navigate('/auth');
+      return;
+    }
     if (!user || !profile || profile.role !== 'talent') {
       navigate('/auth');
       return;
@@ -62,7 +67,7 @@ const TalentEvents = () => {
     if (talentProfile) {
       fetchUpcomingEvents();
     }
-  }, [user, profile, talentProfile, navigate]);
+  }, [user, profile, talentProfile, navigate, talentError, signOut]);
 
   const fetchUpcomingEvents = async () => {
     if (!talentProfile) return;

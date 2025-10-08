@@ -38,7 +38,7 @@ const TalentDashboard = () => {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [activeModule, setActiveModule] = useState('overview');
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { talentProfile, loading: talentLoading, error: talentError } = useTalentProfile();
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const { loading: siteDesignLoading } = useSiteDesign();
@@ -46,6 +46,11 @@ const TalentDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (talentError) {
+      signOut();
+      navigate('/auth');
+      return;
+    }
     if (!user || !profile || profile.role !== 'talent') {
       navigate('/auth');
       return;
