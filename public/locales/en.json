@@ -124,5 +124,14 @@
     "loginHistory": {
       "export": "Export Full History"
     }
+  },
+  "talentAccessibility": {
+    "title": "Talent Accessibility",
+    "description": "Control which modules each talent can access on their dashboard",
+    "selectTalent": "Select Talent",
+    "moduleControls": "Module Access Controls",
+    "locked": "Locked",
+    "unlocked": "Unlocked",
+    "moduleAccessUpdated": "Module access updated successfully"
   }
 }

@@ -124,5 +124,14 @@
     "loginHistory": {
       "export": "Exportar historial completo"
     }
+  },
+  "talentAccessibility": {
+    "title": "Accesibilidad de Talento",
+    "description": "Controlar qué módulos puede acceder cada talento en su panel",
+    "selectTalent": "Seleccionar Talento",
+    "moduleControls": "Controles de Acceso a Módulos",
+    "locked": "Bloqueado",
+    "unlocked": "Desbloqueado",
+    "moduleAccessUpdated": "Acceso a módulos actualizado exitosamente"
   }
 }

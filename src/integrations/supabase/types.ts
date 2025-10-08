@@ -1640,6 +1640,47 @@ export type Database = {
           },
         ]
       }
+      talent_module_access: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_locked: boolean
+          module_id: string
+          talent_id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_locked?: boolean
+          module_id: string
+          talent_id: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_locked?: boolean
+          module_id?: string
+          talent_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "talent_module_access_talent_id_fkey"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       talent_personal_schedules: {
         Row: {
           color: string | null
@@ -2345,6 +2386,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      initialize_talent_module_access: {
+        Args: { p_talent_id: string }
+        Returns: undefined
       }
       is_admin: {
         Args: { uid: string }

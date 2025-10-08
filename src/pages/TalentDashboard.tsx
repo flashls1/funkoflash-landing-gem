@@ -13,6 +13,7 @@ import { useTalentProfile } from '@/hooks/useTalentProfile';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
 import { useBackgroundManager } from '@/hooks/useBackgroundManager';
+import { useTalentModuleAccess } from '@/hooks/useTalentModuleAccess';
 import { 
   CalendarCheck, 
   Calendar, 
@@ -22,7 +23,8 @@ import {
   BarChart3, 
   Settings, 
   Briefcase, 
-  FileText
+  FileText,
+  Lock
 } from 'lucide-react';
 import HeroOverlay from '@/components/HeroOverlay';
 import HeroShell from '@/components/HeroShell';
@@ -43,6 +45,7 @@ const TalentDashboard = () => {
   const { currentTheme, colorThemes, changeTheme } = useColorTheme();
   const { loading: siteDesignLoading } = useSiteDesign();
   const { getBackgroundStyle } = useBackgroundManager();
+  const { moduleAccess, isLoading: isLoadingAccess } = useTalentModuleAccess(talentProfile?.id);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -101,6 +104,12 @@ const TalentDashboard = () => {
   };
 
   const handleModuleClick = (moduleId: string) => {
+    // Check if module is locked
+    const isLocked = moduleAccess.get(moduleId) || false;
+    if (isLocked) {
+      return; // Do nothing if locked
+    }
+
     switch (moduleId) {
       case 'events':
         navigate('/talent/events');
@@ -257,12 +266,19 @@ const TalentDashboard = () => {
           <div className="grid grid-cols-3 gap-4">
             {dashboardModules.map((module) => {
               const IconComponent = module.icon;
+              const isLocked = moduleAccess.get(module.id) || false;
+              
               return (
                 <button
                   key={module.id}
-                  className={`flex flex-col items-center justify-center w-full h-28 rounded-xl border-2 border-blue-500 bg-gradient-to-r ${module.gradient} shadow-md hover:scale-105 hover:brightness-110 transition-transform`}
+                  className={`relative flex flex-col items-center justify-center w-full h-28 rounded-xl border-2 border-blue-500 bg-gradient-to-r ${module.gradient} shadow-md hover:scale-105 hover:brightness-110 transition-transform ${isLocked ? 'cursor-not-allowed' : ''}`}
                   onClick={() => handleModuleClick(module.id)}
                 >
+                  {isLocked && (
+                    <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center z-10">
+                      <Lock className="h-12 w-12 text-white" />
+                    </div>
+                  )}
                   <IconComponent className="h-8 w-8 mb-2 text-white" />
                   <span className="text-sm font-bold text-white truncate">{module.label}</span>
                 </button>

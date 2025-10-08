@@ -5,12 +5,14 @@ import {
   Users, 
   Calendar,
   UserCog,
-  Settings
+  Settings,
+  Lock
 } from 'lucide-react';
 import { EventsManagementModule } from './EventsManagementModule';
 import { AdminTalentAssetsWrapper } from '@/features/talent-assets/AdminTalentAssetsWrapper';
 import { TalentProfilesManagement } from './TalentProfilesManagement';
 import TalentQuickView from '@/pages/TalentQuickView';
+import TalentModuleAccessManager from './TalentModuleAccessManager';
 
 interface TalentManagementModuleProps {
   language?: 'en' | 'es';
@@ -28,6 +30,7 @@ export const TalentManagementModule: React.FC<TalentManagementModuleProps> = ({
       profiles: 'Talent Profiles', 
       assets: 'Talent Assets',
       quickview: 'Quick View',
+      accessibility: 'Talent Accessibility',
       settings: 'Settings'
     },
     es: {
@@ -36,6 +39,7 @@ export const TalentManagementModule: React.FC<TalentManagementModuleProps> = ({
       profiles: 'Perfiles de Talento',
       assets: 'Recursos de Talento',
       quickview: 'Vista Rápida',
+      accessibility: 'Accesibilidad de Talento',
       settings: 'Configuración'
     }
   };
@@ -50,7 +54,7 @@ export const TalentManagementModule: React.FC<TalentManagementModuleProps> = ({
       </div>
 
       <Tabs value={activeModule} onValueChange={setActiveModule}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="events" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             {content[language].events}
@@ -66,6 +70,10 @@ export const TalentManagementModule: React.FC<TalentManagementModuleProps> = ({
           <TabsTrigger value="quickview" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             {content[language].quickview}
+          </TabsTrigger>
+          <TabsTrigger value="accessibility" className="flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            {content[language].accessibility}
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -87,6 +95,10 @@ export const TalentManagementModule: React.FC<TalentManagementModuleProps> = ({
 
         <TabsContent value="quickview" className="mt-6">
           <TalentQuickView />
+        </TabsContent>
+
+        <TabsContent value="accessibility" className="mt-6">
+          <TalentModuleAccessManager locale={language} />
         </TabsContent>
 
         <TabsContent value="settings" className="mt-6">
