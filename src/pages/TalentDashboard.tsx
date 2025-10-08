@@ -46,9 +46,8 @@ const TalentDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (talentError) {
-      signOut();
-      navigate('/auth');
+    if (talentError || (!talentLoading && !talentProfile)) {
+      navigate('/logout');
       return;
     }
     if (!user || !profile || profile.role !== 'talent') {
@@ -58,7 +57,7 @@ const TalentDashboard = () => {
     if (talentProfile) {
       fetchUpcomingEvents();
     }
-  }, [user, profile, talentProfile, navigate]);
+  }, [user, profile, talentProfile, talentError, talentLoading, navigate]);
 
   const fetchUpcomingEvents = async () => {
     if (!talentProfile) return;
@@ -196,7 +195,7 @@ const TalentDashboard = () => {
   }
 
   if (talentError || !talentProfile) {
-    return <div>Error: Unable to load talent profile. Please contact support.</div>;
+    return <div>Redirecting...</div>;
   }
 
   if (activeModule === 'messages') {

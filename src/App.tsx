@@ -36,6 +36,7 @@ import TalentEventTravel from "./pages/TalentEventTravel";
 import TalentEventPersonalSchedule from "./pages/TalentEventPersonalSchedule";
 import TalentEventShowSchedule from "./pages/TalentEventShowSchedule";
 import TalentQuickView from "./pages/TalentQuickView";
+import Logout from "./pages/Logout";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
             <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/logout" element={<Logout />} />
             <Route path="/dashboard/admin" element={<AdminDashboard />} />
             <Route path="/dashboard/staff" element={<StaffDashboard />} />
             <Route path="/dashboard/talent" element={<TalentDashboard />} />

@@ -42,10 +42,16 @@ export const useTalentProfile = () => {
         .select('*')
         .eq('user_id', user?.id)
         .eq('active', true)
-        .single();
+        .maybeSingle();
 
       if (fetchError) {
         console.error('Error fetching talent profile:', fetchError);
+        setError('Failed to load talent profile');
+        setTalentProfile(null);
+        return;
+      }
+
+      if (!data) {
         setError('No talent profile found');
         setTalentProfile(null);
         return;
