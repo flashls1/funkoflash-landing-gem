@@ -10,13 +10,13 @@
   "start_url": "/",
   "icons": [
     {
-      "src": "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png",
+      "src": "/favicon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/lovable-uploads/75e54418-75f9-4698-9a3b-7fd376db7c14.png",
+      "src": "/favicon.png",
       "sizes": "512x512", 
       "type": "image/png",
       "purpose": "any maskable"
