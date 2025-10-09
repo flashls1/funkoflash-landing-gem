@@ -271,7 +271,7 @@ const TalentDashboard = () => {
               return (
                 <button
                   key={module.id}
-                  className={`relative flex flex-col items-center justify-center w-full h-28 rounded-xl border-2 border-blue-500 bg-gradient-to-r ${module.gradient} shadow-md hover:scale-105 hover:brightness-110 transition-transform ${isLocked ? 'cursor-not-allowed' : ''}`}
+                  className={`relative flex flex-col items-center justify-center w-full min-h-[120px] h-32 md:h-28 rounded-xl border-2 border-blue-500 bg-gradient-to-r ${module.gradient} shadow-md hover:scale-105 hover:brightness-110 transition-transform ${isLocked ? 'cursor-not-allowed' : ''}`}
                   onClick={() => handleModuleClick(module.id)}
                 >
                   {isLocked && (

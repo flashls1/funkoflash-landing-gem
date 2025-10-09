@@ -41,7 +41,7 @@ const TalentPortfolioManagement: React.FC = () => {
             <Button 
               variant="outline" 
               onClick={() => navigate('/dashboard/talent')}
-              className="w-fit"
+              className="w-fit min-h-[44px] h-11 px-4 text-base font-semibold"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t.backToDashboard}

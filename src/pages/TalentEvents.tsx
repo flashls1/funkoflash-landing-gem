@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTalentProfile } from '@/hooks/useTalentProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDateUS } from '@/lib/utils';
-import { MapPin, Calendar, Clock } from 'lucide-react';
+import { MapPin, Calendar, Clock, ArrowLeft } from 'lucide-react';
 
 // Helper function to format dates with day names
 const formatDateWithDayName = (dateString: string) => {
@@ -132,12 +133,14 @@ const TalentEvents = () => {
       <div className="min-h-screen bg-black">
         <Navigation language={language} setLanguage={setLanguage} />
         <div className="container mx-auto px-4 py-6">
-          <button
+          <Button
+            variant="outline"
             onClick={() => navigate('/dashboard/talent')}
-            className="text-primary hover:text-primary/80 mb-4 flex items-center gap-2"
+            className="mb-4 min-h-[44px] h-11 px-4 text-base font-semibold"
           >
+            <ArrowLeft className="h-4 w-4 mr-2" />
             {content[language].backToDashboard}
-          </button>
+          </Button>
           <div className="flex flex-col items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
             <p className="text-white text-lg">
@@ -157,12 +160,14 @@ const TalentEvents = () => {
       <div className="min-h-screen bg-black">
         <Navigation language={language} setLanguage={setLanguage} />
         <div className="container mx-auto px-4 py-6">
-          <button
+          <Button
+            variant="outline"
             onClick={() => navigate('/dashboard/talent')}
-            className="text-primary hover:text-primary/80 mb-4 flex items-center gap-2"
+            className="mb-4 min-h-[44px] h-11 px-4 text-base font-semibold"
           >
+            <ArrowLeft className="h-4 w-4 mr-2" />
             {content[language].backToDashboard}
-          </button>
+          </Button>
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 max-w-md">
               <p className="text-white text-lg mb-4">
@@ -170,12 +175,12 @@ const TalentEvents = () => {
                   ? 'Unable to load talent profile. Please contact support.' 
                   : 'No se pudo cargar el perfil del talento. Por favor contacte soporte.'}
               </p>
-              <button
+              <Button
                 onClick={() => navigate('/dashboard/talent')}
-                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-md font-semibold"
+                className="min-h-[44px] h-11 px-6 text-base font-semibold"
               >
                 {content[language].backToDashboard}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -192,12 +197,14 @@ const TalentEvents = () => {
       
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6">
-          <button
+          <Button
+            variant="outline"
             onClick={() => navigate('/dashboard/talent')}
-            className="text-primary hover:text-primary/80 mb-4"
+            className="mb-4 min-h-[44px] h-11 px-4 text-base font-semibold"
           >
+            <ArrowLeft className="h-4 w-4 mr-2" />
             {content[language].backToDashboard}
-          </button>
+          </Button>
           
           <h1 className="text-2xl font-bold mb-2 text-white">{content[language].upcomingEvents}</h1>
         </div>
