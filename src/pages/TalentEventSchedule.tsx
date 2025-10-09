@@ -136,11 +136,12 @@ const TalentEventSchedule = () => {
       
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-6 relative z-10">
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={() => navigate('/talent/events')}
-            className="mb-4 p-0 h-auto text-primary hover:text-primary/80"
+            className="mb-4 min-h-[44px] h-11 px-4 text-base font-semibold pointer-events-auto"
+            aria-label={content[language].backToEvents}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             {content[language].backToEvents}

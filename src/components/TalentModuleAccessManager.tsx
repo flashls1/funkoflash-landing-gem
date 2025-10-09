@@ -30,7 +30,7 @@ const MODULES = [
   { id: "portfolio", label: "Portfolio", labelEs: "Portafolio" },
   { id: "earnings", label: "Earnings", labelEs: "Ganancias" },
   { id: "performance", label: "Performance", labelEs: "Rendimiento" },
-  { id: "settings", label: "Settings", labelEs: "Configuración" },
+  { id: "profile", label: "Profile", labelEs: "Perfil" },
   { id: "opportunities", label: "Opportunities", labelEs: "Oportunidades" },
   { id: "contracts", label: "Contracts", labelEs: "Contratos" },
 ];

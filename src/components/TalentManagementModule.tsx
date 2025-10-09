@@ -5,7 +5,7 @@ import {
   Users, 
   Calendar,
   UserCog,
-  Settings,
+  User,
   Lock
 } from 'lucide-react';
 import { EventsManagementModule } from './EventsManagementModule';
@@ -31,7 +31,7 @@ export const TalentManagementModule: React.FC<TalentManagementModuleProps> = ({
       assets: 'Talent Assets',
       quickview: 'Quick View',
       accessibility: 'Talent Accessibility',
-      settings: 'Settings'
+      profile: 'Profile'
     },
     es: {
       talentManagement: 'Gestión de Talentos',
@@ -40,7 +40,7 @@ export const TalentManagementModule: React.FC<TalentManagementModuleProps> = ({
       assets: 'Recursos de Talento',
       quickview: 'Vista Rápida',
       accessibility: 'Accesibilidad de Talento',
-      settings: 'Configuración'
+      profile: 'Perfil'
     }
   };
 
@@ -75,9 +75,9 @@ export const TalentManagementModule: React.FC<TalentManagementModuleProps> = ({
             <Lock className="h-4 w-4" />
             {content[language].accessibility}
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            {content[language].settings}
+          <TabsTrigger value="profile" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            {content[language].profile}
           </TabsTrigger>
         </TabsList>
 
@@ -101,14 +101,14 @@ export const TalentManagementModule: React.FC<TalentManagementModuleProps> = ({
           <TalentModuleAccessManager locale={language} />
         </TabsContent>
 
-        <TabsContent value="settings" className="mt-6">
+        <TabsContent value="profile" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>{content[language].settings}</CardTitle>
+              <CardTitle>{content[language].profile}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8 text-muted-foreground">
-                Settings management coming soon...
+                Profile management coming soon...
               </div>
             </CardContent>
           </Card>

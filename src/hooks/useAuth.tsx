@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Auto-logout after 15 minutes of inactivity
+  // Auto-logout after 5 minutes of inactivity
   useEffect(() => {
     if (!user) return;
 
@@ -72,9 +72,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const checkInactivity = setInterval(() => {
       const now = Date.now();
       const timeSinceActivity = now - lastActivity;
-      const fifteenMinutes = 15 * 60 * 1000; // 15 minutes in milliseconds
+      const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-      if (timeSinceActivity >= fifteenMinutes) {
+      if (timeSinceActivity >= fiveMinutes) {
         toast({
           title: "Session Expired",
           description: "You have been logged out due to inactivity.",

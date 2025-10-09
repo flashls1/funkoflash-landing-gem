@@ -196,11 +196,12 @@ const TalentEvents = () => {
       <Navigation language={language} setLanguage={setLanguage} />
       
       <div className="container mx-auto px-4 py-6">
-        <div className="mb-6">
+        <div className="mb-6 relative z-20">
           <Button
             variant="outline"
             onClick={() => navigate('/dashboard/talent')}
-            className="mb-4 min-h-[44px] h-11 px-4 text-base font-semibold"
+            className="mb-4 min-h-[44px] h-11 px-4 text-base font-semibold pointer-events-auto"
+            aria-label={content[language].backToDashboard}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             {content[language].backToDashboard}

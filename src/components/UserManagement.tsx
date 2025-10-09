@@ -112,6 +112,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       edit: "Edit",
       delete: "Delete",
       viewDashboard: "View Dashboard",
+      viewProfileData: "View Profile Data",
       userDetails: "User Details",
       loginHistory: "Login History",
       ipAddress: "IP Address",
@@ -166,6 +167,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       edit: "Editar",
       delete: "Eliminar",
       viewDashboard: "Ver Panel",
+      viewProfileData: "Ver Datos de Perfil",
       userDetails: "Detalles del Usuario",
       loginHistory: "Historial de Acceso",
       ipAddress: "Dirección IP",
@@ -1396,21 +1398,38 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
+                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => openUserDashboard(user)}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 min-h-[44px]"
+                        aria-label={t.viewDashboard}
                       >
                         <Eye className="h-4 w-4" />
                         {t.viewDashboard}
                       </Button>
                       
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.location.href = `/admin/users/${user.user_id}/profile`}
+                        className="flex items-center gap-1 min-h-[44px]"
+                        aria-label={t.viewProfileData}
+                      >
+                        <User className="h-4 w-4" />
+                        {t.viewProfileData}
+                      </Button>
+                      
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-red-600 hover:text-red-700 min-h-[44px]"
+                            aria-label={t.delete}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </AlertDialogTrigger>

@@ -21,7 +21,7 @@ import {
   FolderOpen, 
   DollarSign, 
   BarChart3, 
-  Settings, 
+  User, 
   Briefcase, 
   FileText,
   Lock
@@ -129,8 +129,12 @@ const TalentDashboard = () => {
       case 'performance':
         navigate('/talent/performance');
         break;
+      case 'profile':
+        navigate('/talent/profile');
+        break;
       case 'settings':
-        setIsProfileSettingsOpen(true);
+        // Legacy fallback - redirect to profile
+        navigate('/talent/profile');
         break;
       default:
         setActiveModule(moduleId);
@@ -147,7 +151,7 @@ const TalentDashboard = () => {
       portfolio: 'Portfolio',
       earnings: 'Earnings',
       performance: 'Performance',
-      settings: 'Settings',
+      profile: 'Profile',
       opportunities: 'Opportunities',
       contracts: 'Contracts',
       upcomingEvents: 'Upcoming Events',
@@ -168,7 +172,7 @@ const TalentDashboard = () => {
       portfolio: 'Portafolio',
       earnings: 'Ganancias',
       performance: 'Rendimiento',
-      settings: 'Configuración',
+      profile: 'Perfil',
       opportunities: 'Oportunidades',
       contracts: 'Contratos',
       upcomingEvents: 'Próximos Eventos',
@@ -190,7 +194,7 @@ const TalentDashboard = () => {
     { id: 'portfolio', icon: FolderOpen, label: content[language].portfolio, gradient: 'from-red-500 to-yellow-400' },
     { id: 'earnings', icon: DollarSign, label: content[language].earnings, gradient: 'from-green-500 to-lime-400' },
     { id: 'performance', icon: BarChart3, label: content[language].performance, gradient: 'from-purple-500 to-indigo-600' },
-    { id: 'settings', icon: Settings, label: content[language].settings, gradient: 'from-orange-400 to-pink-500' },
+    { id: 'profile', icon: User, label: content[language].profile, gradient: 'from-orange-400 to-pink-500' },
     { id: 'opportunities', icon: Briefcase, label: content[language].opportunities, gradient: 'from-cyan-400 to-blue-500' },
     { id: 'contracts', icon: FileText, label: content[language].contracts, gradient: 'from-yellow-400 to-red-500' }
   ];

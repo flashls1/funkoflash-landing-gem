@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Index from "./pages/Index";
@@ -36,6 +36,8 @@ import TalentEventTravel from "./pages/TalentEventTravel";
 import TalentEventPersonalSchedule from "./pages/TalentEventPersonalSchedule";
 import TalentEventShowSchedule from "./pages/TalentEventShowSchedule";
 import TalentQuickView from "./pages/TalentQuickView";
+import TalentProfilePage from "./pages/TalentProfilePage";
+import AdminUserProfilePage from "./pages/AdminUserProfilePage";
 import Logout from "./pages/Logout";
 
 const queryClient = new QueryClient();
@@ -76,11 +78,14 @@ const App = () => (
             <Route path="/business/booking-management" element={<BusinessBookingManagement />} />
           <Route path="/talent/booking-management" element={<TalentBookingManagement />} />
           <Route path="/talent/portfolio-management" element={<TalentPortfolioManagement />} />
-        <Route path="/talent/events" element={<TalentEvents />} />
-        <Route path="/talent/events/:eventId/schedule" element={<TalentEventSchedule />} />
-        <Route path="/talent/events/:eventId/travel" element={<TalentEventTravel />} />
-        <Route path="/talent/events/:eventId/personal" element={<TalentEventPersonalSchedule />} />
-        <Route path="/talent/events/:eventId/show" element={<TalentEventShowSchedule />} />
+          <Route path="/talent/events" element={<TalentEvents />} />
+          <Route path="/talent/events/:eventId/schedule" element={<TalentEventSchedule />} />
+          <Route path="/talent/events/:eventId/travel" element={<TalentEventTravel />} />
+          <Route path="/talent/events/:eventId/personal" element={<TalentEventPersonalSchedule />} />
+          <Route path="/talent/events/:eventId/show" element={<TalentEventShowSchedule />} />
+          <Route path="/talent/profile" element={<TalentProfilePage />} />
+          <Route path="/talent/settings" element={<Navigate to="/talent/profile" replace />} />
+          <Route path="/admin/users/:userId/profile" element={<AdminUserProfilePage />} />
           <Route path="/dashboard/talent-quick-view" element={<TalentQuickView />} />
           <Route path="/dashboard/talent-quick-view/:id" element={<TalentQuickView />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
