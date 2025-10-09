@@ -128,11 +128,62 @@ const TalentEvents = () => {
   };
 
   if (loading || talentLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-black">
+        <Navigation language={language} setLanguage={setLanguage} />
+        <div className="container mx-auto px-4 py-6">
+          <button
+            onClick={() => navigate('/dashboard/talent')}
+            className="text-primary hover:text-primary/80 mb-4 flex items-center gap-2"
+          >
+            {content[language].backToDashboard}
+          </button>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+            <p className="text-white text-lg">
+              {language === 'en' ? 'Loading your events...' : 'Cargando tus eventos...'}
+            </p>
+          </div>
+        </div>
+        <div className="hidden md:block">
+          <Footer language={language} />
+        </div>
+      </div>
+    );
   }
 
   if (talentError || !talentProfile) {
-    return <div>Error: Unable to load talent profile. Please contact support.</div>;
+    return (
+      <div className="min-h-screen bg-black">
+        <Navigation language={language} setLanguage={setLanguage} />
+        <div className="container mx-auto px-4 py-6">
+          <button
+            onClick={() => navigate('/dashboard/talent')}
+            className="text-primary hover:text-primary/80 mb-4 flex items-center gap-2"
+          >
+            {content[language].backToDashboard}
+          </button>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 max-w-md">
+              <p className="text-white text-lg mb-4">
+                {language === 'en' 
+                  ? 'Unable to load talent profile. Please contact support.' 
+                  : 'No se pudo cargar el perfil del talento. Por favor contacte soporte.'}
+              </p>
+              <button
+                onClick={() => navigate('/dashboard/talent')}
+                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-md font-semibold"
+              >
+                {content[language].backToDashboard}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="hidden md:block">
+          <Footer language={language} />
+        </div>
+      </div>
+    );
   }
 
   return (

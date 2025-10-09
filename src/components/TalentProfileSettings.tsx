@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, Image as ImageIcon, User, Star, Save, X, Camera, Lock } from 'lucide-react';
+import { Upload, Image as ImageIcon, User, Star, Save, X, Camera, Lock, ArrowLeft } from 'lucide-react';
 
 interface TalentProfileSettingsProps {
   language: 'en' | 'es';
@@ -332,6 +332,18 @@ const TalentProfileSettings = ({ language, isOpen, onClose }: TalentProfileSetti
           </DialogDescription>
         </DialogHeader>
 
+        {/* Mobile-only back button header */}
+        <div className="md:hidden -mt-2 mb-4">
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            className="w-full h-11 text-base font-semibold"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {language === 'en' ? 'Back to Dashboard' : 'Volver al Panel'}
+          </Button>
+        </div>
+
         <div className="space-y-6 py-4">
           {/* Profile Image Section */}
           <Card className="border border-border/50">
@@ -485,14 +497,21 @@ const TalentProfileSettings = ({ language, isOpen, onClose }: TalentProfileSetti
           </Card>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} className="h-8 px-4 text-sm">
-            <X className="h-3 w-3 mr-2" />
-            {t.cancel}
+        <DialogFooter className="gap-2 flex-col sm:flex-row">
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            className="w-full sm:w-auto h-10 sm:h-8 px-4 text-sm font-semibold"
+          >
+            {language === 'en' ? '← Back to Dashboard' : '← Volver al Panel'}
           </Button>
-          <Button onClick={handleSave} disabled={uploading} className="h-8 px-4 text-sm">
+          <Button 
+            onClick={handleSave} 
+            disabled={uploading} 
+            className="w-full sm:w-auto h-10 sm:h-8 px-4 text-sm"
+          >
             <Save className="h-3 w-3 mr-2" />
-            {uploading ? 'Saving...' : t.save}
+            {uploading ? (language === 'en' ? 'Saving...' : 'Guardando...') : t.save}
           </Button>
         </DialogFooter>
       </DialogContent>
