@@ -2064,6 +2064,168 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profile_data: {
+        Row: {
+          address_line: string | null
+          airline_rewards: Json | null
+          availability_notes: string | null
+          city: string | null
+          contact_number: string | null
+          country: string | null
+          created_at: string
+          date_of_birth: string | null
+          drivers_license_state: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          experience_years: number | null
+          food_allergies: string | null
+          geographic_range: Json | null
+          has_drivers_license: boolean | null
+          has_passport: boolean | null
+          has_visa: boolean | null
+          headshots: Json | null
+          id: string
+          legal_name: string | null
+          marketing_consent: boolean | null
+          passport_number: string | null
+          payment_methods: Json | null
+          portfolio_links: Json | null
+          postal_code: string | null
+          preferred_airlines: string | null
+          preferred_airports: string | null
+          previous_representation: string | null
+          representation_consent: boolean | null
+          representation_start_date: string | null
+          representation_type: string | null
+          signature_data: string | null
+          signature_date: string | null
+          skills: string | null
+          social_facebook: string | null
+          social_instagram: string | null
+          social_linkedin: string | null
+          social_other: string | null
+          social_tiktok: string | null
+          social_x: string | null
+          stage_name: string | null
+          state: string | null
+          talent_category: string | null
+          terms_accepted: boolean | null
+          training: string | null
+          travel_requirements: string | null
+          union_affiliation: boolean | null
+          updated_at: string
+          user_id: string
+          visa_number: string | null
+        }
+        Insert: {
+          address_line?: string | null
+          airline_rewards?: Json | null
+          availability_notes?: string | null
+          city?: string | null
+          contact_number?: string | null
+          country?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          drivers_license_state?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          experience_years?: number | null
+          food_allergies?: string | null
+          geographic_range?: Json | null
+          has_drivers_license?: boolean | null
+          has_passport?: boolean | null
+          has_visa?: boolean | null
+          headshots?: Json | null
+          id?: string
+          legal_name?: string | null
+          marketing_consent?: boolean | null
+          passport_number?: string | null
+          payment_methods?: Json | null
+          portfolio_links?: Json | null
+          postal_code?: string | null
+          preferred_airlines?: string | null
+          preferred_airports?: string | null
+          previous_representation?: string | null
+          representation_consent?: boolean | null
+          representation_start_date?: string | null
+          representation_type?: string | null
+          signature_data?: string | null
+          signature_date?: string | null
+          skills?: string | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_linkedin?: string | null
+          social_other?: string | null
+          social_tiktok?: string | null
+          social_x?: string | null
+          stage_name?: string | null
+          state?: string | null
+          talent_category?: string | null
+          terms_accepted?: boolean | null
+          training?: string | null
+          travel_requirements?: string | null
+          union_affiliation?: boolean | null
+          updated_at?: string
+          user_id: string
+          visa_number?: string | null
+        }
+        Update: {
+          address_line?: string | null
+          airline_rewards?: Json | null
+          availability_notes?: string | null
+          city?: string | null
+          contact_number?: string | null
+          country?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          drivers_license_state?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          experience_years?: number | null
+          food_allergies?: string | null
+          geographic_range?: Json | null
+          has_drivers_license?: boolean | null
+          has_passport?: boolean | null
+          has_visa?: boolean | null
+          headshots?: Json | null
+          id?: string
+          legal_name?: string | null
+          marketing_consent?: boolean | null
+          passport_number?: string | null
+          payment_methods?: Json | null
+          portfolio_links?: Json | null
+          postal_code?: string | null
+          preferred_airlines?: string | null
+          preferred_airports?: string | null
+          previous_representation?: string | null
+          representation_consent?: boolean | null
+          representation_start_date?: string | null
+          representation_type?: string | null
+          signature_data?: string | null
+          signature_date?: string | null
+          skills?: string | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_linkedin?: string | null
+          social_other?: string | null
+          social_tiktok?: string | null
+          social_x?: string | null
+          stage_name?: string | null
+          state?: string | null
+          talent_category?: string | null
+          terms_accepted?: boolean | null
+          training?: string | null
+          travel_requirements?: string | null
+          union_affiliation?: boolean | null
+          updated_at?: string
+          user_id?: string
+          visa_number?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_by: string | null
@@ -2413,6 +2575,10 @@ export type Database = {
           p_event_id: string
         }
         Returns: string
+      }
+      migrate_profile_to_profile_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       test_business_account_isolation: {
         Args: Record<PropertyKey, never>
