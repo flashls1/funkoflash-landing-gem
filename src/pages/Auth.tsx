@@ -14,6 +14,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import UnifiedHeroSection from '@/components/UnifiedHeroSection';
 import { useSiteDesign } from '@/hooks/useSiteDesign';
+import loginVideo from '@/assets/Ab.mp4';
 
 interface AccessRequestForm {
   name: string;
@@ -33,6 +34,8 @@ const Auth = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [showRequestAccess, setShowRequestAccess] = useState(false);
+  const [videoEnded, setVideoEnded] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const [accessForm, setAccessForm] = useState<AccessRequestForm>({
     name: '',
     email: '',
@@ -221,12 +224,36 @@ const Auth = () => {
         </div>
         <div className="flex-1 flex items-center justify-center px-4 py-4 md:py-8 mt-4 md:mt-0">
           <Card className="w-full max-w-md relative overflow-hidden">
+            {/* Video Background - plays once then removed */}
+            {!videoEnded && (
+              <video
+                autoPlay
+                muted={false}
+                playsInline
+                preload="auto"
+                onEnded={() => setVideoEnded(true)}
+                onLoadedData={() => setVideoLoaded(true)}
+                onError={() => setVideoEnded(true)}
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
+                style={{
+                  opacity: videoLoaded ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out'
+                }}
+              >
+                <source src={loginVideo} type="video/mp4" />
+              </video>
+            )}
+            
+            {/* Static Background - shown after video ends */}
             <div 
-              className="absolute inset-0 bg-no-repeat bg-center bg-contain opacity-10 pointer-events-none"
+              className="absolute inset-0 bg-no-repeat bg-center bg-contain pointer-events-none"
               style={{
                 backgroundImage: "url('/lovable-uploads/67bbac87-013f-4469-bfeb-bc5f77732cdc.png')",
                 backgroundSize: 'cover',
-                backgroundPosition: 'center center'
+                backgroundPosition: 'center center',
+                opacity: videoEnded ? 0.1 : 0,
+                transition: 'opacity 0.5s ease-in-out',
+                zIndex: 1
               }}
             ></div>
             <CardHeader className="text-center relative z-10">
