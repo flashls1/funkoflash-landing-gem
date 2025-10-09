@@ -64,13 +64,13 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center py-[5px]">
           {/* Logo */}
           <div className="flex-shrink-0">
             <img 
               src={funkoFlashLogo} 
               alt="Funko Flash" 
-              className="h-10 w-auto"
+              className="h-16 w-auto"
             />
           </div>
 
@@ -224,7 +224,7 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
               {user && profile ? (
                 <Button 
                   variant="funko" 
-                  className="w-full font-medium tracking-wide"
+                  className="w-full font-medium tracking-wide border border-funko-orange"
                   onClick={() => {
                     const dashboardPath = `/dashboard/${profile.role}`;
                     const currentPath = window.location.pathname;
@@ -250,7 +250,7 @@ const Navigation = ({ language, setLanguage, customStyles }: NavigationProps) =>
               ) : (
                 <Button 
                   variant="funko" 
-                  className="w-full font-medium tracking-wide"
+                  className="w-full font-medium tracking-wide border border-funko-orange"
                   onClick={() => {
                     navigate('/auth');
                     setIsMobileMenuOpen(false);
