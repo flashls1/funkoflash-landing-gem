@@ -36,6 +36,7 @@ const Auth = () => {
   const [showRequestAccess, setShowRequestAccess] = useState(false);
   const [videoEnded, setVideoEnded] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoMuted, setVideoMuted] = useState(false);
   const [accessForm, setAccessForm] = useState<AccessRequestForm>({
     name: '',
     email: '',
@@ -228,12 +229,33 @@ const Auth = () => {
             {!videoEnded && (
               <video
                 autoPlay
-                muted={false}
+                muted={videoMuted}
                 playsInline
                 preload="auto"
                 onEnded={() => setVideoEnded(true)}
                 onLoadedData={() => setVideoLoaded(true)}
                 onError={() => setVideoEnded(true)}
+                onPlay={(e) => {
+                  // Try to unmute on play - will work if browser allows
+                  const video = e.currentTarget;
+                  if (videoMuted) {
+                    video.muted = false;
+                    video.play().catch(() => {
+                      // If unmuting fails, keep it muted
+                      video.muted = true;
+                    });
+                  }
+                }}
+                onLoadedMetadata={(e) => {
+                  // Try to play with audio first, fallback to muted if blocked
+                  const video = e.currentTarget;
+                  video.play().catch(() => {
+                    // Autoplay with audio blocked, fallback to muted
+                    setVideoMuted(true);
+                    video.muted = true;
+                    video.play().catch(() => setVideoEnded(true));
+                  });
+                }}
                 className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
                 style={{
                   opacity: videoLoaded ? 1 : 0,
