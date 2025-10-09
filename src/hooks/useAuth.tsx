@@ -85,6 +85,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
 
       if (timeSinceActivity >= fiveMinutes) {
+        console.warn('[AuthDiagnostics] AUTO_LOGOUT_INACTIVITY', { timeSinceActivity });
         toast({
           title: "Session Expired",
           description: "You have been logged out due to inactivity.",
@@ -115,7 +116,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       (event, session) => {
         if (!mounted) return;
 
-        console.log('Auth state change:', event, session?.user?.id);
+        console.log('Auth state change:', event, session?.user?.id, { online: navigator.onLine, visibility: document.visibilityState, expires_at: session?.expires_at });
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -162,6 +163,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => {
       mounted = false;
       subscription.unsubscribe();
+    };
+  }, []);
+
+  // Auth diagnostics: monitor connectivity and auth-related signals
+  useEffect(() => {
+    const log = (...args: any[]) => console.log('[AuthDiagnostics]', ...args);
+    const onOnline = () => log('network', 'online');
+    const onOffline = () => log('network', 'offline');
+    const onVisibility = () => log('visibility', document.visibilityState);
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key) return;
+      if (e.key.includes('sb-') && e.key.includes('auth')) {
+        log('storage', 'auth state changed in another tab', { key: e.key, present: !!e.newValue });
+      }
+    };
+
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('storage', onStorage);
+
+    log('init', { online: navigator.onLine });
+
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('storage', onStorage);
     };
   }, []);
 

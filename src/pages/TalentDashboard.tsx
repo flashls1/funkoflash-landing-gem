@@ -201,7 +201,7 @@ const TalentDashboard = () => {
 
   if (siteDesignLoading || talentLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-lg">Loading your dashboard...</p>
         </div>
@@ -211,7 +211,7 @@ const TalentDashboard = () => {
 
   if (talentError || !talentProfile) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-lg text-destructive">{talentError || 'Unable to load talent profile'}</p>
           <Button onClick={() => window.location.reload()}>
@@ -224,13 +224,13 @@ const TalentDashboard = () => {
 
   if (activeModule === 'messages') {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-black text-white">
         <Navigation language={language} setLanguage={setLanguage} />
         <div className="container mx-auto px-4 py-6">
           <Button 
             onClick={() => setActiveModule('overview')} 
             variant="ghost" 
-            className="mb-4"
+            className="mb-4 text-white"
           >
             {content[language].backToDashboard}
           </Button>
@@ -249,7 +249,7 @@ const TalentDashboard = () => {
         <Navigation language={language} setLanguage={setLanguage} />
         
         <div className="pt-4 px-[5px]">
-          <div className="border-2 border-white rounded-2xl overflow-hidden relative">
+          <div className="border border-funko-orange rounded-2xl overflow-hidden relative">
             <HeroShell imageUrl={backgroundUrl}>
             <HeroOverlay 
               role={profile?.role || 'talent'}
@@ -275,7 +275,7 @@ const TalentDashboard = () => {
               return (
                 <button
                   key={module.id}
-                  className={`relative flex flex-col items-center justify-center w-full min-h-[120px] h-32 md:h-28 rounded-xl border-2 border-blue-500 bg-gradient-to-r ${module.gradient} shadow-md hover:scale-105 hover:brightness-110 transition-transform ${isLocked ? 'cursor-not-allowed' : ''}`}
+                  className={`relative flex flex-col items-center justify-center w-full min-h-[120px] h-32 md:h-28 rounded-xl border border-funko-orange bg-black text-white shadow-md hover:scale-105 hover:bg-white/10 transition-transform ${isLocked ? 'cursor-not-allowed' : ''}`}
                   onClick={() => handleModuleClick(module.id)}
                 >
                   {isLocked && (
