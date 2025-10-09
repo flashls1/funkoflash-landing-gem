@@ -372,7 +372,7 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
                 size="sm"
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={uploading}
-                className="min-h-[44px] h-11 border-funko-orange text-white hover:bg-funko-orange/20"
+                className="min-h-[44px] h-11 bg-black border-funko-orange text-white hover:bg-funko-orange/20"
               >
                 <Camera className="h-4 w-4 mr-2" />
                 {uploading ? 'Uploading...' : 'Change Photo'}
@@ -400,7 +400,7 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
                 size="sm"
                 onClick={() => heroInputRef.current?.click()}
                 disabled={uploading}
-                className="min-h-[44px] h-11 border-funko-orange text-white hover:bg-funko-orange/20"
+                className="min-h-[44px] h-11 bg-black border-funko-orange text-white hover:bg-funko-orange/20"
               >
                 <Upload className="h-4 w-4 mr-2" />
                 {uploading ? 'Uploading...' : 'Change Banner'}

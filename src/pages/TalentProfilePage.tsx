@@ -48,7 +48,7 @@ const TalentProfilePage = () => {
         <Button
           variant="outline"
           onClick={() => navigate('/dashboard/talent')}
-          className="mb-6 min-h-[44px] h-11 px-4 text-base font-semibold pointer-events-auto z-10 relative border-funko-orange text-white hover:bg-funko-orange/20"
+          className="mb-6 min-h-[44px] h-11 px-4 text-base font-semibold pointer-events-auto z-10 relative bg-black border-funko-orange text-white hover:bg-funko-orange/20"
           aria-label={t.backToDashboard}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
