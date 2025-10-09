@@ -56,19 +56,14 @@ const TalentEvents = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (talentError) {
-      signOut();
-      navigate('/auth');
-      return;
-    }
-    if (!user || !profile || profile.role !== 'talent') {
+    if (talentError || !user || !profile || profile.role !== 'talent') {
       navigate('/auth');
       return;
     }
     if (talentProfile) {
       fetchUpcomingEvents();
     }
-  }, [user, profile, talentProfile, navigate, talentError, signOut]);
+  }, [user, profile, talentProfile, navigate, talentError]);
 
   const fetchUpcomingEvents = async () => {
     if (!talentProfile) return;
@@ -136,7 +131,8 @@ const TalentEvents = () => {
           <Button
             variant="outline"
             onClick={() => navigate('/dashboard/talent')}
-            className="mb-4 min-h-[44px] h-11 px-4 text-base font-semibold"
+            className="mb-4 min-h-[44px] h-11 px-4 text-base font-semibold pointer-events-auto z-10 relative"
+            aria-label={content[language].backToDashboard}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             {content[language].backToDashboard}

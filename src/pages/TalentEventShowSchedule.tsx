@@ -46,19 +46,14 @@ const TalentEventShowSchedule = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (talentError) {
-      signOut();
-      navigate('/auth');
-      return;
-    }
-    if (!user || !profile || profile.role !== 'talent') {
+    if (talentError || !user || !profile || profile.role !== 'talent') {
       navigate('/auth');
       return;
     }
     if (eventId && talentProfile) {
       fetchEventAndSchedules();
     }
-  }, [user, profile, eventId, talentProfile, navigate]);
+  }, [user, profile, eventId, talentProfile, navigate, talentError]);
 
   const fetchEventAndSchedules = async () => {
     if (!eventId || !talentProfile) return;
@@ -219,9 +214,10 @@ const TalentEventShowSchedule = () => {
         {/* Header */}
         <div className="mb-6">
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={() => navigate(`/talent/events/${eventId}/schedule`)}
-            className="mb-4 p-0 h-auto text-primary hover:text-primary/80"
+            className="mb-4 min-h-[44px] h-11 px-4 text-base font-semibold pointer-events-auto z-10 relative"
+            aria-label={content[language].backToSchedule}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             {content[language].backToSchedule}

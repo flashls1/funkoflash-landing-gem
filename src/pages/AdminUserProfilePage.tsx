@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { supabase } from '@/integrations/supabase/client';
+import { ProfileAccordion } from '@/components/profile/ProfileAccordion';
 
 const AdminUserProfilePage = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -75,34 +76,28 @@ const AdminUserProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24 md:pb-6">
       <Navigation language={language} setLanguage={() => {}} />
       
       <div className="container mx-auto px-4 py-6">
         <Button
           variant="outline"
           onClick={() => navigate('/dashboard/admin')}
-          className="mb-6 min-h-[44px] h-11 px-4 text-base font-semibold"
+          className="mb-6 min-h-[44px] h-11 px-4 text-base font-semibold pointer-events-auto z-10 relative"
           aria-label={t.backToUsers}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           {t.backToUsers}
         </Button>
 
-        <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
             {t.userProfile}: {targetUser?.first_name} {targetUser?.last_name}
           </h1>
-          <p className="text-muted-foreground mb-8">{targetUser?.email}</p>
-
-          {/* Placeholder for ProfileAccordion - will be implemented */}
-          <div className="border-2 border-dashed border-border rounded-lg p-12 text-center">
-            <h2 className="text-xl font-semibold mb-2">{t.comingSoon}</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              {t.description}
-            </p>
-          </div>
+          <p className="text-muted-foreground">{targetUser?.email}</p>
         </div>
+
+        {userId && <ProfileAccordion userId={userId} mode="admin" />}
       </div>
 
       <Footer language={language} />

@@ -85,6 +85,7 @@ const App = () => (
           <Route path="/talent/events/:eventId/show" element={<TalentEventShowSchedule />} />
           <Route path="/talent/profile" element={<TalentProfilePage />} />
           <Route path="/talent/settings" element={<Navigate to="/talent/profile" replace />} />
+          <Route path="/settings" element={<Navigate to="/talent/profile" replace />} />
           <Route path="/admin/users/:userId/profile" element={<AdminUserProfilePage />} />
           <Route path="/dashboard/talent-quick-view" element={<TalentQuickView />} />
           <Route path="/dashboard/talent-quick-view/:id" element={<TalentQuickView />} />

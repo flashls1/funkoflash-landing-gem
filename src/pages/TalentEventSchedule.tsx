@@ -14,7 +14,8 @@ import {
   Plane, 
   Calendar, 
   MapPin,
-  CalendarDays
+  CalendarDays,
+  ChevronRight
 } from 'lucide-react';
 
 const TalentEventSchedule = () => {
@@ -28,19 +29,14 @@ const TalentEventSchedule = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (talentError) {
-      signOut();
-      navigate('/auth');
-      return;
-    }
-    if (!user || !profile || profile.role !== 'talent') {
+    if (talentError || !user || !profile || profile.role !== 'talent') {
       navigate('/auth');
       return;
     }
     if (eventId && talentProfile) {
       fetchEvent();
     }
-  }, [user, profile, eventId, talentProfile, navigate, talentError, signOut]);
+  }, [user, profile, eventId, talentProfile, navigate, talentError]);
 
   const fetchEvent = async () => {
     if (!eventId || !talentProfile) return;
@@ -193,7 +189,7 @@ const TalentEventSchedule = () => {
                           <h3 className="text-lg font-semibold mb-1">{option.title}</h3>
                           <p className="text-muted-foreground text-sm">{option.description}</p>
                         </div>
-                        <ArrowLeft className="h-5 w-5 text-muted-foreground rotate-180" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
                       </div>
                     </div>
                   </div>
