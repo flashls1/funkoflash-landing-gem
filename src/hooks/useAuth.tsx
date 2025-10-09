@@ -61,17 +61,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Auto-logout disabled for mobile devices
+  // Auto-logout with improved mobile detection
   useEffect(() => {
     if (!user) return;
 
-    // Detect mobile devices
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-      || window.innerWidth <= 768;
+    // More robust mobile detection - stored in state to avoid recalculation
+    const [isMobile, setIsMobile] = useState(() => {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+        || window.innerWidth <= 768;
+    });
 
     // Skip auto-logout for mobile devices
     if (isMobile) {
-      console.log('Auto-logout disabled for mobile device');
+      console.log('[Auth] Auto-logout disabled for mobile device');
       return;
     }
 
@@ -79,19 +81,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setLastActivity(Date.now());
     };
 
-    const checkInactivity = setInterval(() => {
+    const checkInactivity = setInterval(async () => {
       const now = Date.now();
       const timeSinceActivity = now - lastActivity;
-      const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+      const tenMinutes = 10 * 60 * 1000; // Increased to 10 minutes for better UX
 
-      if (timeSinceActivity >= fiveMinutes) {
-        console.warn('[AuthDiagnostics] AUTO_LOGOUT_INACTIVITY', { timeSinceActivity });
-        toast({
-          title: "Session Expired",
-          description: "You have been logged out due to inactivity.",
-          variant: "destructive",
-        });
-        signOut();
+      if (timeSinceActivity >= tenMinutes) {
+        // Verify session is actually expired before logging out
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.warn('[Auth] AUTO_LOGOUT_INACTIVITY - Session expired', { timeSinceActivity });
+          toast({
+            title: "Session Expired",
+            description: "You have been logged out due to inactivity.",
+            variant: "destructive",
+          });
+          signOut();
+        } else {
+          // Session is still valid, reset activity
+          setLastActivity(Date.now());
+        }
       }
     }, 60000); // Check every minute
 

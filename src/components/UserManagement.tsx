@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -69,6 +70,7 @@ interface UserManagementProps {
 }
 
 const UserManagement = ({ language, onBack }: UserManagementProps) => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [loginHistory, setLoginHistory] = useState<LoginHistory[]>([]);
@@ -1414,7 +1416,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.location.href = `/admin/users/${user.user_id}/profile`}
+                        onClick={() => navigate(`/admin/users/${user.user_id}/profile`)}
                         className="flex items-center gap-1 min-h-[44px]"
                         aria-label={t.viewProfileData}
                       >

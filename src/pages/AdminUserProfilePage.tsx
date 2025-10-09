@@ -6,43 +6,70 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ProfileAccordion } from '@/components/profile/ProfileAccordion';
 
 const AdminUserProfilePage = () => {
   const { userId } = useParams<{ userId: string }>();
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const { language } = useLanguage();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [targetUser, setTargetUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for auth to finish loading before checking permissions
+    if (authLoading) {
+      console.log('[AdminUserProfilePage] Waiting for auth to load...');
+      return;
+    }
+
+    // Only redirect after loading is complete and user lacks permissions
     if (!user || !profile || !['admin', 'staff'].includes(profile.role)) {
+      console.log('[AdminUserProfilePage] Unauthorized access, redirecting to auth');
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to view this page.",
+        variant: "destructive",
+      });
       navigate('/auth');
       return;
     }
 
+    console.log('[AdminUserProfilePage] Auth successful, fetching target user');
     if (userId) {
       fetchTargetUser();
     }
-  }, [user, profile, userId, navigate]);
+  }, [user, profile, userId, navigate, authLoading]);
 
   const fetchTargetUser = async () => {
     if (!userId) return;
 
     try {
+      console.log('[AdminUserProfilePage] Fetching user profile for:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[AdminUserProfilePage] Error fetching user:', error);
+        toast({
+          title: "Error Loading Profile",
+          description: "Failed to load user profile. Please try again.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      console.log('[AdminUserProfilePage] User profile loaded successfully');
       setTargetUser(data);
     } catch (error) {
-      console.error('Error fetching user:', error);
-      navigate('/dashboard/admin');
+      console.error('[AdminUserProfilePage] Fatal error:', error);
+      // Don't navigate away, let admin retry
     } finally {
       setLoading(false);
     }
@@ -65,12 +92,43 @@ const AdminUserProfilePage = () => {
 
   const t = content[language];
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-lg">Loading...</p>
+          <p className="text-lg">Loading user profile...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!targetUser) {
+    return (
+      <div className="min-h-screen bg-background pb-24 md:pb-6">
+        <Navigation language={language} setLanguage={() => {}} />
+        
+        <div className="container mx-auto px-4 py-6">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/dashboard/admin')}
+            className="mb-6 min-h-[44px]"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          
+          <div className="text-center py-12">
+            <p className="text-lg text-muted-foreground">Failed to load user profile</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+        
+        <Footer language={language} />
       </div>
     );
   }
