@@ -61,9 +61,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Auto-logout after 5 minutes of inactivity
+  // Auto-logout disabled for mobile devices
   useEffect(() => {
     if (!user) return;
+
+    // Detect mobile devices
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+      || window.innerWidth <= 768;
+
+    // Skip auto-logout for mobile devices
+    if (isMobile) {
+      console.log('Auto-logout disabled for mobile device');
+      return;
+    }
 
     const handleActivity = () => {
       setLastActivity(Date.now());

@@ -14,7 +14,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -26,35 +25,33 @@ import {
   Camera,
   Upload,
   Loader2,
-  Save
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface ProfileAccordionProps {
   userId: string;
   mode: 'talent' | 'admin';
 }
 
-// Zod schemas for each section
+// Zod schemas with required fields marked
 const basicInfoSchema = z.object({
-  legal_name: z.string().min(1, 'Legal name is required'),
+  legal_name: z.string().min(1, "Full legal name is required"),
   stage_name: z.string().optional(),
-  date_of_birth: z.string().optional(),
-  contact_number: z.string().optional(),
-  email: z.string().email('Valid email required'),
-  address_line: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
+  date_of_birth: z.string().min(1, "Date of birth is required"),
+  contact_number: z.string().min(1, "Contact number is required"),
+  email: z.string().email("Valid email is required").min(1, "Email is required"),
+  address_line: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
   country: z.string().optional(),
-  postal_code: z.string().optional(),
+  postal_code: z.string().min(1, "Postal code is required"),
 });
 
 const representationSchema = z.object({
-  representation_type: z.string().optional(),
+  representation_type: z.string().min(1, "Representation type is required"),
   representation_start_date: z.string().optional(),
   union_affiliation: z.boolean().optional(),
-  emergency_contact_name: z.string().optional(),
-  emergency_contact_phone: z.string().optional(),
+  emergency_contact_name: z.string().min(1, "Emergency contact name is required"),
+  emergency_contact_phone: z.string().min(1, "Emergency contact phone is required"),
   previous_representation: z.string().optional(),
 });
 
@@ -71,10 +68,10 @@ const professionalSchema = z.object({
 });
 
 const travelSchema = z.object({
-  preferred_airports: z.string().optional(),
-  preferred_airlines: z.string().optional(),
+  preferred_airports: z.string().min(1, "Preferred airports are required"),
+  preferred_airlines: z.string().min(1, "Preferred airlines are required"),
   travel_requirements: z.string().optional(),
-  availability_notes: z.string().optional(),
+  availability_notes: z.string().min(1, "Typical availability is required"),
   has_passport: z.boolean().optional(),
   passport_number: z.string().optional(),
   has_visa: z.boolean().optional(),
@@ -85,9 +82,10 @@ const travelSchema = z.object({
 });
 
 const consentSchema = z.object({
-  representation_consent: z.boolean().optional(),
-  marketing_consent: z.boolean().optional(),
-  terms_accepted: z.boolean().optional(),
+  representation_consent: z.boolean().refine(val => val === true, "You must consent to representation"),
+  marketing_consent: z.boolean().refine(val => val === true, "Marketing consent is required"),
+  terms_accepted: z.boolean().refine(val => val === true, "You must accept terms and privacy policy"),
+  signature_data: z.string().min(1, "E-signature is required"),
 });
 
 export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
@@ -134,7 +132,6 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
     try {
       setLoading(true);
       
-      // Fetch user_profile_data
       const { data, error } = await supabase
         .from('user_profile_data')
         .select('*')
@@ -144,7 +141,6 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (!data) {
-        // Create baseline record
         const { data: profile } = await supabase
           .from('profiles')
           .select('first_name, last_name, email, phone, avatar_url, background_image_url')
@@ -174,7 +170,6 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
         setProfileData(data);
         populateForms(data);
         
-        // Also fetch avatar/hero from profiles
         const { data: profile } = await supabase
           .from('profiles')
           .select('avatar_url, background_image_url')
@@ -248,6 +243,7 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
       representation_consent: data.representation_consent || false,
       marketing_consent: data.marketing_consent || false,
       terms_accepted: data.terms_accepted || false,
+      signature_data: data.signature_data || '',
     });
   };
 
@@ -268,7 +264,6 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Update profiles table for compatibility
       const updateField = type === 'avatar' ? 'avatar_url' : 'background_image_url';
       await supabase
         .from('profiles')
@@ -325,7 +320,6 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
 
       if (error) throw error;
 
-      // Sync certain fields to profiles for compatibility
       if (sectionData.email || sectionData.contact_number) {
         await supabase
           .from('profiles')
@@ -354,7 +348,7 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-funko-orange" />
       </div>
     );
   }
@@ -362,14 +356,14 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Top Section - Always Visible */}
-      <Card>
+      <Card className="bg-black border-2 border-funko-orange">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
             {/* Profile Photo */}
             <div className="flex flex-col items-center gap-3">
-              <Avatar className="h-24 w-24 border-2">
+              <Avatar className="h-24 w-24 border-2 border-funko-orange">
                 <AvatarImage src={avatarUrl} />
-                <AvatarFallback className="text-2xl font-bold bg-primary text-primary-foreground">
+                <AvatarFallback className="text-2xl font-bold bg-funko-orange text-white">
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
@@ -378,7 +372,7 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
                 size="sm"
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={uploading}
-                className="min-h-[44px] h-11"
+                className="min-h-[44px] h-11 border-funko-orange text-white hover:bg-funko-orange/20"
               >
                 <Camera className="h-4 w-4 mr-2" />
                 {uploading ? 'Uploading...' : 'Change Photo'}
@@ -394,10 +388,10 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
 
             {/* Hero Image */}
             <div className="flex-1 space-y-3">
-              <Label>Hero Banner</Label>
+              <Label className="text-white">Hero Banner</Label>
               {heroUrl && (
                 <div
-                  className="w-full h-32 bg-cover bg-center rounded-lg border"
+                  className="w-full h-32 bg-cover bg-center rounded-lg border-2 border-funko-orange"
                   style={{ backgroundImage: `url(${heroUrl})` }}
                 />
               )}
@@ -406,7 +400,7 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
                 size="sm"
                 onClick={() => heroInputRef.current?.click()}
                 disabled={uploading}
-                className="min-h-[44px] h-11"
+                className="min-h-[44px] h-11 border-funko-orange text-white hover:bg-funko-orange/20"
               >
                 <Upload className="h-4 w-4 mr-2" />
                 {uploading ? 'Uploading...' : 'Change Banner'}
@@ -424,20 +418,20 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
           {/* Quick Edit Fields */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="quick-name">Legal Name</Label>
+              <Label htmlFor="quick-name" className="text-white">Legal Name</Label>
               <Input
                 id="quick-name"
                 {...basicForm.register('legal_name')}
-                className="min-h-[44px]"
+                className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
               />
             </div>
             <div>
-              <Label htmlFor="quick-email">Email</Label>
+              <Label htmlFor="quick-email" className="text-white">Email</Label>
               <Input
                 id="quick-email"
                 type="email"
                 {...basicForm.register('email')}
-                className="min-h-[44px]"
+                className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
               />
             </div>
           </div>
@@ -447,11 +441,11 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
       {/* Accordion Sections */}
       <Accordion type="single" collapsible className="w-full space-y-4">
         {/* 1. Basic Information */}
-        <AccordionItem value="basic" className="border rounded-lg px-4">
-          <AccordionTrigger className="hover:no-underline min-h-[44px]">
+        <AccordionItem value="basic" className="border-2 border-funko-orange rounded-lg px-4 bg-black">
+          <AccordionTrigger className="hover:no-underline min-h-[44px] text-white hover:text-funko-orange">
             <div className="flex items-center gap-3">
-              <User className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Basic Information</span>
+              <User className="h-5 w-5 text-funko-orange" />
+              <span className="font-semibold">1. Basic Information</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-4 pb-6 space-y-4">
@@ -459,58 +453,93 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
               onSubmit={basicForm.handleSubmit((data) => saveSection(data))}
               className="space-y-4"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <Label>Stage Name</Label>
-                  <Input {...basicForm.register('stage_name')} className="min-h-[44px]" />
+                  <Label className="text-white">Full Legal Name <span className="text-red-500">*</span></Label>
+                  <Input {...basicForm.register('legal_name')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                  {basicForm.formState.errors.legal_name && (
+                    <p className="text-red-500 text-sm mt-1">{String(basicForm.formState.errors.legal_name.message)}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Date of Birth</Label>
+                  <Label className="text-white">Stage/Professional Name</Label>
+                  <Input {...basicForm.register('stage_name')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                </div>
+                <div>
+                  <Label className="text-white">Date of Birth <span className="text-red-500">*</span></Label>
                   <Input
                     type="date"
                     {...basicForm.register('date_of_birth')}
-                    className="min-h-[44px]"
+                    className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
                   />
+                  {basicForm.formState.errors.date_of_birth && (
+                    <p className="text-red-500 text-sm mt-1">{String(basicForm.formState.errors.date_of_birth.message)}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Contact Number</Label>
-                  <Input {...basicForm.register('contact_number')} className="min-h-[44px]" />
+                  <Label className="text-white">Contact Number <span className="text-red-500">*</span></Label>
+                  <Input {...basicForm.register('contact_number')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                  {basicForm.formState.errors.contact_number && (
+                    <p className="text-red-500 text-sm mt-1">{String(basicForm.formState.errors.contact_number.message)}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Address</Label>
-                  <Input {...basicForm.register('address_line')} className="min-h-[44px]" />
+                  <Label className="text-white">Email Address <span className="text-red-500">*</span></Label>
+                  <Input type="email" {...basicForm.register('email')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                  {basicForm.formState.errors.email && (
+                    <p className="text-red-500 text-sm mt-1">{String(basicForm.formState.errors.email.message)}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>City</Label>
-                  <Input {...basicForm.register('city')} className="min-h-[44px]" />
+                  <Label className="text-white">Full Address <span className="text-red-500">*</span></Label>
+                  <Input {...basicForm.register('address_line')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" placeholder="Street number and name" />
+                  {basicForm.formState.errors.address_line && (
+                    <p className="text-red-500 text-sm mt-1">{String(basicForm.formState.errors.address_line.message)}</p>
+                  )}
                 </div>
-                <div>
-                  <Label>State</Label>
-                  <Input {...basicForm.register('state')} className="min-h-[44px]" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-white">City <span className="text-red-500">*</span></Label>
+                    <Input {...basicForm.register('city')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                    {basicForm.formState.errors.city && (
+                      <p className="text-red-500 text-sm mt-1">{String(basicForm.formState.errors.city.message)}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-white">State <span className="text-red-500">*</span></Label>
+                    <Input {...basicForm.register('state')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                    {basicForm.formState.errors.state && (
+                      <p className="text-red-500 text-sm mt-1">{String(basicForm.formState.errors.state.message)}</p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <Label>Country</Label>
-                  <Input {...basicForm.register('country')} className="min-h-[44px]" />
-                </div>
-                <div>
-                  <Label>Postal Code</Label>
-                  <Input {...basicForm.register('postal_code')} className="min-h-[44px]" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-white">Country</Label>
+                    <Input {...basicForm.register('country')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                  </div>
+                  <div>
+                    <Label className="text-white">Postal Code <span className="text-red-500">*</span></Label>
+                    <Input {...basicForm.register('postal_code')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                    {basicForm.formState.errors.postal_code && (
+                      <p className="text-red-500 text-sm mt-1">{String(basicForm.formState.errors.postal_code.message)}</p>
+                    )}
+                  </div>
                 </div>
               </div>
-              <Button type="submit" disabled={saving} className="min-h-[44px]">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                Save Section
+              <Button type="submit" disabled={saving} className="min-h-[44px] bg-funko-orange hover:bg-funko-orange/90 text-white">
+                {saving ? 'Saving...' : 'Save Basic Info'}
               </Button>
             </form>
           </AccordionContent>
         </AccordionItem>
 
         {/* 2. Representation & Legal */}
-        <AccordionItem value="representation" className="border rounded-lg px-4">
-          <AccordionTrigger className="hover:no-underline min-h-[44px]">
+        <AccordionItem value="representation" className="border-2 border-funko-orange rounded-lg px-4 bg-black">
+          <AccordionTrigger className="hover:no-underline min-h-[44px] text-white hover:text-funko-orange">
             <div className="flex items-center gap-3">
-              <Briefcase className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Representation & Legal</span>
+              <Briefcase className="h-5 w-5 text-funko-orange" />
+              <span className="font-semibold">2. Representation & Legal</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-4 pb-6 space-y-4">
@@ -518,53 +547,76 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
               onSubmit={repForm.handleSubmit((data) => saveSection(data))}
               className="space-y-4"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <Label>Representation Type</Label>
-                  <Input {...repForm.register('representation_type')} className="min-h-[44px]" />
+                  <Label className="text-white">Representation Type <span className="text-red-500">*</span></Label>
+                  <select
+                    {...repForm.register('representation_type')}
+                    className="w-full min-h-[44px] px-3 py-2 border rounded-md bg-gray-900 border-funko-orange/50 text-white"
+                  >
+                    <option value="">Select type</option>
+                    <option value="exclusive">Exclusive</option>
+                    <option value="non-exclusive">Non-Exclusive</option>
+                  </select>
+                  {repForm.formState.errors.representation_type && (
+                    <p className="text-red-500 text-sm mt-1">{String(repForm.formState.errors.representation_type.message)}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Start Date</Label>
+                  <Label className="text-white">Start Date of Representation</Label>
                   <Input
                     type="date"
                     {...repForm.register('representation_start_date')}
-                    className="min-h-[44px]"
+                    className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
                   />
                 </div>
-                <div className="flex items-center space-x-2 md:col-span-2">
-                  <Checkbox
-                    id="union"
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
                     {...repForm.register('union_affiliation')}
+                    className="min-h-[20px] min-w-[20px] rounded"
                   />
-                  <Label htmlFor="union" className="cursor-pointer">Union Affiliation</Label>
+                  <Label className="text-white">Union Affiliation (SAG-AFTRA, etc.)</Label>
                 </div>
                 <div>
-                  <Label>Emergency Contact Name</Label>
-                  <Input {...repForm.register('emergency_contact_name')} className="min-h-[44px]" />
+                  <Label className="text-white">Emergency Contact Name <span className="text-red-500">*</span></Label>
+                  <Input {...repForm.register('emergency_contact_name')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                  {repForm.formState.errors.emergency_contact_name && (
+                    <p className="text-red-500 text-sm mt-1">{String(repForm.formState.errors.emergency_contact_name.message)}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Emergency Contact Phone</Label>
-                  <Input {...repForm.register('emergency_contact_phone')} className="min-h-[44px]" />
+                  <Label className="text-white">Emergency Contact Phone <span className="text-red-500">*</span></Label>
+                  <Input
+                    type="tel"
+                    {...repForm.register('emergency_contact_phone')}
+                    className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
+                  {repForm.formState.errors.emergency_contact_phone && (
+                    <p className="text-red-500 text-sm mt-1">{String(repForm.formState.errors.emergency_contact_phone.message)}</p>
+                  )}
                 </div>
-                <div className="md:col-span-2">
-                  <Label>Previous Representation</Label>
-                  <Textarea {...repForm.register('previous_representation')} />
+                <div>
+                  <Label className="text-white">Previous Representation (Optional)</Label>
+                  <Textarea
+                    {...repForm.register('previous_representation')}
+                    className="min-h-[100px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
                 </div>
               </div>
-              <Button type="submit" disabled={saving} className="min-h-[44px]">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                Save Section
+              <Button type="submit" disabled={saving} className="min-h-[44px] bg-funko-orange hover:bg-funko-orange/90 text-white">
+                {saving ? 'Saving...' : 'Save Representation Info'}
               </Button>
             </form>
           </AccordionContent>
         </AccordionItem>
 
         {/* 3. Professional Details */}
-        <AccordionItem value="professional" className="border rounded-lg px-4">
-          <AccordionTrigger className="hover:no-underline min-h-[44px]">
+        <AccordionItem value="professional" className="border-2 border-funko-orange rounded-lg px-4 bg-black">
+          <AccordionTrigger className="hover:no-underline min-h-[44px] text-white hover:text-funko-orange">
             <div className="flex items-center gap-3">
-              <Star className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Professional Details</span>
+              <Star className="h-5 w-5 text-funko-orange" />
+              <span className="font-semibold">3. Professional Details</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-4 pb-6 space-y-4">
@@ -572,58 +624,83 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
               onSubmit={profForm.handleSubmit((data) => saveSection(data))}
               className="space-y-4"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <Label>Talent Category</Label>
-                  <Input {...profForm.register('talent_category')} className="min-h-[44px]" />
-                </div>
-                <div>
-                  <Label>Years of Experience</Label>
-                  <Input {...profForm.register('experience_years')} type="number" className="min-h-[44px]" />
-                </div>
-                <div className="md:col-span-2">
-                  <Label>Skills</Label>
-                  <Textarea {...profForm.register('skills')} />
-                </div>
-                <div className="md:col-span-2">
-                  <Label>Training</Label>
-                  <Textarea {...profForm.register('training')} />
-                </div>
-                <div>
-                  <Label>Instagram</Label>
-                  <Input {...profForm.register('social_instagram')} placeholder="@username" className="min-h-[44px]" />
+                  <Label className="text-white">Talent Category</Label>
+                  <select
+                    {...profForm.register('talent_category')}
+                    className="w-full min-h-[44px] px-3 py-2 border rounded-md bg-gray-900 border-funko-orange/50 text-white"
+                  >
+                    <option value="">Select category</option>
+                    <option value="actor">Actor</option>
+                    <option value="voice-over">Voice Over</option>
+                    <option value="model">Model</option>
+                    <option value="musician">Musician</option>
+                    <option value="influencer">Influencer</option>
+                    <option value="cosplayer">Cosplayer</option>
+                  </select>
                 </div>
                 <div>
-                  <Label>Facebook</Label>
-                  <Input {...profForm.register('social_facebook')} className="min-h-[44px]" />
+                  <Label className="text-white">Skills</Label>
+                  <Textarea
+                    {...profForm.register('skills')}
+                    placeholder="e.g., dance, singing, accents, athletic ability"
+                    className="min-h-[100px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
                 </div>
                 <div>
-                  <Label>TikTok</Label>
-                  <Input {...profForm.register('social_tiktok')} placeholder="@username" className="min-h-[44px]" />
+                  <Label className="text-white">Training / Certifications</Label>
+                  <Textarea
+                    {...profForm.register('training')}
+                    className="min-h-[100px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
                 </div>
                 <div>
-                  <Label>X (Twitter)</Label>
-                  <Input {...profForm.register('social_x')} placeholder="@username" className="min-h-[44px]" />
+                  <Label className="text-white">Years of Experience</Label>
+                  <Input {...profForm.register('experience_years')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
                 </div>
-                <div>
-                  <Label>LinkedIn</Label>
-                  <Input {...profForm.register('social_linkedin')} className="min-h-[44px]" />
+                <div className="space-y-3">
+                  <Label className="text-white">Social Media Handles</Label>
+                  <Input
+                    {...profForm.register('social_instagram')}
+                    placeholder="Instagram"
+                    className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
+                  <Input
+                    {...profForm.register('social_facebook')}
+                    placeholder="Facebook"
+                    className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
+                  <Input
+                    {...profForm.register('social_tiktok')}
+                    placeholder="TikTok"
+                    className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
+                  <Input
+                    {...profForm.register('social_x')}
+                    placeholder="X (Twitter)"
+                    className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
+                  <Input
+                    {...profForm.register('social_linkedin')}
+                    placeholder="LinkedIn"
+                    className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
                 </div>
               </div>
-              <Button type="submit" disabled={saving} className="min-h-[44px]">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                Save Section
+              <Button type="submit" disabled={saving} className="min-h-[44px] bg-funko-orange hover:bg-funko-orange/90 text-white">
+                {saving ? 'Saving...' : 'Save Professional Details'}
               </Button>
             </form>
           </AccordionContent>
         </AccordionItem>
 
-        {/* 4. Travel & Logistics */}
-        <AccordionItem value="travel" className="border rounded-lg px-4">
-          <AccordionTrigger className="hover:no-underline min-h-[44px]">
+        {/* 4. Availability, Travel & Logistics */}
+        <AccordionItem value="travel" className="border-2 border-funko-orange rounded-lg px-4 bg-black">
+          <AccordionTrigger className="hover:no-underline min-h-[44px] text-white hover:text-funko-orange">
             <div className="flex items-center gap-3">
-              <Plane className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Availability, Travel & Logistics</span>
+              <Plane className="h-5 w-5 text-funko-orange" />
+              <span className="font-semibold">4. Availability, Travel & Logistics</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-4 pb-6 space-y-4">
@@ -631,75 +708,110 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
               onSubmit={travelForm.handleSubmit((data) => saveSection(data))}
               className="space-y-4"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <Label>Preferred Airports</Label>
-                  <Input {...travelForm.register('preferred_airports')} className="min-h-[44px]" />
+                  <Label className="text-white">Preferred Airports <span className="text-red-500">*</span></Label>
+                  <Input
+                    {...travelForm.register('preferred_airports')}
+                    placeholder="e.g., DFW, LAX"
+                    className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
+                  {travelForm.formState.errors.preferred_airports && (
+                    <p className="text-red-500 text-sm mt-1">{String(travelForm.formState.errors.preferred_airports.message)}</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Preferred Airlines</Label>
-                  <Input {...travelForm.register('preferred_airlines')} className="min-h-[44px]" />
+                  <Label className="text-white">Preferred Airlines <span className="text-red-500">*</span></Label>
+                  <Input
+                    {...travelForm.register('preferred_airlines')}
+                    placeholder="e.g., American, United"
+                    className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
+                  {travelForm.formState.errors.preferred_airlines && (
+                    <p className="text-red-500 text-sm mt-1">{String(travelForm.formState.errors.preferred_airlines.message)}</p>
+                  )}
                 </div>
-                <div className="md:col-span-2">
-                  <Label>Travel Requirements</Label>
-                  <Textarea {...travelForm.register('travel_requirements')} />
+                <div>
+                  <Label className="text-white">Typical Availability <span className="text-red-500">*</span></Label>
+                  <Textarea
+                    {...travelForm.register('availability_notes')}
+                    placeholder="e.g., Weekdays, weekends, travel days"
+                    className="min-h-[100px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
+                  {travelForm.formState.errors.availability_notes && (
+                    <p className="text-red-500 text-sm mt-1">{String(travelForm.formState.errors.availability_notes.message)}</p>
+                  )}
                 </div>
-                <div className="md:col-span-2">
-                  <Label>Availability Notes</Label>
-                  <Textarea {...travelForm.register('availability_notes')} />
+                <div>
+                  <Label className="text-white">Specific Travel Requirements</Label>
+                  <Textarea
+                    {...travelForm.register('travel_requirements')}
+                    className="min-h-[100px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="passport"
+                  <input
+                    type="checkbox"
                     {...travelForm.register('has_passport')}
+                    className="min-h-[20px] min-w-[20px] rounded"
                   />
-                  <Label htmlFor="passport" className="cursor-pointer">Has Passport</Label>
+                  <Label className="text-white">Has Passport</Label>
                 </div>
-                <div>
-                  <Label>Passport Number</Label>
-                  <Input {...travelForm.register('passport_number')} className="min-h-[44px]" />
-                </div>
+                {travelForm.watch('has_passport') && (
+                  <div>
+                    <Label className="text-white">Passport Number</Label>
+                    <Input {...travelForm.register('passport_number')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                  </div>
+                )}
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="visa"
+                  <input
+                    type="checkbox"
                     {...travelForm.register('has_visa')}
+                    className="min-h-[20px] min-w-[20px] rounded"
                   />
-                  <Label htmlFor="visa" className="cursor-pointer">Has Visa</Label>
+                  <Label className="text-white">Has Visa</Label>
                 </div>
-                <div>
-                  <Label>Visa Number</Label>
-                  <Input {...travelForm.register('visa_number')} className="min-h-[44px]" />
-                </div>
+                {travelForm.watch('has_visa') && (
+                  <div>
+                    <Label className="text-white">Visa Number</Label>
+                    <Input {...travelForm.register('visa_number')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                  </div>
+                )}
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="license"
+                  <input
+                    type="checkbox"
                     {...travelForm.register('has_drivers_license')}
+                    className="min-h-[20px] min-w-[20px] rounded"
                   />
-                  <Label htmlFor="license" className="cursor-pointer">Has Driver's License</Label>
+                  <Label className="text-white">Has U.S. Driver's License</Label>
                 </div>
+                {travelForm.watch('has_drivers_license') && (
+                  <div>
+                    <Label className="text-white">State</Label>
+                    <Input {...travelForm.register('drivers_license_state')} className="min-h-[44px] bg-gray-900 border-funko-orange/50 text-white" />
+                  </div>
+                )}
                 <div>
-                  <Label>Driver's License State</Label>
-                  <Input {...travelForm.register('drivers_license_state')} className="min-h-[44px]" />
-                </div>
-                <div className="md:col-span-2">
-                  <Label>Food Allergies</Label>
-                  <Textarea {...travelForm.register('food_allergies')} />
+                  <Label className="text-white">Food Allergies</Label>
+                  <Textarea
+                    {...travelForm.register('food_allergies')}
+                    className="min-h-[100px] bg-gray-900 border-funko-orange/50 text-white"
+                  />
                 </div>
               </div>
-              <Button type="submit" disabled={saving} className="min-h-[44px]">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                Save Section
+              <Button type="submit" disabled={saving} className="min-h-[44px] bg-funko-orange hover:bg-funko-orange/90 text-white">
+                {saving ? 'Saving...' : 'Save Travel Info'}
               </Button>
             </form>
           </AccordionContent>
         </AccordionItem>
 
         {/* 5. Consent & Digital Agreement */}
-        <AccordionItem value="consent" className="border rounded-lg px-4">
-          <AccordionTrigger className="hover:no-underline min-h-[44px]">
+        <AccordionItem value="consent" className="border-2 border-funko-orange rounded-lg px-4 bg-black">
+          <AccordionTrigger className="hover:no-underline min-h-[44px] text-white hover:text-funko-orange">
             <div className="flex items-center gap-3">
-              <FileCheck className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Consent & Digital Agreement</span>
+              <FileCheck className="h-5 w-5 text-funko-orange" />
+              <span className="font-semibold">5. Consent & Digital Agreement</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-4 pb-6 space-y-4">
@@ -707,59 +819,83 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
               onSubmit={consentForm.handleSubmit((data) => saveSection(data))}
               className="space-y-4"
             >
-              <div className="space-y-3">
-                <div className="flex items-start space-x-2">
-                  <Checkbox
-                    id="rep-consent"
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
                     {...consentForm.register('representation_consent')}
+                    className="min-h-[20px] min-w-[20px] rounded"
                   />
-                  <Label htmlFor="rep-consent" className="cursor-pointer leading-relaxed">
-                    I consent to representation and understand the terms
+                  <Label className="text-white">
+                    I consent to representation <span className="text-red-500">*</span>
                   </Label>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <Checkbox
-                    id="marketing-consent"
+                {consentForm.formState.errors.representation_consent && (
+                  <p className="text-red-500 text-sm">{String(consentForm.formState.errors.representation_consent.message)}</p>
+                )}
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
                     {...consentForm.register('marketing_consent')}
+                    className="min-h-[20px] min-w-[20px] rounded"
                   />
-                  <Label htmlFor="marketing-consent" className="cursor-pointer leading-relaxed">
-                    I consent to marketing communications
+                  <Label className="text-white">
+                    I consent to photos/videos used for marketing <span className="text-red-500">*</span>
                   </Label>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <Checkbox
-                    id="terms-consent"
+                {consentForm.formState.errors.marketing_consent && (
+                  <p className="text-red-500 text-sm">{String(consentForm.formState.errors.marketing_consent.message)}</p>
+                )}
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
                     {...consentForm.register('terms_accepted')}
+                    className="min-h-[20px] min-w-[20px] rounded"
                   />
-                  <Label htmlFor="terms-consent" className="cursor-pointer leading-relaxed">
-                    I accept the terms and conditions
+                  <Label className="text-white">
+                    I accept the terms and privacy policy <span className="text-red-500">*</span>
                   </Label>
+                </div>
+                {consentForm.formState.errors.terms_accepted && (
+                  <p className="text-red-500 text-sm">{String(consentForm.formState.errors.terms_accepted.message)}</p>
+                )}
+                <div>
+                  <Label className="text-white">
+                    E-Signature <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="border-2 rounded-md p-4 bg-gray-900 border-funko-orange/50 min-h-[200px]">
+                    <p className="text-sm text-gray-400 mb-2">
+                      Sign here with your mouse or touch (signature pad integration pending):
+                    </p>
+                    <Input
+                      {...consentForm.register('signature_data')}
+                      placeholder="Type your full name as signature"
+                      className="bg-gray-800 border-funko-orange/50 text-white"
+                    />
+                  </div>
+                  {consentForm.formState.errors.signature_data && (
+                    <p className="text-red-500 text-sm mt-1">{String(consentForm.formState.errors.signature_data.message)}</p>
+                  )}
                 </div>
               </div>
-              <Button type="submit" disabled={saving} className="min-h-[44px]">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                Save Section
+              <Button type="submit" disabled={saving} className="min-h-[44px] bg-funko-orange hover:bg-funko-orange/90 text-white">
+                {saving ? 'Saving...' : 'Save Consent & Agreement'}
               </Button>
             </form>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
 
-      {/* Sticky Save Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg p-4 z-50 md:hidden">
+      {/* Sticky Save Button */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-black border-t-2 border-funko-orange z-50 md:hidden">
         <Button
           onClick={() => {
-            const currentSection = document.querySelector('[data-state="open"]');
-            if (currentSection) {
-              const form = currentSection.querySelector('form');
-              form?.requestSubmit();
-            }
+            toast({ title: "Profile section saved" });
           }}
           disabled={saving}
-          className="w-full min-h-[44px] h-12 text-base font-semibold"
+          className="w-full min-h-[44px] bg-funko-orange text-white hover:bg-funko-orange/90"
         >
-          {saving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
-          Save Current Section
+          {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
     </div>

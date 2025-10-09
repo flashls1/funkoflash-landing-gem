@@ -41,14 +41,14 @@ const TalentProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24 md:pb-6">
+    <div className="min-h-screen bg-black pb-24 md:pb-6">
       <Navigation language={language} setLanguage={() => {}} />
       
       <div className="container mx-auto px-4 py-6">
         <Button
           variant="outline"
           onClick={() => navigate('/dashboard/talent')}
-          className="mb-6 min-h-[44px] h-11 px-4 text-base font-semibold pointer-events-auto z-10 relative"
+          className="mb-6 min-h-[44px] h-11 px-4 text-base font-semibold pointer-events-auto z-10 relative border-funko-orange text-white hover:bg-funko-orange/20"
           aria-label={t.backToDashboard}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -56,8 +56,10 @@ const TalentProfilePage = () => {
         </Button>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{t.profile}</h1>
-          <p className="text-muted-foreground">{t.description}</p>
+          <h1 className="text-3xl font-bold mb-2 text-white">{t.profile}</h1>
+          <p className="text-gray-300 leading-relaxed">
+            Please make sure to fill out all information below. If anything changes please make sure to come back and update it here.
+          </p>
         </div>
 
         <ProfileAccordion userId={user.id} mode="talent" />
