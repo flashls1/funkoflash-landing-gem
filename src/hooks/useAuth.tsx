@@ -39,6 +39,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastActivity, setLastActivity] = useState(Date.now());
+  
+  // Mobile detection - stored in state to avoid recalculation
+  const [isMobile] = useState(() => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+      || window.innerWidth <= 768;
+  });
+  
   const { toast } = useToast();
 
   const fetchProfile = async (userId: string) => {
@@ -64,12 +71,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Auto-logout with improved mobile detection
   useEffect(() => {
     if (!user) return;
-
-    // More robust mobile detection - stored in state to avoid recalculation
-    const [isMobile, setIsMobile] = useState(() => {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-        || window.innerWidth <= 768;
-    });
 
     // Skip auto-logout for mobile devices
     if (isMobile) {
