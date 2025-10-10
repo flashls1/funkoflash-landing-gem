@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,15 +9,18 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { ProfileAccordion } from '@/components/profile/ProfileAccordion';
 
 const TalentProfilePage = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const { language } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Wait for auth to finish loading before checking
+    if (authLoading) return;
+    
     if (!user || !profile || profile.role !== 'talent') {
       navigate('/auth');
     }
-  }, [user, profile, navigate]);
+  }, [user, profile, authLoading, navigate]);
 
   const content = {
     en: {
@@ -35,6 +38,15 @@ const TalentProfilePage = () => {
   };
 
   const t = content[language];
+
+  // Show loading state while auth is loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-funko-orange" />
+      </div>
+    );
+  }
 
   if (!user || !profile) {
     return null;

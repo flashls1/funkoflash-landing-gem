@@ -310,6 +310,8 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
   const saveSection = async (sectionData: any) => {
     try {
       setSaving(true);
+      console.log('🔄 Saving profile data:', { userId, mode, sectionData });
+      
       const { error } = await supabase
         .from('user_profile_data')
         .upsert({
@@ -319,7 +321,9 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
         });
 
       if (error) throw error;
+      console.log('✅ Saved to user_profile_data');
 
+      // Update profiles table with email/phone if provided
       if (sectionData.email || sectionData.contact_number) {
         await supabase
           .from('profiles')
@@ -328,11 +332,52 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
             phone: sectionData.contact_number,
           })
           .eq('user_id', userId);
+        console.log('✅ Updated profiles table');
+      }
+
+      // Sync to talent_profiles table (for admin visibility)
+      if (mode === 'talent' || sectionData.stage_name || sectionData.legal_name || sectionData.skills || sectionData.training) {
+        const { data: talentProfile, error: fetchError } = await supabase
+          .from('talent_profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (fetchError) {
+          console.error('❌ Error fetching talent profile:', fetchError);
+        } else if (talentProfile) {
+          // Build update object with name and bio
+          const talentUpdate: any = { updated_at: new Date().toISOString() };
+          
+          if (sectionData.stage_name || sectionData.legal_name) {
+            talentUpdate.name = sectionData.stage_name || sectionData.legal_name;
+          }
+          
+          if (sectionData.skills || sectionData.training) {
+            const bioParts = [];
+            if (sectionData.skills) bioParts.push(`Skills: ${sectionData.skills}`);
+            if (sectionData.training) bioParts.push(`Training: ${sectionData.training}`);
+            talentUpdate.bio = bioParts.join('\n\n');
+          }
+
+          if (Object.keys(talentUpdate).length > 1) { // More than just updated_at
+            const { error: updateError } = await supabase
+              .from('talent_profiles')
+              .update(talentUpdate)
+              .eq('id', talentProfile.id);
+
+            if (updateError) {
+              console.error('❌ Error updating talent_profiles:', updateError);
+            } else {
+              console.log('✅ Synced to talent_profiles:', talentUpdate);
+            }
+          }
+        }
       }
 
       toast({ title: 'Saved successfully' });
     } catch (error) {
-      console.error('Error saving:', error);
+      console.error('❌ Error saving profile:', error);
       toast({ title: 'Save failed', variant: 'destructive' });
     } finally {
       setSaving(false);
@@ -889,13 +934,22 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
       {/* Sticky Save Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-black border-t-2 border-funko-orange z-50 md:hidden">
         <Button
-          onClick={() => {
-            toast({ title: "Profile section saved" });
+          onClick={async () => {
+            // Collect all form data
+            const allData = {
+              ...basicForm.getValues(),
+              ...repForm.getValues(),
+              ...profForm.getValues(),
+              ...travelForm.getValues(),
+              ...consentForm.getValues(),
+            };
+            console.log('📱 Mobile save all clicked:', allData);
+            await saveSection(allData);
           }}
           disabled={saving}
           className="w-full min-h-[44px] bg-funko-orange text-white hover:bg-funko-orange/90"
         >
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? 'Saving...' : 'Save All Changes'}
         </Button>
       </div>
     </div>
