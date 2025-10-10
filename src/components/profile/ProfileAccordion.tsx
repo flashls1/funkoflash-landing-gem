@@ -132,43 +132,43 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      // Use deterministic query to get latest row and avoid duplicates
+      const { data: existingRows, error: fetchError } = await supabase
         .from('user_profile_data')
         .select('*')
         .eq('user_id', userId)
-        .maybeSingle();
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (fetchError) throw fetchError;
 
-      if (!data) {
+      let profileRow;
+      if (!existingRows || existingRows.length === 0) {
+        // No row exists - create one using upsert to prevent duplicates
         const { data: profile } = await supabase
           .from('profiles')
           .select('first_name, last_name, email, phone, avatar_url, background_image_url')
           .eq('user_id', userId)
           .single();
 
-        const newData = {
-          user_id: userId,
-          legal_name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : '',
-          email: profile?.email || '',
-          contact_number: profile?.phone || '',
-        };
-
-        const { data: inserted, error: insertError } = await supabase
+        const { data: upserted, error: upsertError } = await supabase
           .from('user_profile_data')
-          .insert(newData)
+          .upsert({
+            user_id: userId,
+            legal_name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : '',
+            email: profile?.email || '',
+            contact_number: profile?.phone || '',
+          }, { onConflict: 'user_id' })
           .select()
           .single();
 
-        if (insertError) throw insertError;
-        setProfileData(inserted);
-        populateForms(inserted);
+        if (upsertError) throw upsertError;
+        profileRow = upserted;
         
         if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
         if (profile?.background_image_url) setHeroUrl(profile.background_image_url);
       } else {
-        setProfileData(data);
-        populateForms(data);
+        profileRow = existingRows[0];
         
         const { data: profile } = await supabase
           .from('profiles')
@@ -179,10 +179,14 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
         if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
         if (profile?.background_image_url) setHeroUrl(profile.background_image_url);
       }
+
+      setProfileData(profileRow);
+      populateForms(profileRow);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('❌ Error fetching profile:', error);
       toast({
         title: 'Error loading profile',
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'destructive',
       });
     } finally {
@@ -307,36 +311,93 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
     await uploadImage(file, type);
   };
 
+  // Sanitize data to ensure correct types for database
+  const sanitizeSectionData = (data: any) => {
+    const sanitized: any = {};
+    
+    for (const [key, value] of Object.entries(data)) {
+      // Convert empty strings and undefined to null
+      if (value === '' || value === undefined) {
+        sanitized[key] = null;
+        continue;
+      }
+      
+      // Parse experience_years to integer or null
+      if (key === 'experience_years') {
+        const parsed = parseInt(value as string, 10);
+        sanitized[key] = isNaN(parsed) ? null : parsed;
+        continue;
+      }
+      
+      // Normalize boolean fields
+      if (['has_passport', 'has_visa', 'has_drivers_license', 'union_affiliation', 
+           'representation_consent', 'marketing_consent', 'terms_accepted'].includes(key)) {
+        sanitized[key] = Boolean(value);
+        continue;
+      }
+      
+      // Normalize date fields to YYYY-MM-DD or null
+      if (['date_of_birth', 'representation_start_date'].includes(key)) {
+        if (typeof value === 'string' && value.length > 0) {
+          sanitized[key] = value.split('T')[0]; // Extract YYYY-MM-DD
+        } else {
+          sanitized[key] = null;
+        }
+        continue;
+      }
+      
+      // Keep all other values as-is
+      sanitized[key] = value;
+    }
+    
+    return sanitized;
+  };
+
   const saveSection = async (sectionData: any) => {
     try {
       setSaving(true);
-      console.log('🔄 Saving profile data:', { userId, mode, sectionData });
+      console.log('🔄 Saving profile data:', { userId, mode, rawData: sectionData });
+      
+      // Sanitize data to ensure correct types
+      const sanitizedData = sanitizeSectionData(sectionData);
+      console.log('🧹 Sanitized data:', sanitizedData);
       
       const { error } = await supabase
         .from('user_profile_data')
         .upsert({
           user_id: userId,
-          ...sectionData,
+          ...sanitizedData,
           updated_at: new Date().toISOString(),
-        });
+        }, { onConflict: 'user_id' });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error:', error);
+        throw error;
+      }
       console.log('✅ Saved to user_profile_data');
 
+      // Merge saved data into local state
+      setProfileData((prev: any) => ({ ...prev, ...sanitizedData }));
+
       // Update profiles table with email/phone if provided
-      if (sectionData.email || sectionData.contact_number) {
-        await supabase
+      if (sanitizedData.email || sanitizedData.contact_number) {
+        const { error: profileError } = await supabase
           .from('profiles')
           .update({
-            email: sectionData.email,
-            phone: sectionData.contact_number,
+            email: sanitizedData.email,
+            phone: sanitizedData.contact_number,
           })
           .eq('user_id', userId);
-        console.log('✅ Updated profiles table');
+        
+        if (profileError) {
+          console.warn('⚠️ Error updating profiles table:', profileError);
+        } else {
+          console.log('✅ Updated profiles table');
+        }
       }
 
       // Sync to talent_profiles table (for admin visibility)
-      if (mode === 'talent' || sectionData.stage_name || sectionData.legal_name || sectionData.skills || sectionData.training) {
+      if (mode === 'talent' || sanitizedData.stage_name || sanitizedData.legal_name || sanitizedData.skills || sanitizedData.training) {
         const { data: talentProfile, error: fetchError } = await supabase
           .from('talent_profiles')
           .select('id')
@@ -344,19 +405,19 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
           .maybeSingle();
 
         if (fetchError) {
-          console.error('❌ Error fetching talent profile:', fetchError);
+          console.warn('⚠️ Error fetching talent profile:', fetchError);
         } else if (talentProfile) {
           // Build update object with name and bio
           const talentUpdate: any = { updated_at: new Date().toISOString() };
           
-          if (sectionData.stage_name || sectionData.legal_name) {
-            talentUpdate.name = sectionData.stage_name || sectionData.legal_name;
+          if (sanitizedData.stage_name || sanitizedData.legal_name) {
+            talentUpdate.name = sanitizedData.stage_name || sanitizedData.legal_name;
           }
           
-          if (sectionData.skills || sectionData.training) {
+          if (sanitizedData.skills || sanitizedData.training) {
             const bioParts = [];
-            if (sectionData.skills) bioParts.push(`Skills: ${sectionData.skills}`);
-            if (sectionData.training) bioParts.push(`Training: ${sectionData.training}`);
+            if (sanitizedData.skills) bioParts.push(`Skills: ${sanitizedData.skills}`);
+            if (sanitizedData.training) bioParts.push(`Training: ${sanitizedData.training}`);
             talentUpdate.bio = bioParts.join('\n\n');
           }
 
@@ -367,7 +428,7 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
               .eq('id', talentProfile.id);
 
             if (updateError) {
-              console.error('❌ Error updating talent_profiles:', updateError);
+              console.warn('⚠️ Error updating talent_profiles:', updateError);
             } else {
               console.log('✅ Synced to talent_profiles:', talentUpdate);
             }
@@ -375,10 +436,18 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
         }
       }
 
-      toast({ title: 'Saved successfully' });
+      toast({ 
+        title: 'Saved successfully',
+        description: 'Your profile has been updated'
+      });
     } catch (error) {
       console.error('❌ Error saving profile:', error);
-      toast({ title: 'Save failed', variant: 'destructive' });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast({ 
+        title: 'Save failed', 
+        description: errorMessage,
+        variant: 'destructive' 
+      });
     } finally {
       setSaving(false);
     }
