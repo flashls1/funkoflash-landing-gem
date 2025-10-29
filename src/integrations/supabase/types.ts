@@ -333,6 +333,8 @@ export type Database = {
       }
       business_events: {
         Row: {
+          city: string | null
+          country: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
@@ -340,11 +342,15 @@ export type Database = {
           id: string
           location: string | null
           start_ts: string | null
+          state: string | null
           status: string | null
           title: string
           updated_at: string | null
+          venue: string | null
         }
         Insert: {
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -352,11 +358,15 @@ export type Database = {
           id?: string
           location?: string | null
           start_ts?: string | null
+          state?: string | null
           status?: string | null
           title: string
           updated_at?: string | null
+          venue?: string | null
         }
         Update: {
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -364,9 +374,11 @@ export type Database = {
           id?: string
           location?: string | null
           start_ts?: string | null
+          state?: string | null
           status?: string | null
           title?: string
           updated_at?: string | null
+          venue?: string | null
         }
         Relationships: []
       }
@@ -598,6 +610,7 @@ export type Database = {
         Row: {
           active: boolean | null
           avatar_url: string | null
+          background_image_url: string | null
           business_name: string | null
           created_at: string | null
           display_name: string | null
@@ -609,10 +622,12 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"] | null
           status: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           active?: boolean | null
           avatar_url?: string | null
+          background_image_url?: string | null
           business_name?: string | null
           created_at?: string | null
           display_name?: string | null
@@ -624,10 +639,12 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"] | null
           status?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           active?: boolean | null
           avatar_url?: string | null
+          background_image_url?: string | null
           business_name?: string | null
           created_at?: string | null
           display_name?: string | null
@@ -639,6 +656,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"] | null
           status?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -781,6 +799,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "show_schedule_entries_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "show_schedule_entries_event_date_id_fkey"
             columns: ["event_date_id"]
@@ -987,7 +1012,7 @@ export type Database = {
           slug: string | null
           sort_rank: number | null
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           active?: boolean | null
@@ -1000,7 +1025,7 @@ export type Database = {
           slug?: string | null
           sort_rank?: number | null
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           active?: boolean | null
@@ -1013,31 +1038,100 @@ export type Database = {
           slug?: string | null
           sort_rank?: number | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
       talent_quick_view: {
         Row: {
+          active: boolean | null
+          birth_year: number | null
           created_at: string | null
+          dob: string | null
+          email: string | null
+          facebook: string | null
+          full_name: string | null
+          headshot_url: string | null
           id: string
+          image_view_failed_attempts: number | null
+          image_view_locked_by_admin: boolean | null
+          image_view_locked_until: string | null
+          instagram: string | null
+          local_airport: string | null
+          name: string | null
+          passport_image_iv: string | null
+          passport_image_url: string | null
+          passport_number: string | null
+          phone: string | null
+          popular_roles: string | null
           settings: Json | null
+          special_notes: string | null
           talent_id: string
+          tiktok: string | null
           updated_at: string | null
+          visa_image_iv: string | null
+          visa_image_url: string | null
+          visa_number: string | null
         }
         Insert: {
+          active?: boolean | null
+          birth_year?: number | null
           created_at?: string | null
+          dob?: string | null
+          email?: string | null
+          facebook?: string | null
+          full_name?: string | null
+          headshot_url?: string | null
           id?: string
+          image_view_failed_attempts?: number | null
+          image_view_locked_by_admin?: boolean | null
+          image_view_locked_until?: string | null
+          instagram?: string | null
+          local_airport?: string | null
+          name?: string | null
+          passport_image_iv?: string | null
+          passport_image_url?: string | null
+          passport_number?: string | null
+          phone?: string | null
+          popular_roles?: string | null
           settings?: Json | null
+          special_notes?: string | null
           talent_id: string
+          tiktok?: string | null
           updated_at?: string | null
+          visa_image_iv?: string | null
+          visa_image_url?: string | null
+          visa_number?: string | null
         }
         Update: {
+          active?: boolean | null
+          birth_year?: number | null
           created_at?: string | null
+          dob?: string | null
+          email?: string | null
+          facebook?: string | null
+          full_name?: string | null
+          headshot_url?: string | null
           id?: string
+          image_view_failed_attempts?: number | null
+          image_view_locked_by_admin?: boolean | null
+          image_view_locked_until?: string | null
+          instagram?: string | null
+          local_airport?: string | null
+          name?: string | null
+          passport_image_iv?: string | null
+          passport_image_url?: string | null
+          passport_number?: string | null
+          phone?: string | null
+          popular_roles?: string | null
           settings?: Json | null
+          special_notes?: string | null
           talent_id?: string
+          tiktok?: string | null
           updated_at?: string | null
+          visa_image_iv?: string | null
+          visa_image_url?: string | null
+          visa_number?: string | null
         }
         Relationships: [
           {
@@ -1216,9 +1310,55 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_business_talent_profiles: {
+        Args: never
+        Returns: {
+          id: string
+        }[]
+      }
+      connect_talent_to_user: {
+        Args: { p_talent_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      create_admin_talent_profile: {
+        Args: {
+          p_active: boolean
+          p_bio: string
+          p_headshot_url: string
+          p_name: string
+          p_public_visibility: boolean
+          p_slug: string
+          p_sort_rank: number
+        }
+        Returns: string
+      }
+      delete_user_and_files_completely: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       ensure_business_account_exists: {
         Args: { _user_id: string }
         Returns: string
+      }
+      generate_unique_talent_slug: { Args: { p_name: string }; Returns: string }
+      get_available_talent_users: {
+        Args: never
+        Returns: {
+          email: string
+          name: string
+          user_id: string
+        }[]
+      }
+      get_public_talent_showcase: {
+        Args: never
+        Returns: {
+          headshot_url: string
+          id: string
+          name: string
+          preview_bio: string
+          slug: string
+          sort_rank: number
+        }[]
       }
       get_users_for_messaging: {
         Args: never
@@ -1235,6 +1375,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_security_event: {
+        Args: {
+          p_action: string
+          p_new_values?: Json
+          p_old_values?: Json
+          p_record_id?: string
+          p_table_name?: string
+        }
+        Returns: undefined
+      }
       manage_event_date:
         | {
             Args: {
@@ -1245,6 +1395,17 @@ export type Database = {
             Returns: string
           }
         | { Args: { _event_date: string; _event_id: string }; Returns: string }
+      update_talent_sort_order: {
+        Args: { talent_updates: Json }
+        Returns: undefined
+      }
+      update_user_role_safely: {
+        Args: {
+          new_role: Database["public"]["Enums"]["app_role"]
+          target_user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "staff" | "talent" | "business"
