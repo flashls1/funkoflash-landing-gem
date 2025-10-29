@@ -155,10 +155,13 @@ export function ProfileAccordion({ userId, mode }: ProfileAccordionProps) {
           .from('user_profile_data')
           .upsert({
             user_id: userId,
-            legal_name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : '',
-            email: profile?.email || '',
-            contact_number: profile?.phone || '',
-          }, { onConflict: 'user_id' })
+            section_key: 'contact_info',
+            data: {
+              legal_name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : '',
+              email: profile?.email || '',
+              contact_number: profile?.phone || '',
+            }
+          }, { onConflict: 'user_id,section_key' })
           .select()
           .single();
 

@@ -16,12 +16,16 @@ interface Event {
   id: string;
   title: string;
   description: string | null;
-  location: string | null;
-  external_url: string | null;
-  hero_image_url?: string | null;
+  venue_name: string | null;
+  location_city: string | null;
+  location_state: string | null;
+  location_country: string | null;
+  ticket_url: string | null;
+  image_url: string | null;
   event_date: string;
-  tags: string[] | null;
-  category: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  status: string | null;
   event_talent_assignments?: {
     talent_profiles: {
       name: string;
@@ -86,7 +90,7 @@ export default function Events() {
       `DTEND:${formatDate(endDate)}`,
       `SUMMARY:${event.title}`,
       `DESCRIPTION:${event.description || ''}`,
-      `LOCATION:${event.location || ''}`,
+      `LOCATION:${[event.venue_name, event.location_city, event.location_state, event.location_country].filter(Boolean).join(', ')}`,
       'END:VEVENT',
       'END:VCALENDAR'
     ].join('\r\n');
@@ -99,11 +103,12 @@ export default function Events() {
   };
 
   const filteredEvents = events.filter(event => {
+    const location = [event.venue_name, event.location_city, event.location_state, event.location_country].filter(Boolean).join(' ');
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.location?.toLowerCase().includes(searchTerm.toLowerCase());
+                         location.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = categoryFilter === "all" || event.category === categoryFilter;
+    const matchesCategory = categoryFilter === "all" || categoryFilter === event.status;
     
     return matchesSearch && matchesCategory;
   });
@@ -116,7 +121,7 @@ export default function Events() {
     .filter(event => !isAfter(new Date(event.event_date), new Date()))
     .slice(-24); // Latest 24 past events
 
-  const categories = Array.from(new Set(events.map(event => event.category).filter(Boolean)));
+  const categories = Array.from(new Set(events.map(event => event.status).filter(Boolean)));
 
   const content = {
     en: {
@@ -243,10 +248,10 @@ export default function Events() {
           </DialogHeader>
           {selectedEvent && (
             <div className="space-y-4">
-              {selectedEvent.hero_image_url && (
+              {selectedEvent.image_url && (
                 <div className="aspect-video relative overflow-hidden rounded-lg">
                   <img
-                    src={selectedEvent.hero_image_url}
+                    src={selectedEvent.image_url}
                     alt={selectedEvent.title}
                     className="w-full h-full object-cover"
                   />
@@ -258,28 +263,22 @@ export default function Events() {
                   <Calendar className="w-4 h-4" />
                   {format(new Date(selectedEvent.event_date), "PPP")}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  {format(new Date(selectedEvent.event_date), "p")}
-                </div>
-                {selectedEvent.location && (
+                {selectedEvent.start_time && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                    {selectedEvent.start_time}
+                  </div>
+                )}
+                {(selectedEvent.venue_name || selectedEvent.location_city) && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <MapPin className="w-4 h-4" />
-                    {selectedEvent.location}
+                    {[selectedEvent.venue_name, selectedEvent.location_city, selectedEvent.location_state, selectedEvent.location_country].filter(Boolean).join(', ')}
                   </div>
                 )}
               </div>
 
               {selectedEvent.description && (
                 <p className="text-muted-foreground">{selectedEvent.description}</p>
-              )}
-
-              {selectedEvent.tags && selectedEvent.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {selectedEvent.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary">{tag}</Badge>
-                  ))}
-                </div>
               )}
 
               {selectedEvent.event_talent_assignments && selectedEvent.event_talent_assignments.length > 0 && (
@@ -302,11 +301,11 @@ export default function Events() {
                   <Download className="w-4 h-4 mr-2" />
                   Add to Calendar
                 </Button>
-                {selectedEvent.external_url && (
+                {selectedEvent.ticket_url && (
                   <Button variant="outline" asChild>
-                    <a href={selectedEvent.external_url} target="_blank" rel="noopener noreferrer">
+                    <a href={selectedEvent.ticket_url} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Learn More
+                      Get Tickets
                     </a>
                   </Button>
                 )}
@@ -334,9 +333,9 @@ function EventCard({ event, onClick, isPast = false }: EventCardProps) {
       onClick={() => onClick(event)}
     >
       <div className="aspect-square relative overflow-hidden">
-        {event.hero_image_url ? (
+        {event.image_url ? (
           <img
-            src={event.hero_image_url}
+            src={event.image_url}
             alt={event.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -345,9 +344,9 @@ function EventCard({ event, onClick, isPast = false }: EventCardProps) {
             <Calendar className="w-16 h-16 text-muted-foreground" />
           </div>
         )}
-        {event.category && (
+        {event.status && event.status !== 'published' && (
           <Badge className="absolute top-2 left-2" variant="secondary">
-            {event.category}
+            {event.status}
           </Badge>
         )}
       </div>
@@ -361,12 +360,12 @@ function EventCard({ event, onClick, isPast = false }: EventCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            {format(new Date(event.event_date), "h:mm a")}
+            {event.start_time || format(new Date(event.event_date), "h:mm a")}
           </div>
-          {event.location && (
+          {(event.venue_name || event.location_city) && (
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
-              <span className="truncate">{event.location}</span>
+              <span className="truncate">{[event.venue_name, event.location_city].filter(Boolean).join(', ')}</span>
             </div>
           )}
         </div>

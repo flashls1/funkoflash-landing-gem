@@ -132,11 +132,12 @@ export default function TalentQuickView() {
         
         toast({ title: 'Success', description: 'Talent updated successfully' });
       } else {
+        const talentId = crypto.randomUUID();
         const { error } = await supabase
           .from('talent_quick_view')
           .insert({
-            ...formData,
-            name: formData.name // Ensure name is always present
+            talent_id: talentId,
+            ...formData
           });
         if (error) throw error;
         toast({ title: 'Success', description: 'Talent added successfully' });

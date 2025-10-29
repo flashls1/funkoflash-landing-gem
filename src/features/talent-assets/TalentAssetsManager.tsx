@@ -268,20 +268,17 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
       
       const fileUrl = await talentAssetsApi.uploadFile(bucket, filePath, file);
       
+      const format = file.type.includes('video') ? 'video' : 
+                     file.type.includes('application/pdf') ? 'document' : 'image';
+      
       const asset = await talentAssetsApi.createAsset({
         talent_id: effectiveTalentId,
         category,
-        format: file.type.includes('image/png') ? 'png' : 
-                file.type.includes('image/jpeg') ? 'jpeg' : 
-                file.type.includes('video/mp4') ? 'mp4' : 
-                file.type.includes('application/pdf') ? 'rich_text' : 'png',
+        format,
         file_size: file.size,
         content_data: null,
         is_featured: false,
-        display_order: assets.filter(a => a.category === category).length,
         active: true,
-        created_by: profile?.user_id,
-        updated_by: null,
         title: file.name.split('.')[0],
         description: null,
         file_url: fileUrl
@@ -321,13 +318,11 @@ export const TalentAssetsManager: React.FC<TalentAssetsManagerProps> = ({
       const asset = await talentAssetsApi.createAsset({
         talent_id: effectiveTalentId,
         category: 'promo_video',
-        format: 'mp4',
+        format: 'video',
         file_size: file.size,
         content_data: null,
         is_featured: false,
-        display_order: assets.filter(a => a.category === 'promo_video').length,
         active: true,
-        created_by: profile?.user_id,
         updated_by: null,
         title: `Recording ${new Date().toLocaleDateString()}`,
         description: null,
