@@ -1,13 +1,1 @@
-project_id = "gytjgmeoepglbrjrbfie"
-
-[functions.export-login-history]
-verify_jwt = true
-
-[functions.image-scrape]
-verify_jwt = true
-
-[functions.import-weekend-matrix-commit]
-verify_jwt = true
-
-[functions.media-optimizer]
-verify_jwt = false
+project_id = "vnogvusyukbqpmipivzi"
