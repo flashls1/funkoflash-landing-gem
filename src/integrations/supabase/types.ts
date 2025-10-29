@@ -947,6 +947,66 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_products: {
+        Row: {
+          active: boolean | null
+          autoplay_interval: number | null
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          featured: boolean | null
+          id: string
+          image_urls: string[] | null
+          price: number
+          sort_order: number | null
+          square_checkout_url: string | null
+          stock_quantity: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          autoplay_interval?: number | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          image_urls?: string[] | null
+          price: number
+          sort_order?: number | null
+          square_checkout_url?: string | null
+          stock_quantity?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          autoplay_interval?: number | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          image_urls?: string[] | null
+          price?: number
+          sort_order?: number | null
+          square_checkout_url?: string | null
+          stock_quantity?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       show_schedule_entries: {
         Row: {
           active: boolean | null
@@ -956,7 +1016,7 @@ export type Database = {
           details: string | null
           display_order: number | null
           event_date_id: string
-          event_id: string
+          event_id: string | null
           id: string
           time_end: string | null
           time_start: string
@@ -972,7 +1032,7 @@ export type Database = {
           details?: string | null
           display_order?: number | null
           event_date_id: string
-          event_id: string
+          event_id?: string | null
           id?: string
           time_end?: string | null
           time_start: string
@@ -988,7 +1048,7 @@ export type Database = {
           details?: string | null
           display_order?: number | null
           event_date_id?: string
-          event_id?: string
+          event_id?: string | null
           id?: string
           time_end?: string | null
           time_start?: string

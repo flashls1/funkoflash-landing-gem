@@ -238,7 +238,8 @@ export const validateFileType = (file: File, category: AssetCategory): boolean =
     headshot: ['image/jpeg', 'image/png'],
     character_image: ['image/jpeg', 'image/png'],
     bio: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-    promo_video: ['video/mp4', 'video/quicktime', 'video/x-msvideo']
+    promo_video: ['video/mp4', 'video/quicktime', 'video/x-msvideo'],
+    general: ['image/jpeg', 'image/png', 'application/pdf']
   };
 
   return allowedTypes[category]?.includes(file.type) || false;

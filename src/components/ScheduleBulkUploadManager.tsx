@@ -262,14 +262,14 @@ export const ScheduleBulkUploadManager: React.FC<ScheduleBulkUploadManagerProps>
         return supabase
           .from('show_schedule_entries')
           .insert({
+            event_date_id: eventId as any, // Will be populated by manage_event_date
             event_id: eventId,
             day_date: parsedSchedule.date,
             time_start: entry.timeStart,
             time_end: entry.timeEnd,
             title: entry.title,
             details: entry.details,
-            category_id: category?.id,
-            created_by: userId
+            category_id: category?.id
           });
       });
 

@@ -56,7 +56,7 @@ const MessageReactions: React.FC<MessageReactionsProps> = ({
         .insert({
           message_id: messageId,
           user_id: user.id,
-          reaction: emoji
+          emoji: emoji
         });
 
       if (error) {
@@ -89,7 +89,7 @@ const MessageReactions: React.FC<MessageReactionsProps> = ({
         .delete()
         .eq('message_id', messageId)
         .eq('user_id', user.id)
-        .eq('reaction', emoji);
+        .eq('emoji', emoji);
 
       if (error) {
         throw error;

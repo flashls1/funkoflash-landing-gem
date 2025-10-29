@@ -60,7 +60,7 @@ interface LoginHistory {
   id: string;
   ip_address: string;
   user_agent?: string;
-  login_time: string;
+  login_at: string;  // Matches DB column name
   location_info?: any;
 }
 
@@ -559,7 +559,7 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
       if (newRole === 'business') {
         // Ensure business account exists
         await supabase.rpc('ensure_business_account_exists', {
-          p_user_id: userId
+          _user_id: userId
         });
       }
 
@@ -1111,9 +1111,9 @@ const UserManagement = ({ language, onBack }: UserManagementProps) => {
                   <TableBody>
                     {loginHistory.map((login) => (
                       <TableRow key={login.id}>
-                        <TableCell className="font-mono text-sm">{login.ip_address}</TableCell>
+                      <TableCell className="font-mono text-sm">{login.ip_address}</TableCell>
                         <TableCell>
-                          {new Date(login.login_time).toLocaleString()}
+                          {new Date(login.login_at).toLocaleString()}
                         </TableCell>
                         <TableCell>
                           {login.location_info ? (
