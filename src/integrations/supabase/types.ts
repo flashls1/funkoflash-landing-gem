@@ -60,10 +60,12 @@ export type Database = {
         Row: {
           active: boolean | null
           company_name: string | null
+          contact_email: string | null
           contact_name: string | null
           created_at: string | null
           email: string | null
           id: string
+          name: string | null
           phone: string | null
           updated_at: string | null
           user_id: string
@@ -71,10 +73,12 @@ export type Database = {
         Insert: {
           active?: boolean | null
           company_name?: string | null
+          contact_email?: string | null
           contact_name?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
+          name?: string | null
           phone?: string | null
           updated_at?: string | null
           user_id: string
@@ -82,10 +86,12 @@ export type Database = {
         Update: {
           active?: boolean | null
           company_name?: string | null
+          contact_email?: string | null
           contact_name?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
+          name?: string | null
           phone?: string | null
           updated_at?: string | null
           user_id?: string
@@ -237,8 +243,12 @@ export type Database = {
           created_at: string | null
           currency: string | null
           event_id: string
+          guarantee_amount: number | null
+          guarantee_currency: string | null
           id: string
           notes: string | null
+          per_diem_amount: number | null
+          per_diem_currency: string | null
           rate: number | null
           talent_id: string
         }
@@ -246,8 +256,12 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           event_id: string
+          guarantee_amount?: number | null
+          guarantee_currency?: string | null
           id?: string
           notes?: string | null
+          per_diem_amount?: number | null
+          per_diem_currency?: string | null
           rate?: number | null
           talent_id: string
         }
@@ -255,8 +269,12 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           event_id?: string
+          guarantee_amount?: number | null
+          guarantee_currency?: string | null
           id?: string
           notes?: string | null
+          per_diem_amount?: number | null
+          per_diem_currency?: string | null
           rate?: number | null
           talent_id?: string
         }
@@ -277,6 +295,72 @@ export type Database = {
           },
         ]
       }
+      business_event_transport: {
+        Row: {
+          arrival_location: string | null
+          arrival_time: string | null
+          carrier: string | null
+          confirmation_code: string | null
+          created_at: string | null
+          departure_location: string | null
+          departure_time: string | null
+          event_id: string
+          id: string
+          notes: string | null
+          status: string | null
+          talent_id: string
+          transport_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          arrival_location?: string | null
+          arrival_time?: string | null
+          carrier?: string | null
+          confirmation_code?: string | null
+          created_at?: string | null
+          departure_location?: string | null
+          departure_time?: string | null
+          event_id: string
+          id?: string
+          notes?: string | null
+          status?: string | null
+          talent_id: string
+          transport_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          arrival_location?: string | null
+          arrival_time?: string | null
+          carrier?: string | null
+          confirmation_code?: string | null
+          created_at?: string | null
+          departure_location?: string | null
+          departure_time?: string | null
+          event_id?: string
+          id?: string
+          notes?: string | null
+          status?: string | null
+          talent_id?: string
+          transport_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_event_transport_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "business_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_event_transport_talent_id_fkey"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_event_travel: {
         Row: {
           arrival_date: string | null
@@ -287,6 +371,7 @@ export type Database = {
           flight_number: string | null
           id: string
           notes: string | null
+          status: string | null
           talent_id: string
           updated_at: string | null
         }
@@ -299,6 +384,7 @@ export type Database = {
           flight_number?: string | null
           id?: string
           notes?: string | null
+          status?: string | null
           talent_id: string
           updated_at?: string | null
         }
@@ -311,6 +397,7 @@ export type Database = {
           flight_number?: string | null
           id?: string
           notes?: string | null
+          status?: string | null
           talent_id?: string
           updated_at?: string | null
         }
@@ -333,10 +420,12 @@ export type Database = {
       }
       business_events: {
         Row: {
+          address_line: string | null
           city: string | null
           country: string | null
           created_at: string | null
           created_by: string | null
+          daily_schedule: Json | null
           description: string | null
           end_ts: string | null
           id: string
@@ -347,12 +436,15 @@ export type Database = {
           title: string
           updated_at: string | null
           venue: string | null
+          website: string | null
         }
         Insert: {
+          address_line?: string | null
           city?: string | null
           country?: string | null
           created_at?: string | null
           created_by?: string | null
+          daily_schedule?: Json | null
           description?: string | null
           end_ts?: string | null
           id?: string
@@ -363,12 +455,15 @@ export type Database = {
           title: string
           updated_at?: string | null
           venue?: string | null
+          website?: string | null
         }
         Update: {
+          address_line?: string | null
           city?: string | null
           country?: string | null
           created_at?: string | null
           created_by?: string | null
+          daily_schedule?: Json | null
           description?: string | null
           end_ts?: string | null
           id?: string
@@ -379,6 +474,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
           venue?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -532,6 +628,45 @@ export type Database = {
           },
         ]
       }
+      event_talent_assignments: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          role: string | null
+          talent_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          role?: string | null
+          talent_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          role?: string | null
+          talent_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_talent_assignments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_talent_assignments_talent_id_fkey"
+            columns: ["talent_id"]
+            isOneToOne: false
+            referencedRelation: "talent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_reactions: {
         Row: {
           created_at: string | null
@@ -619,6 +754,7 @@ export type Database = {
           id: string
           last_name: string | null
           phone: string | null
+          preferred_language: string | null
           role: Database["public"]["Enums"]["app_role"] | null
           status: string | null
           updated_at: string | null
@@ -636,6 +772,7 @@ export type Database = {
           id: string
           last_name?: string | null
           phone?: string | null
+          preferred_language?: string | null
           role?: Database["public"]["Enums"]["app_role"] | null
           status?: string | null
           updated_at?: string | null
@@ -653,10 +790,71 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone?: string | null
+          preferred_language?: string | null
           role?: Database["public"]["Enums"]["app_role"] | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      public_events: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_time: string | null
+          event_date: string
+          id: string
+          image_url: string | null
+          location_city: string | null
+          location_country: string | null
+          location_state: string | null
+          start_time: string | null
+          status: string | null
+          ticket_url: string | null
+          title: string
+          updated_at: string | null
+          venue_name: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          id?: string
+          image_url?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
+          start_time?: string | null
+          status?: string | null
+          ticket_url?: string | null
+          title: string
+          updated_at?: string | null
+          venue_name?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
+          start_time?: string | null
+          status?: string | null
+          ticket_url?: string | null
+          title?: string
+          updated_at?: string | null
+          venue_name?: string | null
         }
         Relationships: []
       }
@@ -826,6 +1024,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          page_name: string | null
           settings: Json | null
           updated_at: string | null
           updated_by: string | null
@@ -833,6 +1032,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          page_name?: string | null
           settings?: Json | null
           updated_at?: string | null
           updated_by?: string | null
@@ -840,6 +1040,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          page_name?: string | null
           settings?: Json | null
           updated_at?: string | null
           updated_by?: string | null
@@ -850,6 +1051,7 @@ export type Database = {
         Row: {
           active: boolean | null
           category: Database["public"]["Enums"]["asset_category"]
+          content_data: Json | null
           created_at: string | null
           description: string | null
           file_name: string | null
@@ -857,14 +1059,17 @@ export type Database = {
           file_url: string
           format: Database["public"]["Enums"]["asset_format"]
           id: string
+          is_featured: boolean | null
           metadata: Json | null
           talent_id: string
           title: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           active?: boolean | null
           category: Database["public"]["Enums"]["asset_category"]
+          content_data?: Json | null
           created_at?: string | null
           description?: string | null
           file_name?: string | null
@@ -872,14 +1077,17 @@ export type Database = {
           file_url: string
           format: Database["public"]["Enums"]["asset_format"]
           id?: string
+          is_featured?: boolean | null
           metadata?: Json | null
           talent_id: string
           title?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           active?: boolean | null
           category?: Database["public"]["Enums"]["asset_category"]
+          content_data?: Json | null
           created_at?: string | null
           description?: string | null
           file_name?: string | null
@@ -887,10 +1095,12 @@ export type Database = {
           file_url?: string
           format?: Database["public"]["Enums"]["asset_format"]
           id?: string
+          is_featured?: boolean | null
           metadata?: Json | null
           talent_id?: string
           title?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1274,9 +1484,14 @@ export type Database = {
       }
       watermark_settings: {
         Row: {
+          business_logo_url: string | null
+          business_position: string | null
           created_at: string | null
+          default_position: string | null
           enabled: boolean | null
           id: string
+          logo_size: number | null
+          logo_url: string | null
           opacity: number | null
           position: string | null
           text: string | null
@@ -1284,9 +1499,14 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          business_logo_url?: string | null
+          business_position?: string | null
           created_at?: string | null
+          default_position?: string | null
           enabled?: boolean | null
           id?: string
+          logo_size?: number | null
+          logo_url?: string | null
           opacity?: number | null
           position?: string | null
           text?: string | null
@@ -1294,9 +1514,14 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          business_logo_url?: string | null
+          business_position?: string | null
           created_at?: string | null
+          default_position?: string | null
           enabled?: boolean | null
           id?: string
+          logo_size?: number | null
+          logo_url?: string | null
           opacity?: number | null
           position?: string | null
           text?: string | null
@@ -1338,6 +1563,10 @@ export type Database = {
       }
       ensure_business_account_exists: {
         Args: { _user_id: string }
+        Returns: string
+      }
+      ensure_business_account_exists_v2: {
+        Args: { p_user_id: string }
         Returns: string
       }
       generate_unique_talent_slug: { Args: { p_name: string }; Returns: string }
