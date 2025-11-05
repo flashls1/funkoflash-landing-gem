@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
 import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
@@ -93,150 +94,221 @@ const Contact = () => {
         }}
       >
         {/* Hero Section */}
-        <UnifiedHeroSection 
-          language={language} 
-          className="mt-[5px] rounded-2xl overflow-hidden border-2"
-          style={{ borderColor: 'hsl(0 0% 100%)' }}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <UnifiedHeroSection 
+            language={language} 
+            className="mt-[5px] rounded-2xl overflow-hidden border-2"
+            style={{ borderColor: 'hsl(0 0% 100%)' }}
+          />
+        </motion.div>
+        
         {/* Main Content */}
         <main className="max-w-6xl mx-auto px-4 py-16">
           {/* Intro Section */}
-          <section className="text-center mb-16">
-            <div className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-              <h2 className="text-3xl font-bold mb-6 text-foreground">
+          <motion.section 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="bg-card/90 backdrop-blur-sm rounded-2xl p-8 lg:p-12 shadow-xl border border-border">
+              <h2 className="text-4xl font-bold mb-6 text-foreground bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 {content[language].getInTouchTitle}
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
                 {content[language].getInTouchText}
               </p>
             </div>
-          </section>
+          </motion.section>
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Contact Form */}
-            <Card className="bg-card/80 backdrop-blur-sm shadow-lg border border-border">
-              <CardHeader>
-                <CardTitle className="text-2xl">
-                  {content[language].contactFormTitle}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <Label htmlFor="name">{content[language].nameLabel}</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      type="text"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-2"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="email">{content[language].emailLabel}</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-2"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="subject">{content[language].subjectLabel}</Label>
-                    <Input
-                      id="subject"
-                      name="subject"
-                      type="text"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-2"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="message">{content[language].messageLabel}</Label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      required
-                      rows={5}
-                      className="mt-2"
-                    />
-                  </div>
-                  
-                  <Button type="submit" variant="funko" className="w-full">
-                    {content[language].sendButton}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <Card className="bg-card/90 backdrop-blur-sm shadow-xl border border-border h-full">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <Send className="w-6 h-6 text-primary" />
+                    {content[language].contactFormTitle}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <Label htmlFor="name">{content[language].nameLabel}</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        type="text"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        className="mt-2"
+                      />
+                    </motion.div>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <Label htmlFor="email">{content[language].emailLabel}</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        className="mt-2"
+                      />
+                    </motion.div>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 }}
+                    >
+                      <Label htmlFor="subject">{content[language].subjectLabel}</Label>
+                      <Input
+                        id="subject"
+                        name="subject"
+                        type="text"
+                        value={formData.subject}
+                        onChange={handleInputChange}
+                        required
+                        className="mt-2"
+                      />
+                    </motion.div>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7 }}
+                    >
+                      <Label htmlFor="message">{content[language].messageLabel}</Label>
+                      <Textarea
+                        id="message"
+                        name="message"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        required
+                        rows={5}
+                        className="mt-2"
+                      />
+                    </motion.div>
+                    
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Button type="submit" variant="funko" className="w-full">
+                        {content[language].sendButton}
+                      </Button>
+                    </motion.div>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
 
             {/* Contact Information */}
-            <Card className="bg-card/80 backdrop-blur-sm shadow-lg border border-border">
-              <CardHeader>
-                <CardTitle className="text-2xl">
-                  {content[language].contactInfoTitle}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <Mail className="w-6 h-6 text-funko-orange mt-1" />
-                  <div>
-                    <h3 className="font-semibold text-foreground">Email</h3>
-                    <p className="text-muted-foreground">contact@funkoflash.com</p>
-                    <p className="text-muted-foreground">bookings@funkoflash.com</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4">
-                  <Phone className="w-6 h-6 text-funko-orange mt-1" />
-                  <div>
-                    <h3 className="font-semibold text-foreground">Phone</h3>
-                    <p className="text-muted-foreground">+1 (555) 123-4567</p>
-                    <p className="text-muted-foreground text-sm">Business inquiries only</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4">
-                  <MapPin className="w-6 h-6 text-funko-orange mt-1" />
-                  <div>
-                    <h3 className="font-semibold text-foreground">Studio Location</h3>
-                    <p className="text-muted-foreground">Los Angeles, California</p>
-                    <p className="text-muted-foreground text-sm">Remote services available worldwide</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-4">
-                  <Clock className="w-6 h-6 text-funko-orange mt-1" />
-                  <div>
-                    <h3 className="font-semibold text-foreground">
-                      {content[language].officeHours}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <Card className="bg-card/90 backdrop-blur-sm shadow-xl border border-border h-full">
+                <CardHeader>
+                  <CardTitle className="text-2xl">
+                    {content[language].contactInfoTitle}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <motion.div 
+                    className="flex items-start space-x-4 p-4 rounded-xl hover:bg-primary/5 transition-colors duration-300"
+                    whileHover={{ x: 5 }}
+                  >
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Mail className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">Email</h3>
+                      <p className="text-muted-foreground">contact@funkoflash.com</p>
+                      <p className="text-muted-foreground">bookings@funkoflash.com</p>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="flex items-start space-x-4 p-4 rounded-xl hover:bg-primary/5 transition-colors duration-300"
+                    whileHover={{ x: 5 }}
+                  >
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Phone className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">Phone</h3>
+                      <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                      <p className="text-muted-foreground text-sm">Business inquiries only</p>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="flex items-start space-x-4 p-4 rounded-xl hover:bg-primary/5 transition-colors duration-300"
+                    whileHover={{ x: 5 }}
+                  >
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <MapPin className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">Studio Location</h3>
+                      <p className="text-muted-foreground">Los Angeles, California</p>
+                      <p className="text-muted-foreground text-sm">Remote services available worldwide</p>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="flex items-start space-x-4 p-4 rounded-xl hover:bg-primary/5 transition-colors duration-300"
+                    whileHover={{ x: 5 }}
+                  >
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Clock className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">
+                        {content[language].officeHours}
+                      </h3>
+                      <p className="text-muted-foreground">{content[language].mondayFriday}</p>
+                      <p className="text-muted-foreground">{content[language].weekend}</p>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                  >
+                    <h3 className="font-semibold text-foreground mb-2">
+                      {content[language].responseTime}
                     </h3>
-                    <p className="text-muted-foreground">{content[language].mondayFriday}</p>
-                    <p className="text-muted-foreground">{content[language].weekend}</p>
-                  </div>
-                </div>
-                
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <h3 className="font-semibold text-foreground mb-2">
-                    {content[language].responseTime}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {content[language].responseText}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                    <p className="text-muted-foreground text-sm">
+                      {content[language].responseText}
+                    </p>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </main>
 

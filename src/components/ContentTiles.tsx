@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import voiceTalentImage from "@/assets/tile-voice-talent.jpg";
@@ -113,49 +114,98 @@ const ContentTiles = ({ language }: ContentTilesProps) => {
 
   const currentContent = content[language];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { 
+      opacity: 0,
+      y: 50,
+      scale: 0.95
+    },
+    visible: { 
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 80,
+        damping: 15
+      }
+    }
+  };
+
   return (
     <section className="py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
           {currentContent.tiles.map((tile, index) => (
-            <Card key={index} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105 bg-card border-border">
-              <div className="aspect-video relative overflow-hidden bg-muted">
-                {tile.image ? (
-                  <img 
-                    src={tile.image}
-                    alt={tile.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-funko-orange/20 to-funko-blue/20">
-                    <div className="text-center space-y-2">
-                      <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        {language === 'en' ? 'Image not uploaded' : 'Imagen no subida'}
-                      </p>
+            <motion.div
+              key={index}
+              variants={cardVariants}
+              whileHover={{ y: -8 }}
+            >
+              <Card className="overflow-hidden h-full bg-card/90 backdrop-blur-sm border-border shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                <div className="aspect-video relative overflow-hidden bg-muted group">
+                  {tile.image ? (
+                    <>
+                      <motion.img 
+                        src={tile.image}
+                        alt={tile.title}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                      />
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                      />
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                      <div className="text-center space-y-2">
+                        <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          {language === 'en' ? 'Image not uploaded' : 'Imagen no subida'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-              
-              <CardContent className="p-6 space-y-4">
-                <h3 className="text-xl font-bold text-foreground">{tile.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{tile.description}</p>
-                <Button 
-                  variant="funko-outline" 
-                  className="w-full group"
-                  asChild
-                >
-                  <a href={tile.link}>
-                    {tile.buttonText}
-                    <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
+                  )}
+                </div>
+                
+                <CardContent className="p-6 space-y-4">
+                  <h3 className="text-xl font-bold text-foreground bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                    {tile.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">{tile.description}</p>
+                  <Button 
+                    variant="funko-outline" 
+                    className="w-full group"
+                    asChild
+                  >
+                    <a href={tile.link}>
+                      {tile.buttonText}
+                      <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

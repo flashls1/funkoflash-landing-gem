@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSiteDesign } from "@/hooks/useSiteDesign";
+import { Heart, Target, Users, Award } from "lucide-react";
 
 const About = () => {
   const { language, setLanguage } = useLanguage();
@@ -41,6 +43,8 @@ const About = () => {
     }
   };
 
+  const sectionIcons = [Heart, Target, Users, Award];
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
@@ -56,74 +60,167 @@ const About = () => {
         }}
       >
         {/* Hero Section */}
-        <UnifiedHeroSection 
-          language={language} 
-          className="rounded-2xl overflow-hidden border-2"
-          style={{ borderColor: 'hsl(0 0% 100%)' }}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <UnifiedHeroSection 
+            language={language} 
+            className="rounded-2xl overflow-hidden border-2"
+            style={{ borderColor: 'hsl(0 0% 100%)' }}
+          />
+        </motion.div>
+        
         {/* Main Content */}
         <main className="max-w-4xl mx-auto px-4 py-16 space-y-16">
           {/* About Section */}
-          <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-            <h2 className="text-3xl font-bold mb-6 text-foreground">
-              {content[language].aboutTitle}
-            </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              {content[language].aboutText}
-            </p>
-          </section>
+          <motion.section
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="bg-card/90 backdrop-blur-sm rounded-2xl p-8 lg:p-12 shadow-xl border border-border relative overflow-hidden group"
+          >
+            <motion.div
+              className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
+            />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Heart className="w-6 h-6 text-primary" />
+                </div>
+                <h2 className="text-3xl font-bold text-foreground">
+                  {content[language].aboutTitle}
+                </h2>
+              </div>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                {content[language].aboutText}
+              </p>
+            </div>
+          </motion.section>
 
           {/* Mission Section */}
-          <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-            <h2 className="text-3xl font-bold mb-6 text-foreground">
-              {content[language].missionTitle}
-            </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              {content[language].missionText}
-            </p>
-          </section>
+          <motion.section
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="bg-card/90 backdrop-blur-sm rounded-2xl p-8 lg:p-12 shadow-xl border border-border relative overflow-hidden group"
+          >
+            <motion.div
+              className="absolute -bottom-12 -left-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
+            />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Target className="w-6 h-6 text-primary" />
+                </div>
+                <h2 className="text-3xl font-bold text-foreground">
+                  {content[language].missionTitle}
+                </h2>
+              </div>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                {content[language].missionText}
+              </p>
+            </div>
+          </motion.section>
 
           {/* Team Section */}
-          <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-            <h2 className="text-3xl font-bold mb-6 text-foreground">
-              {content[language].teamTitle}
-            </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              {content[language].teamText}
-            </p>
-          </section>
+          <motion.section
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="bg-card/90 backdrop-blur-sm rounded-2xl p-8 lg:p-12 shadow-xl border border-border relative overflow-hidden group"
+          >
+            <motion.div
+              className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
+            />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Users className="w-6 h-6 text-primary" />
+                </div>
+                <h2 className="text-3xl font-bold text-foreground">
+                  {content[language].teamTitle}
+                </h2>
+              </div>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                {content[language].teamText}
+              </p>
+            </div>
+          </motion.section>
 
           {/* Values Section */}
-          <section className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-            <h2 className="text-3xl font-bold mb-6 text-foreground">
-              {content[language].valuesTitle}
-            </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              {content[language].valuesText}
-            </p>
-          </section>
+          <motion.section
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="bg-card/90 backdrop-blur-sm rounded-2xl p-8 lg:p-12 shadow-xl border border-border relative overflow-hidden group"
+          >
+            <motion.div
+              className="absolute -bottom-12 -left-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
+            />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Award className="w-6 h-6 text-primary" />
+                </div>
+                <h2 className="text-3xl font-bold text-foreground">
+                  {content[language].valuesTitle}
+                </h2>
+              </div>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                {content[language].valuesText}
+              </p>
+            </div>
+          </motion.section>
 
           {/* CTA Section */}
-          <section className="text-center">
-            <div className="bg-card/80 backdrop-blur-sm rounded-lg p-8 shadow-lg border border-border">
-              <h2 className="text-3xl font-bold mb-4 text-foreground">
-                {language === 'en' ? 'Ready to Work Together?' : '¿Listo para Trabajar Juntos?'}
-              </h2>
-              <p className="text-lg text-muted-foreground mb-6">
-                {language === 'en' 
-                  ? 'Get in touch with us to discuss your next project.'
-                  : 'Ponte en contacto con nosotros para discutir tu próximo proyecto.'
-                }
-              </p>
-              <Button 
-                variant="funko" 
-                size="lg"
-                onClick={() => window.location.href = '/contact'}
-              >
-                {language === 'en' ? 'Contact Us' : 'Contáctanos'}
-              </Button>
+          <motion.section
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <div className="bg-gradient-to-br from-primary/10 via-card/90 to-primary/5 backdrop-blur-sm rounded-2xl p-12 shadow-xl border border-border relative overflow-hidden">
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent"
+                animate={{
+                  x: ['-100%', '100%'],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+              />
+              <div className="relative">
+                <h2 className="text-4xl font-bold mb-4 text-foreground bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                  {language === 'en' ? 'Ready to Work Together?' : '¿Listo para Trabajar Juntos?'}
+                </h2>
+                <p className="text-lg text-muted-foreground mb-8">
+                  {language === 'en' 
+                    ? 'Get in touch with us to discuss your next project.'
+                    : 'Ponte en contacto con nosotros para discutir tu próximo proyecto.'
+                  }
+                </p>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    variant="funko" 
+                    size="lg"
+                    className="shadow-lg"
+                    onClick={() => window.location.href = '/contact'}
+                  >
+                    {language === 'en' ? 'Contact Us' : 'Contáctanos'}
+                  </Button>
+                </motion.div>
+              </div>
             </div>
-          </section>
+          </motion.section>
         </main>
 
         <Footer language={language} />

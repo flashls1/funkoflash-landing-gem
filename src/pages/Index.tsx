@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import ContentTiles from "@/components/ContentTiles";
@@ -27,11 +28,17 @@ const Index = () => {
           backgroundAttachment: 'fixed'
         }}
       >
-        <UnifiedHeroSection 
-          language={language} 
-          className="rounded-2xl overflow-hidden border-2"
-          style={{ borderColor: 'hsl(0 0% 100%)' }}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <UnifiedHeroSection 
+            language={language} 
+            className="rounded-2xl overflow-hidden border-2"
+            style={{ borderColor: 'hsl(0 0% 100%)' }}
+          />
+        </motion.div>
         <ContentTiles language={language} />
         <Footer language={language} />
       </div>

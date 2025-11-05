@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Calendar, Clock, MapPin, ExternalLink, Download } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Calendar, Clock, MapPin, ExternalLink, Download, CalendarDays, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -144,16 +145,54 @@ export default function Events() {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { 
+      opacity: 0,
+      y: 50,
+      scale: 0.95
+    },
+    visible: { 
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 80,
+        damping: 15
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation language={language} setLanguage={setLanguage} />
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="container mx-auto px-4 py-12">
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="aspect-square bg-muted animate-pulse rounded-lg" />
+              <motion.div 
+                key={i}
+                variants={cardVariants}
+              >
+                <div className="aspect-square bg-muted animate-pulse rounded-2xl shadow-lg" />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
         <Footer language={language} />
       </div>
@@ -175,23 +214,35 @@ export default function Events() {
         }}
       >
         {/* Hero Section */}
-        <UnifiedHeroSection 
-          language={language} 
-          className="rounded-2xl overflow-hidden border-2"
-          style={{ borderColor: 'hsl(0 0% 100%)' }}
-        />
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <UnifiedHeroSection 
+            language={language} 
+            className="rounded-2xl overflow-hidden border-2"
+            style={{ borderColor: 'hsl(0 0% 100%)' }}
+          />
+        </motion.div>
+        
+        <div className="container mx-auto px-4 py-12 lg:py-16">
+          <motion.div 
+            className="mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4">
               <Input
                 placeholder={content[language].searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm bg-card/80 backdrop-blur-sm border-border"
+                className="max-w-sm bg-card/90 backdrop-blur-sm border-border shadow-lg"
               />
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="max-w-xs bg-card/80 backdrop-blur-sm border-border">
+                <SelectTrigger className="max-w-xs bg-card/90 backdrop-blur-sm border-border shadow-lg">
                   <SelectValue placeholder={content[language].allCategories} />
                 </SelectTrigger>
                 <SelectContent>
@@ -204,36 +255,93 @@ export default function Events() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </motion.div>
 
           {/* Upcoming Events */}
           {upcomingEvents.length > 0 && (
-            <div className="mb-12">
-              <h2 className="text-2xl font-semibold mb-6 uppercase bg-gradient-to-r from-purple-600 via-white via-blue-500 to-black bg-clip-text text-transparent">{content[language].upcomingTitle}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div 
+              className="mb-16"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="flex items-center gap-3 mb-8"
+              >
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                </div>
+                <h2 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                  {content[language].upcomingTitle}
+                </h2>
+              </motion.div>
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+              >
                 {upcomingEvents.map((event) => (
-                  <EventCard key={event.id} event={event} onClick={setSelectedEvent} />
+                  <motion.div key={event.id} variants={cardVariants}>
+                    <EventCard event={event} onClick={setSelectedEvent} />
+                  </motion.div>
                 ))}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
 
           {/* Past Events */}
           {pastEvents.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-semibold mb-6 text-muted-foreground">{content[language].pastTitle}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="flex items-center gap-3 mb-8"
+              >
+                <div className="p-3 bg-muted/50 rounded-xl">
+                  <CalendarDays className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <h2 className="text-3xl font-bold text-muted-foreground">
+                  {content[language].pastTitle}
+                </h2>
+              </motion.div>
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+              >
                 {pastEvents.map((event) => (
-                  <EventCard key={event.id} event={event} onClick={setSelectedEvent} isPast />
+                  <motion.div key={event.id} variants={cardVariants}>
+                    <EventCard event={event} onClick={setSelectedEvent} isPast />
+                  </motion.div>
                 ))}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
 
           {filteredEvents.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">{content[language].noEventsText}</p>
-            </div>
+            <motion.div 
+              className="text-center py-20"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="bg-card/90 backdrop-blur-sm rounded-2xl p-12 max-w-md mx-auto shadow-lg border border-border">
+                <Calendar className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+                <p className="text-muted-foreground text-lg">{content[language].noEventsText}</p>
+              </div>
+            </motion.div>
           )}
         </div>
 
@@ -241,79 +349,86 @@ export default function Events() {
       </div>
 
       {/* Event Modal */}
-      <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
-        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-sm border-border">
-          <DialogHeader>
-            <DialogTitle>{selectedEvent?.title}</DialogTitle>
-          </DialogHeader>
-          {selectedEvent && (
-            <div className="space-y-4">
-              {selectedEvent.image_url && (
-                <div className="aspect-video relative overflow-hidden rounded-lg">
-                  <img
-                    src={selectedEvent.image_url}
-                    alt={selectedEvent.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              
-              <div className="flex flex-wrap gap-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
-                  {format(new Date(selectedEvent.event_date), "PPP")}
-                </div>
-                {selectedEvent.start_time && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    {selectedEvent.start_time}
+      <AnimatePresence>
+        {selectedEvent && (
+          <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
+            <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-sm border-border">
+              <DialogHeader>
+                <DialogTitle>{selectedEvent.title}</DialogTitle>
+              </DialogHeader>
+              <motion.div 
+                className="space-y-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {selectedEvent.image_url && (
+                  <div className="aspect-video relative overflow-hidden rounded-lg">
+                    <img
+                      src={selectedEvent.image_url}
+                      alt={selectedEvent.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 )}
-                {(selectedEvent.venue_name || selectedEvent.location_city) && (
+                
+                <div className="flex flex-wrap gap-2">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    {[selectedEvent.venue_name, selectedEvent.location_city, selectedEvent.location_state, selectedEvent.location_country].filter(Boolean).join(', ')}
+                    <Calendar className="w-4 h-4" />
+                    {format(new Date(selectedEvent.event_date), "PPP")}
+                  </div>
+                  {selectedEvent.start_time && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      {selectedEvent.start_time}
+                    </div>
+                  )}
+                  {(selectedEvent.venue_name || selectedEvent.location_city) && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="w-4 h-4" />
+                      {[selectedEvent.venue_name, selectedEvent.location_city, selectedEvent.location_state, selectedEvent.location_country].filter(Boolean).join(', ')}
+                    </div>
+                  )}
+                </div>
+
+                {selectedEvent.description && (
+                  <p className="text-muted-foreground">{selectedEvent.description}</p>
+                )}
+
+                {selectedEvent.event_talent_assignments && selectedEvent.event_talent_assignments.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Featured Talent</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedEvent.event_talent_assignments.map((assignment, index) => (
+                        assignment.talent_profiles && (
+                          <Badge key={index} variant="outline">
+                            {assignment.talent_profiles.name}
+                          </Badge>
+                        )
+                      ))}
+                    </div>
                   </div>
                 )}
-              </div>
 
-              {selectedEvent.description && (
-                <p className="text-muted-foreground">{selectedEvent.description}</p>
-              )}
-
-              {selectedEvent.event_talent_assignments && selectedEvent.event_talent_assignments.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-2">Featured Talent</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedEvent.event_talent_assignments.map((assignment, index) => (
-                      assignment.talent_profiles && (
-                        <Badge key={index} variant="outline">
-                          {assignment.talent_profiles.name}
-                        </Badge>
-                      )
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-2 pt-4">
-                <Button onClick={() => generateICSFile(selectedEvent)}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Add to Calendar
-                </Button>
-                {selectedEvent.ticket_url && (
-                  <Button variant="outline" asChild>
-                    <a href={selectedEvent.ticket_url} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Get Tickets
-                    </a>
+                <div className="flex gap-2 pt-4">
+                  <Button onClick={() => generateICSFile(selectedEvent)}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Add to Calendar
                   </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+                  {selectedEvent.ticket_url && (
+                    <Button variant="outline" asChild>
+                      <a href={selectedEvent.ticket_url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Get Tickets
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </motion.div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -326,50 +441,64 @@ interface EventCardProps {
 
 function EventCard({ event, onClick, isPast = false }: EventCardProps) {
   return (
-    <div 
-      className={`group cursor-pointer rounded-lg overflow-hidden border border-border bg-card/80 backdrop-blur-sm shadow-lg transition-all duration-200 hover:shadow-xl ${
+    <motion.div 
+      className={`group cursor-pointer rounded-2xl overflow-hidden border border-border bg-card/90 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 ${
         isPast ? 'opacity-75' : ''
       }`}
       onClick={() => onClick(event)}
+      whileHover={{ y: -8 }}
     >
       <div className="aspect-square relative overflow-hidden">
         {event.image_url ? (
-          <img
-            src={event.image_url}
-            alt={event.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          <>
+            <motion.img
+              src={event.image_url}
+              alt={event.title}
+              className="w-full h-full object-cover"
+              whileHover={{ scale: 1.1 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            />
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            />
+          </>
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
-            <Calendar className="w-16 h-16 text-muted-foreground" />
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <Calendar className="w-16 h-16 text-primary" />
           </div>
         )}
         {event.status && event.status !== 'published' && (
-          <Badge className="absolute top-2 left-2" variant="secondary">
+          <Badge className="absolute top-4 left-4 shadow-lg" variant="secondary">
             {event.status}
           </Badge>
         )}
       </div>
       
-      <div className="p-4">
-        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{event.title}</h3>
-        <div className="space-y-1 text-sm text-muted-foreground">
+      <div className="p-6">
+        <h3 className="font-bold text-xl mb-3 line-clamp-2 text-foreground">{event.title}</h3>
+        <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
+            <div className="p-1.5 bg-primary/10 rounded">
+              <Calendar className="w-4 h-4 text-primary" />
+            </div>
             {format(new Date(event.event_date), "MMM d, yyyy")}
           </div>
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4" />
+            <div className="p-1.5 bg-primary/10 rounded">
+              <Clock className="w-4 h-4 text-primary" />
+            </div>
             {event.start_time || format(new Date(event.event_date), "h:mm a")}
           </div>
           {(event.venue_name || event.location_city) && (
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
+              <div className="p-1.5 bg-primary/10 rounded">
+                <MapPin className="w-4 h-4 text-primary" />
+              </div>
               <span className="truncate">{[event.venue_name, event.location_city].filter(Boolean).join(', ')}</span>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

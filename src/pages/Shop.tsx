@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { ExternalLink, ChevronLeft, ChevronRight, ShoppingBag, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -166,6 +167,34 @@ const Shop = () => {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { 
+      opacity: 0,
+      y: 50,
+      scale: 0.95
+    },
+    visible: { 
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 80,
+        damping: 15
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation language={language} setLanguage={setLanguage} />
@@ -182,77 +211,129 @@ const Shop = () => {
         }}
       >
         {/* Hero Section */}
-        <UnifiedHeroSection 
-          language={language} 
-          className="rounded-2xl overflow-hidden border-2"
-          style={{ borderColor: 'hsl(0 0% 100%)' }}
-        />
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold mb-4 text-foreground">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <UnifiedHeroSection 
+            language={language} 
+            className="rounded-2xl overflow-hidden border-2"
+            style={{ borderColor: 'hsl(0 0% 100%)' }}
+          />
+        </motion.div>
+        
+        <main className="container mx-auto px-4 py-12 lg:py-16">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-primary/10 rounded-full"
+            >
+              <ShoppingBag className="w-5 h-5 text-primary" />
+              <span className="text-sm font-semibold text-primary uppercase tracking-wide">
+                {language === 'en' ? 'Exclusive Collectibles' : 'Coleccionables Exclusivos'}
+              </span>
+            </motion.div>
+            <h2 className="text-5xl md:text-6xl font-bold mb-4 text-foreground bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               {content[language].title}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               {content[language].description}
             </p>
-          </div>
+          </motion.div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[...Array(6)].map((_, i) => (
-                <Card key={i} className="overflow-hidden bg-card/80 backdrop-blur-sm border-border">
-                  <div className="w-full h-64 bg-muted animate-pulse" />
-                  <CardContent className="p-6">
-                    <div className="h-6 bg-muted rounded animate-pulse mb-2" />
-                    <div className="h-4 bg-muted rounded animate-pulse mb-4" />
-                    <div className="h-10 bg-muted rounded animate-pulse" />
-                  </CardContent>
-                </Card>
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: i * 0.1 }}
+                >
+                  <Card className="overflow-hidden bg-card/90 backdrop-blur-sm border-border shadow-lg">
+                    <div className="w-full h-64 bg-muted animate-pulse" />
+                    <CardContent className="p-6">
+                      <div className="h-6 bg-muted rounded animate-pulse mb-2" />
+                      <div className="h-4 bg-muted rounded animate-pulse mb-4" />
+                      <div className="h-10 bg-muted rounded animate-pulse" />
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 mx-auto mb-6 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border border-border">
-                <span className="text-4xl">🛍️</span>
+            <motion.div 
+              className="text-center py-20"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="bg-card/90 backdrop-blur-sm rounded-2xl p-12 max-w-md mx-auto shadow-lg border border-border">
+                <ShoppingBag className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="text-2xl font-semibold mb-2 text-foreground">{content[language].noProducts}</h3>
+                <p className="text-muted-foreground">
+                  {content[language].checkBack}
+                </p>
               </div>
-              <h3 className="text-2xl font-semibold mb-2 text-foreground">{content[language].noProducts}</h3>
-              <p className="text-muted-foreground">
-                {content[language].checkBack}
-              </p>
-            </div>
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {products.map((product) => (
-                <Card key={product.id} className="overflow-hidden hover:shadow-xl transition-shadow bg-card/80 backdrop-blur-sm border-border">
-                  <ImageSlider 
-                    images={product.image_urls}
-                    autoplayInterval={product.autoplay_interval}
-                    productTitle={product.title}
-                  />
-                  
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-lg line-clamp-2">{product.title}</h3>
-                      <Badge variant="secondary" className="ml-2 shrink-0">
+                <motion.div
+                  key={product.id}
+                  variants={cardVariants}
+                  whileHover={{ y: -8 }}
+                >
+                  <Card className="overflow-hidden h-full bg-card/90 backdrop-blur-sm border-border shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                    <div className="relative group">
+                      <ImageSlider 
+                        images={product.image_urls}
+                        autoplayInterval={product.autoplay_interval}
+                        productTitle={product.title}
+                      />
+                      <motion.div 
+                        className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold shadow-lg"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.2, type: "spring" as const }}
+                      >
+                        <Star className="w-4 h-4 inline mr-1 fill-current" />
                         {formatPrice(product.price)}
-                      </Badge>
+                      </motion.div>
                     </div>
                     
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                      {product.description}
-                    </p>
-                    
-                    <Button 
-                      className="w-full" 
-                      onClick={() => window.open(product.square_checkout_url, '_blank')}
-                    >
-                      Buy Now
-                      <ExternalLink className="w-4 h-4 ml-2" />
-                    </Button>
-                  </CardContent>
-                </Card>
+                    <CardContent className="p-6">
+                      <h3 className="font-bold text-xl mb-2 line-clamp-2 text-foreground">{product.title}</h3>
+                      
+                      <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                        {product.description}
+                      </p>
+                      
+                      <Button 
+                        className="w-full group bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70" 
+                        onClick={() => window.open(product.square_checkout_url, '_blank')}
+                      >
+                        {language === 'en' ? 'Buy Now' : 'Comprar Ahora'}
+                        <ExternalLink className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </main>
         
