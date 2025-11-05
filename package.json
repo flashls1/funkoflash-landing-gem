@@ -59,6 +59,7 @@
     "dompurify": "^3.2.6",
     "embla-carousel-react": "^8.3.0",
     "file-saver": "^2.0.5",
+    "framer-motion": "^12.23.24",
     "input-otp": "^1.2.4",
     "jsdom": "^26.1.0",
     "jszip": "^3.10.1",
