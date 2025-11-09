@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
+import { useNavigate } from "react-router-dom";
+import PageLayout from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import UnifiedHeroSection from "@/components/UnifiedHeroSection";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -11,55 +11,15 @@ import { Heart, Target, Users, Award } from "lucide-react";
 const About = () => {
   const { language, setLanguage } = useLanguage();
   const { setCurrentPage } = useSiteDesign();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setCurrentPage('about');
   }, [setCurrentPage]);
 
-  const content = {
-    en: {
-      heroTitle: "About Funko Flash",
-      heroSubtitle: "Your Premier Voice Acting and Content Creation Studio",
-      aboutTitle: "Our Story",
-      aboutText: "Welcome to Funko Flash, where creativity meets excellence in voice acting and content creation. Founded with a passion for bringing characters to life and telling compelling stories, we've built a community of talented voice actors, content creators, and industry professionals.",
-      missionTitle: "Our Mission",
-      missionText: "To provide exceptional voice acting services and create engaging content that resonates with audiences worldwide. We believe in the power of voice to transform stories, brands, and experiences.",
-      teamTitle: "Our Team",
-      teamText: "Our diverse team of voice actors and content creators brings years of experience and unlimited creativity to every project. From character voices to commercial narration, we deliver professional quality that exceeds expectations.",
-      valuesTitle: "Our Values",
-      valuesText: "Excellence, creativity, professionalism, and collaboration are at the heart of everything we do. We're committed to delivering outstanding results while fostering a supportive community for our talent and clients."
-    },
-    es: {
-      heroTitle: "Acerca de Funko Flash",
-      heroSubtitle: "Tu Estudio Premier de Actuación de Voz y Creación de Contenido",
-      aboutTitle: "Nuestra Historia",
-      aboutText: "Bienvenido a Funko Flash, donde la creatividad se encuentra con la excelencia en actuación de voz y creación de contenido. Fundado con una pasión por dar vida a los personajes y contar historias convincentes, hemos construido una comunidad de talentosos actores de voz, creadores de contenido y profesionales de la industria.",
-      missionTitle: "Nuestra Misión",
-      missionText: "Brindar servicios excepcionales de actuación de voz y crear contenido atractivo que resuene con audiencias en todo el mundo. Creemos en el poder de la voz para transformar historias, marcas y experiencias.",
-      teamTitle: "Nuestro Equipo",
-      teamText: "Nuestro diverso equipo de actores de voz y creadores de contenido aporta años de experiencia y creatividad ilimitada a cada proyecto. Desde voces de personajes hasta narración comercial, entregamos calidad profesional que supera las expectativas.",
-      valuesTitle: "Nuestros Valores",
-      valuesText: "La excelencia, creatividad, profesionalismo y colaboración están en el corazón de todo lo que hacemos. Estamos comprometidos a entregar resultados sobresalientes mientras fomentamos una comunidad de apoyo para nuestro talento y clientes."
-    }
-  };
-
-  const sectionIcons = [Heart, Target, Users, Award];
-
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation language={language} setLanguage={setLanguage} />
-      {/* Background wraps hero + content */}
-      <div 
-        className="pt-[5px]"
-        style={{
-          backgroundImage: 'var(--site-background)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
-        }}
-      >
-        {/* Hero Section */}
+    <PageLayout language={language} setLanguage={setLanguage}>
+      <div className="min-h-screen">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -67,165 +27,136 @@ const About = () => {
         >
           <UnifiedHeroSection 
             language={language} 
-            className="rounded-2xl overflow-hidden border-2"
-            style={{ borderColor: 'hsl(0 0% 100%)' }}
+            className="glass-hover overflow-hidden"
           />
         </motion.div>
-        
-        {/* Main Content */}
-        <main className="max-w-4xl mx-auto px-4 py-16 space-y-16">
-          {/* About Section */}
-          <motion.section
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="bg-card/90 backdrop-blur-sm rounded-2xl p-8 lg:p-12 shadow-xl border border-border relative overflow-hidden group"
-          >
-            <motion.div
-              className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
-            />
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-primary/10 rounded-xl">
-                  <Heart className="w-6 h-6 text-primary" />
-                </div>
-                <h2 className="text-3xl font-bold text-foreground">
-                  {content[language].aboutTitle}
-                </h2>
-              </div>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                {content[language].aboutText}
-              </p>
-            </div>
-          </motion.section>
 
-          {/* Mission Section */}
-          <motion.section
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="bg-card/90 backdrop-blur-sm rounded-2xl p-8 lg:p-12 shadow-xl border border-border relative overflow-hidden group"
-          >
-            <motion.div
-              className="absolute -bottom-12 -left-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
-            />
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-primary/10 rounded-xl">
-                  <Target className="w-6 h-6 text-primary" />
-                </div>
-                <h2 className="text-3xl font-bold text-foreground">
-                  {content[language].missionTitle}
-                </h2>
-              </div>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                {content[language].missionText}
-              </p>
-            </div>
-          </motion.section>
+        {/* About Section */}
+        <motion.section 
+          className="container mx-auto px-4 py-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="max-w-4xl mx-auto glass glass-hover p-8">
+            <h2 className="text-3xl sm:text-4xl font-bold text-neon-orange text-glow-orange mb-6 text-center text-neon flex items-center justify-center gap-3">
+              <Heart className="w-8 h-8" />
+              {language === 'en' ? 'About FunkoFlash' : 'Sobre FunkoFlash'}
+            </h2>
+            <p className="text-lg text-white/90 leading-relaxed">
+              {language === 'en'
+                ? "FunkoFlash is your premier destination for connecting with talented voice actors and content creators. We specialize in bringing characters to life through authentic voice acting, custom recordings, and memorable fan experiences at conventions worldwide."
+                : "FunkoFlash es tu destino principal para conectar con talentosos actores de voz y creadores de contenido. Nos especializamos en dar vida a los personajes a través de actuación de voz auténtica, grabaciones personalizadas y experiencias memorables para los fans en convenciones de todo el mundo."}
+            </p>
+          </div>
+        </motion.section>
 
-          {/* Team Section */}
-          <motion.section
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-card/90 backdrop-blur-sm rounded-2xl p-8 lg:p-12 shadow-xl border border-border relative overflow-hidden group"
-          >
-            <motion.div
-              className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
-            />
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-primary/10 rounded-xl">
-                  <Users className="w-6 h-6 text-primary" />
-                </div>
-                <h2 className="text-3xl font-bold text-foreground">
-                  {content[language].teamTitle}
-                </h2>
-              </div>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                {content[language].teamText}
-              </p>
-            </div>
-          </motion.section>
+        {/* Mission Section */}
+        <motion.section 
+          className="container mx-auto px-4 py-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="max-w-4xl mx-auto glass glass-hover p-8">
+            <h2 className="text-3xl sm:text-4xl font-bold text-neon-cyan text-glow-cyan mb-6 text-center text-neon flex items-center justify-center gap-3">
+              <Target className="w-8 h-8" />
+              {language === 'en' ? 'Our Mission' : 'Nuestra Misión'}
+            </h2>
+            <p className="text-lg text-white/90 leading-relaxed">
+              {language === 'en'
+                ? "To create unforgettable experiences that bridge the gap between fans and the voices behind their favorite characters. We're committed to excellence in talent management, authentic fan interactions, and delivering professional voice acting services."
+                : "Crear experiencias inolvidables que conecten a los fans con las voces detrás de sus personajes favoritos. Estamos comprometidos con la excelencia en la gestión de talento, interacciones auténticas con los fans y la entrega de servicios profesionales de actuación de voz."}
+            </p>
+          </div>
+        </motion.section>
 
-          {/* Values Section */}
-          <motion.section
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="bg-card/90 backdrop-blur-sm rounded-2xl p-8 lg:p-12 shadow-xl border border-border relative overflow-hidden group"
-          >
-            <motion.div
-              className="absolute -bottom-12 -left-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-500"
-            />
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-primary/10 rounded-xl">
-                  <Award className="w-6 h-6 text-primary" />
-                </div>
-                <h2 className="text-3xl font-bold text-foreground">
-                  {content[language].valuesTitle}
-                </h2>
-              </div>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                {content[language].valuesText}
-              </p>
-            </div>
-          </motion.section>
+        {/* Team Section */}
+        <motion.section 
+          className="container mx-auto px-4 py-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <div className="max-w-4xl mx-auto glass glass-hover p-8">
+            <h2 className="text-3xl sm:text-4xl font-bold text-neon-magenta text-glow-magenta mb-6 text-center text-neon flex items-center justify-center gap-3">
+              <Users className="w-8 h-8" />
+              {language === 'en' ? 'Our Team' : 'Nuestro Equipo'}
+            </h2>
+            <p className="text-lg text-white/90 leading-relaxed">
+              {language === 'en'
+                ? "Our dedicated team of professionals works tirelessly to ensure every interaction is memorable. From event coordination to talent management, we're passionate about what we do and the community we serve."
+                : "Nuestro equipo dedicado de profesionales trabaja incansablemente para asegurar que cada interacción sea memorable. Desde la coordinación de eventos hasta la gestión de talento, somos apasionados por lo que hacemos y la comunidad que servimos."}
+            </p>
+          </div>
+        </motion.section>
 
-          {/* CTA Section */}
-          <motion.section
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <div className="bg-gradient-to-br from-primary/10 via-card/90 to-primary/5 backdrop-blur-sm rounded-2xl p-12 shadow-xl border border-border relative overflow-hidden">
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent"
-                animate={{
-                  x: ['-100%', '100%'],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
-              />
-              <div className="relative">
-                <h2 className="text-4xl font-bold mb-4 text-foreground bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                  {language === 'en' ? 'Ready to Work Together?' : '¿Listo para Trabajar Juntos?'}
-                </h2>
-                <p className="text-lg text-muted-foreground mb-8">
-                  {language === 'en' 
-                    ? 'Get in touch with us to discuss your next project.'
-                    : 'Ponte en contacto con nosotros para discutir tu próximo proyecto.'
-                  }
-                </p>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button 
-                    variant="funko" 
-                    size="lg"
-                    className="shadow-lg"
-                    onClick={() => window.location.href = '/contact'}
-                  >
-                    {language === 'en' ? 'Contact Us' : 'Contáctanos'}
-                  </Button>
+        {/* Values Section */}
+        <motion.section 
+          className="container mx-auto px-4 py-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-bold text-neon-yellow text-glow-orange mb-8 text-center text-neon flex items-center justify-center gap-3">
+              <Award className="w-8 h-8" />
+              {language === 'en' ? 'Our Values' : 'Nuestros Valores'}
+            </h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              {[
+                { title: language === 'en' ? 'Authenticity' : 'Autenticidad', text: language === 'en' ? 'We believe in genuine connections and authentic experiences for both talent and fans.' : 'Creemos en conexiones genuinas y experiencias auténticas tanto para el talento como para los fans.' },
+                { title: language === 'en' ? 'Excellence' : 'Excelencia', text: language === 'en' ? 'We strive for excellence in every project, event, and interaction.' : 'Nos esforzamos por la excelencia en cada proyecto, evento e interacción.' },
+                { title: language === 'en' ? 'Community' : 'Comunidad', text: language === 'en' ? 'We foster a welcoming community where fans and creators can connect meaningfully.' : 'Fomentamos una comunidad acogedora donde los fans y creadores pueden conectar de manera significativa.' },
+                { title: language === 'en' ? 'Innovation' : 'Innovación', text: language === 'en' ? 'We embrace new technologies and creative approaches to enhance fan experiences.' : 'Adoptamos nuevas tecnologías y enfoques creativos para mejorar las experiencias de los fans.' }
+              ].map((value, i) => (
+                <motion.div 
+                  key={i}
+                  className="glass glass-hover p-6"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h3 className="text-xl font-semibold text-neon-cyan mb-3 text-neon">{value.title}</h3>
+                  <p className="text-white/80">{value.text}</p>
                 </motion.div>
-              </div>
+              ))}
             </div>
-          </motion.section>
-        </main>
+          </div>
+        </motion.section>
 
-        <Footer language={language} />
+        {/* CTA Section */}
+        <motion.section 
+          className="container mx-auto px-4 py-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
+          <div className="max-w-2xl mx-auto text-center glass glass-hover p-8">
+            <h2 className="text-3xl sm:text-4xl font-bold text-neon-orange text-glow-orange mb-6 text-neon">
+              {language === 'en' ? 'Ready to Connect?' : '¿Listo para Conectar?'}
+            </h2>
+            <p className="text-lg text-white/90 mb-8">
+              {language === 'en'
+                ? "Whether you're a fan looking for a unique experience or a business seeking professional voice talent, we're here to help."
+                : "Ya seas un fan buscando una experiencia única o un negocio buscando talento de voz profesional, estamos aquí para ayudar."}
+            </p>
+            <motion.div whileHover={{ scale: 1.05 }}>
+              <Button 
+                size="lg"
+                onClick={() => navigate('/contact')}
+                className="text-lg bg-gradient-to-r from-neon-orange to-neon-magenta text-white glow-orange text-neon hover:scale-105 transition-transform"
+              >
+                {language === 'en' ? 'Get In Touch' : 'Ponte en Contacto'}
+              </Button>
+            </motion.div>
+          </div>
+        </motion.section>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 
