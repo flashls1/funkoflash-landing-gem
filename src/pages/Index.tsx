@@ -16,7 +16,7 @@ const Index = () => {
   }, [setCurrentPage]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-deep-black">
       <Navigation language={language} setLanguage={setLanguage} />
       <div 
         className="min-h-screen pt-[5px]"
@@ -35,8 +35,7 @@ const Index = () => {
         >
           <UnifiedHeroSection 
             language={language} 
-            className="rounded-2xl overflow-hidden border-2"
-            style={{ borderColor: 'hsl(0 0% 100%)' }}
+            className="glass-hover overflow-hidden"
           />
         </motion.div>
         <ContentTiles language={language} />

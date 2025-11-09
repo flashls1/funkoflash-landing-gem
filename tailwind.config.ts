@@ -62,7 +62,31 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// FunkoFlash Brand Colors
+				// Neon Colors
+				'neon-orange': {
+					DEFAULT: 'hsl(var(--neon-orange))',
+				},
+				'neon-yellow': {
+					DEFAULT: 'hsl(var(--neon-yellow))',
+				},
+				'neon-cyan': {
+					DEFAULT: 'hsl(var(--neon-cyan))',
+				},
+				'neon-magenta': {
+					DEFAULT: 'hsl(var(--neon-magenta))',
+				},
+				'neon-red': {
+					DEFAULT: 'hsl(var(--neon-red))',
+				},
+				// Background Colors
+				'deep-black': 'hsl(var(--deep-black))',
+				'deep-purple': 'hsl(var(--deep-purple))',
+				// Glassmorphism
+				'glass': 'rgba(59, 10, 104, 0.6)',
+				'glass-alt': 'rgba(59, 10, 104, 0.95)',
+				'glass-border': 'rgba(255, 255, 255, 0.2)',
+				'glass-border-alt': 'rgba(255, 255, 255, 0.3)',
+				// Legacy Funko Colors
 				'funko-orange': {
 					DEFAULT: 'hsl(var(--funko-orange))',
 					light: 'hsl(var(--funko-orange-light))',
@@ -86,9 +110,19 @@ export default {
 				'gradient-overlay-top': 'var(--gradient-overlay-top)',
 				'gradient-overlay-bottom': 'var(--gradient-overlay-bottom)'
 			},
+			backdropBlur: {
+				'sm': '4px',
+				'md': '12px',
+				'lg': '20px',
+				'xl': '40px',
+			},
 			boxShadow: {
 				'funko': 'var(--shadow-funko)',
-				'funko-blue': 'var(--shadow-funko-blue)'
+				'funko-blue': 'var(--shadow-funko-blue)',
+				'glass': 'var(--shadow-glass)',
+				'neon-orange': '0 0 20px hsl(var(--neon-orange) / 0.5)',
+				'neon-cyan': '0 0 20px hsl(var(--neon-cyan) / 0.5)',
+				'neon-magenta': '0 0 20px hsl(var(--neon-magenta) / 0.5)',
 			},
 			transitionTimingFunction: {
 				'smooth': 'var(--transition-smooth)'

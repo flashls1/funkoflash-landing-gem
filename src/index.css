@@ -8,157 +8,106 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Core Brand Colors */
-    --funko-orange: 25 100% 60%;
-    --funko-orange-light: 25 100% 75%;
-    --funko-orange-dark: 25 100% 45%;
-    --funko-blue: 220 90% 45%;
-    --funko-blue-light: 220 90% 60%;
-    --funko-blue-dark: 220 90% 30%;
+    /* Neon Theme - Casino-grade aesthetic */
+    --neon-orange: 25 100% 50%; /* #FF7A00 */
+    --neon-yellow: 45 100% 50%; /* #FFC300 */
+    --neon-cyan: 197 100% 60%; /* #33C3FF */
+    --neon-magenta: 320 100% 50%; /* #FF00CC */
+    --neon-red: 0 100% 59%; /* #FF2A2A */
     
-    /* Background System */
-    --background: 0 0% 100%;
-    --foreground: 220 15% 15%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 15%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 15%;
-
-    /* Primary (Funko Orange) */
-    --primary: 25 100% 60%;
+    /* Deep backgrounds */
+    --deep-black: 0 0% 0%; /* #000000 */
+    --deep-purple: 276 82% 22%; /* #3B0A68 */
+    --dark-gradient-base: 210 20% 5%; /* #0b0d10 */
+    --dark-gradient-alt: 210 15% 13%; /* #1a1e23 */
+    
+    /* Glassmorphism colors */
+    --glass-bg: 276 82% 22%; /* Deep purple at 60% opacity */
+    --glass-border: 0 0% 100%; /* White at 20% opacity */
+    --glass-glow: 197 100% 60%; /* Cyan glow */
+    
+    /* Core theme mapping */
+    --background: var(--deep-black);
+    --foreground: 0 0% 100%; /* Pure white */
+    
+    --card: var(--deep-purple);
+    --card-foreground: 0 0% 100%;
+    
+    --popover: var(--deep-purple);
+    --popover-foreground: 0 0% 100%;
+    
+    --primary: var(--neon-orange);
     --primary-foreground: 0 0% 100%;
-
-    /* Secondary (Funko Blue) */
-    --secondary: 220 90% 45%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 220 15% 96%;
-    --muted-foreground: 220 15% 45%;
-
-    --accent: 220 90% 95%;
-    --accent-foreground: 220 90% 30%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 15% 90%;
-    --input: 220 15% 90%;
-    --ring: 25 100% 60%;
-
-    --radius: 0.75rem;
-
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(var(--funko-orange)) 0%, hsl(var(--funko-blue)) 100%);
-    --gradient-overlay-top: linear-gradient(180deg, hsl(var(--funko-orange) / 0.7) 0%, transparent 100%);
-    --gradient-overlay-bottom: linear-gradient(0deg, hsl(var(--funko-blue) / 0.7) 0%, transparent 100%);
     
-    /* Shadows */
-    --shadow-funko: 0 4px 20px hsl(var(--funko-orange) / 0.3);
-    --shadow-funko-blue: 0 4px 20px hsl(var(--funko-blue) / 0.3);
+    --secondary: var(--neon-cyan);
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 0 0% 10%; /* Dark muted */
+    --muted-foreground: 0 0% 80%; /* White 80% */
+    
+    --accent: var(--neon-magenta);
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: var(--neon-red);
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 100%; /* White at 20% */
+    --input: 0 0% 100%; /* White at 20% */
+    --ring: var(--neon-cyan);
+    
+    --radius: 20px;
+    
+    /* Status colors for calendar */
+    --status-available: 120 100% 50%;
+    --status-hold: 45 100% 50%;
+    --status-tentative: 197 100% 60%;
+    --status-booked: 320 100% 50%;
+    --status-cancelled: 0 100% 59%;
+    --status-not-available: 0 0% 40%;
+    
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--neon-orange)) 0%, hsl(var(--neon-cyan)) 100%);
+    --gradient-overlay-top: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+    --gradient-overlay-bottom: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+    
+    /* Shadows with neon glow */
+    --shadow-funko: 0 0 20px hsl(var(--neon-orange) / 0.5);
+    --shadow-funko-blue: 0 0 20px hsl(var(--neon-cyan) / 0.5);
+    --shadow-glass: 0 0 20px hsl(var(--neon-cyan) / 0.3);
     
     /* Transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
     
-    /* Default Site Background - Black background with logo for Business/Talent dashboards */
+    /* Typography */
+    --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    
+    /* Default Site Background */
     --site-background: url('/lovable-uploads/d0f4637c-55b5-42eb-af08-29eabb28b253.png');
-
-    /* Extended Design System for Site Designer */
-    --design-purple: 280 70% 50%;
-    --design-pink: 340 70% 50%;
-    --design-cyan: 200 80% 50%;
-    --design-emerald: 160 60% 45%;
-    --design-yellow: 40 90% 50%;
-    --design-success: 120 60% 50%;
-    --design-warning: 40 90% 50%;
-    --design-info: 200 80% 50%;
-
-    /* Contrast Safety Rules */
-    --text-high-contrast: 220 15% 15%;
-    --text-high-contrast-inverse: 0 0% 98%;
-    --bg-high-contrast: 0 0% 98%;
-    --bg-high-contrast-inverse: 220 15% 15%;
-
-    /* Enhanced Gradients */
-    --gradient-rainbow: linear-gradient(135deg, 
-      hsl(340, 70%, 50%), 
-      hsl(280, 70%, 50%), 
-      hsl(220, 70%, 50%), 
-      hsl(200, 80%, 50%)
-    );
-    --gradient-sunset: linear-gradient(135deg, 
-      hsl(25, 100%, 60%), 
-      hsl(340, 70%, 50%)
-    );
-    --gradient-ocean: linear-gradient(135deg, 
-      hsl(200, 80%, 50%), 
-      hsl(220, 90%, 45%)
-    );
-
-    /* Status Colors (Calendar Module) */
-    --status-available: 120 60% 50%;     /* #10B981 equivalent */
-    --status-hold: 25 100% 60%;          /* #F97316 equivalent */
-    --status-tentative: 40 90% 50%;      /* #FACC15 equivalent */
-    --status-booked: 220 90% 45%;        /* #2563EB equivalent */
-    --status-cancelled: 0 84% 60%;       /* #EF4444 equivalent */
-    --status-not-available: 210 7% 44%;  /* #6B7280 Gray 600 equivalent */
-
-    /* Enhanced Shadows */
-    --shadow-colorful: 0 8px 32px hsl(var(--funko-orange) / 0.15);
-    --shadow-glow: 0 0 40px hsl(var(--funko-orange) / 0.3);
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--funko-blue) / 0.2);
-
-    /* Dynamic Fonts */
-    --font-heading: 'Inter', sans-serif;
-    --font-body: 'Inter', sans-serif;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Sidebar colors */
+    --sidebar-background: var(--deep-purple);
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: var(--neon-orange);
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: var(--neon-cyan);
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 100%; /* White at 20% */
+    --sidebar-ring: var(--neon-cyan);
+    
+    /* Legacy Funko colors for backward compatibility */
+    --funko-orange: var(--neon-orange);
+    --funko-orange-light: 25 100% 70%;
+    --funko-orange-dark: 25 100% 40%;
+    --funko-blue: var(--neon-cyan);
+    --funko-blue-light: 197 100% 70%;
+    --funko-blue-dark: 197 100% 50%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Dark mode uses same neon theme */
+    --background: var(--deep-black);
+    --foreground: 0 0% 100%;
   }
 }
 
@@ -167,8 +116,20 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  html, body {
+  body {
     @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    letter-spacing: 0.02em;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+  }
+  
+  html, body {
     max-width: 100%;
     overflow-x: hidden;
     height: 100%;
@@ -194,33 +155,70 @@ All colors MUST be HSL.
   }
 }
 
-/* Global Contrast Safety Rules */
 @layer utilities {
-  /* Ensure buttons always have visible text */
-  .contrast-safe-text {
-    color: hsl(var(--text-high-contrast)) !important;
+  /* Glassmorphism Core */
+  .glass {
+    background: rgba(59, 10, 104, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 20px rgba(51, 195, 255, 0.3);
+    border-radius: 20px;
   }
   
-  .contrast-safe-text-inverse {
-    color: hsl(var(--text-high-contrast-inverse)) !important;
-  }
-
-  /* Force minimum contrast for ghost buttons */
-  .ghost-button-safe {
-    color: hsl(var(--foreground));
-    background-color: transparent;
+  .glass-alt {
+    background: rgba(59, 10, 104, 0.95);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
   }
   
-  .ghost-button-safe:hover {
-    background-color: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
+  .glass-hover {
+    transition: var(--transition-smooth);
   }
-
-  /* Dropdown menu safety */
-  .dropdown-safe {
-    background-color: hsl(var(--popover)) !important;
-    color: hsl(var(--popover-foreground)) !important;
-    border: 1px solid hsl(var(--border)) !important;
+  
+  .glass-hover:hover {
+    background: rgba(59, 10, 104, 0.8);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 30px rgba(51, 195, 255, 0.5);
+    transform: translateY(-2px);
+  }
+  
+  /* Neon Glow Effects */
+  .glow-orange {
+    box-shadow: 0 0 20px hsl(var(--neon-orange) / 0.5);
+  }
+  
+  .glow-cyan {
+    box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.5);
+  }
+  
+  .glow-magenta {
+    box-shadow: 0 0 20px hsl(var(--neon-magenta) / 0.5);
+  }
+  
+  .glow-red {
+    box-shadow: 0 0 20px hsl(var(--neon-red) / 0.5);
+  }
+  
+  /* Text Glow */
+  .text-glow-orange {
+    text-shadow: 0 0 10px hsl(var(--neon-orange) / 0.8);
+  }
+  
+  .text-glow-cyan {
+    text-shadow: 0 0 10px hsl(var(--neon-cyan) / 0.8);
+  }
+  
+  .text-glow-magenta {
+    text-shadow: 0 0 10px hsl(var(--neon-magenta) / 0.8);
+  }
+  
+  /* Uppercase utility */
+  .text-neon {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
   /* Mobile viewport lock utilities */
